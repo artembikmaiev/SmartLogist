@@ -107,8 +107,9 @@ export default function ManagerTripsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-bold text-slate-900">Управління рейсами</h1>
-          <button className="bg-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-800 transition-colors shadow-sm">
-            + Створити рейс
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+            <span className="text-lg">+</span>
+            Створити рейс
           </button>
         </div>
       </div>
