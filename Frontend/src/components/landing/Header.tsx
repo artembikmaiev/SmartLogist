@@ -56,16 +56,22 @@ export default function Header() {
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     <Link
-                        href="/auth/driver"
+                        href="/admin/managers"
                         className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
                     >
-                        Вхід для водія
+                        Адмін панель
                     </Link>
                     <Link
                         href="/auth/manager"
-                        className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                        className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
                     >
                         Кабінет менеджера
+                    </Link>
+                    <Link
+                        href="/auth/driver"
+                        className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                    >
+                        Вхід для водія
                     </Link>
                 </div>
             </div>

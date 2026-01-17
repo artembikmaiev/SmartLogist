@@ -137,7 +137,6 @@ export default function VehiclesPage() {
                 <div className="flex items-center justify-between mb-2">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Транспорт</h1>
-                        <p className="text-slate-500 text-sm mt-1">Управління автопарком компанії</p>
                     </div>
                     <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
                         <span className="text-lg">+</span>

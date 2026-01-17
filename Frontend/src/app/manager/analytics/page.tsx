@@ -130,8 +130,7 @@ export default function AnalyticsPage() {
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Аналітика</h1>
-                        <p className="text-slate-500 text-sm mt-1">Комплексний огляд показників ефективності автопарку</p>
+                        <h1 className="text-3xl font-bold text-slate-900">Аналітика</h1>  
                     </div>
                     <div className="relative">
                         <select className="appearance-none px-4 py-2.5 pr-10 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600">
