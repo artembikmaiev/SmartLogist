@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Route, User, LogOut } from 'lucide-react';
+import { Route, LogOut } from 'lucide-react';
 
 export default function DriverLayout({
   children,
@@ -13,7 +13,6 @@ export default function DriverLayout({
 
   const navigation = [
     { name: 'Мої рейси', href: '/driver/trips', icon: Route },
-    { name: 'Профіль', href: '/driver/profile', icon: User },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -42,8 +41,8 @@ export default function DriverLayout({
                   key={item.name}
                   href={item.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${active
-                      ? 'bg-green-50 text-green-700 font-medium'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-green-50 text-green-700 font-medium'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -55,7 +54,7 @@ export default function DriverLayout({
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+            <Link href="/driver/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm">ІП</span>
               </div>
@@ -63,7 +62,7 @@ export default function DriverLayout({
                 <p className="text-sm font-medium text-slate-900">Іван Петренко</p>
                 <p className="text-xs text-slate-500">Водій</p>
               </div>
-            </div>
+            </Link>
             <Link
               href="/"
               className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
