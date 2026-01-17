@@ -45,8 +45,8 @@ export default function ManagerLayout({
                     key={item.name}
                     href={item.href}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${active
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -65,7 +65,7 @@ export default function ManagerLayout({
               </button>
 
               {/* User Menu */}
-              <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+              <Link href="/manager/profile" className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity">
                 <div className="text-right hidden md:block">
                   <p className="text-sm font-medium text-slate-900">Менеджер</p>
                   <p className="text-xs text-slate-500">manager@smartlogist.ua</p>
@@ -73,7 +73,7 @@ export default function ManagerLayout({
                 <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold text-sm">МЛ</span>
                 </div>
-              </div>
+              </Link>
 
               {/* Logout */}
               <Link
