@@ -26,4 +26,5 @@ public class User
     public virtual ICollection<User> ManagedDrivers { get; set; } = new List<User>();
     
     public virtual ICollection<DriverVehicle> AssignedVehicles { get; set; } = new List<DriverVehicle>();
+    public virtual ICollection<ManagerPermission> ManagerPermissions { get; set; } = new List<ManagerPermission>();
 }
