@@ -27,7 +27,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Role)
             .HasColumnName("role")
-            .HasConversion<string>()
+            .HasConversion(
+                v => v.ToString().ToLower(),
+                v => (SmartLogist.Domain.Enums.UserRole)Enum.Parse(typeof(SmartLogist.Domain.Enums.UserRole), v, true))
             .HasMaxLength(50)
             .IsRequired();
 
@@ -53,11 +55,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.DriverStatus)
             .HasColumnName("driver_status")
-            .HasConversion<string>()
+            .HasConversion(
+                v => v.HasValue ? v.Value.ToString() : null,
+                v => string.IsNullOrEmpty(v) ? null : Enum.Parse<SmartLogist.Domain.Enums.DriverStatus>(v))
             .HasMaxLength(50);
 
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
+            .HasColumnType("timestamp without time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // Relationships
