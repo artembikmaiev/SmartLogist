@@ -1,36 +1,22 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
-import type { LoginCredentials, RegisterData, AuthResponse } from '@/types/auth.types';
+import type { LoginCredentials, AuthResponse } from '@/types/auth.types';
 import type { ApiResponse } from '@/types/common.types';
 
 export const authService = {
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        const response = await apiClient.post<ApiResponse<AuthResponse>>(
+        const response = await apiClient.post<AuthResponse>(
             API_ENDPOINTS.AUTH.LOGIN,
             credentials
         );
 
         // Store token in localStorage
-        if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+        if (response.token) {
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
         }
 
-        return response.data;
-    },
-
-    async register(data: RegisterData): Promise<AuthResponse> {
-        const response = await apiClient.post<ApiResponse<AuthResponse>>(
-            API_ENDPOINTS.AUTH.REGISTER,
-            data
-        );
-
-        if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
-
-        return response.data;
+        return response;
     },
 
     async logout(): Promise<void> {
@@ -40,10 +26,10 @@ export const authService = {
     },
 
     async getCurrentUser(): Promise<AuthResponse['user']> {
-        const response = await apiClient.get<ApiResponse<AuthResponse['user']>>(
+        const response = await apiClient.get<AuthResponse['user']>(
             API_ENDPOINTS.AUTH.ME
         );
-        return response.data;
+        return response;
     },
 
     getStoredUser(): AuthResponse['user'] | null {

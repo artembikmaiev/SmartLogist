@@ -10,13 +10,12 @@ export interface RegisterData extends LoginCredentials {
 
 export interface AuthResponse {
     user: {
-        id: string;
+        id: number;
         email: string;
-        name: string;
-        role: 'manager' | 'driver';
+        fullName: string;
+        role: 'admin' | 'manager' | 'driver';
     };
     token: string;
-    refreshToken: string;
 }
 
 export interface AuthState {

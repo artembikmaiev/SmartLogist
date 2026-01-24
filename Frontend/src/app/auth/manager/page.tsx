@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/auth.service';
 
 export default function ManagerLogin() {
     const router = useRouter();
@@ -17,12 +18,10 @@ export default function ManagerLogin() {
         setIsLoading(true);
 
         try {
-            // TODO: Implement actual authentication
-            // For now, just redirect to manager dashboard
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+            await authService.login({ email, password });
             router.push('/manager');
-        } catch (err) {
-            setError('Невірний email або пароль');
+        } catch (err: any) {
+            setError(err.message || 'Невірний email або пароль');
         } finally {
             setIsLoading(false);
         }
@@ -57,7 +56,7 @@ export default function ManagerLogin() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-slate-900"
                                 placeholder="manager@smartlogist.ua"
                             />
                         </div>
@@ -73,7 +72,7 @@ export default function ManagerLogin() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-slate-900"
                                 placeholder="••••••••"
                             />
                         </div>

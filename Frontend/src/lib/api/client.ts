@@ -36,8 +36,19 @@ class ApiClient {
             const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'API request failed');
+                // Try to parse error as JSON, fallback to text
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.Message || errorMessage;
+                } catch {
+                    // If JSON parsing fails, try to get text
+                    const errorText = await response.text();
+                    if (errorText) {
+                        errorMessage = errorText;
+                    }
+                }
+                throw new Error(errorMessage);
             }
 
             // Handle 204 No Content responses

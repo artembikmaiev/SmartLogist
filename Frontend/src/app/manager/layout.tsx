@@ -1,15 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Truck, Users, BarChart3, Route, LogOut, Bell } from 'lucide-react';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-export default function ManagerLayout({
+function ManagerLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   const navigation = [
     { name: 'Рейси', href: '/manager/trips', icon: Route },
@@ -19,6 +23,22 @@ export default function ManagerLayout({
   ];
 
   const isActive = (href: string) => pathname === href;
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user?.fullName) return 'ML';
+    return user.fullName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -67,22 +87,22 @@ export default function ManagerLayout({
               {/* User Menu */}
               <Link href="/manager/profile" className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity">
                 <div className="text-right hidden md:block">
-                  <p className="text-sm font-medium text-slate-900">Менеджер</p>
-                  <p className="text-xs text-slate-500">manager@smartlogist.ua</p>
+                  <p className="text-sm font-medium text-slate-900">{user?.fullName || 'Менеджер'}</p>
+                  <p className="text-xs text-slate-500">{user?.email || 'manager@smartlogist.ua'}</p>
                 </div>
                 <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">МЛ</span>
+                  <span className="text-white font-semibold text-sm">{getUserInitials()}</span>
                 </div>
               </Link>
 
               {/* Logout */}
-              <Link
-                href="/"
+              <button
+                onClick={handleLogout}
                 className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
                 title="Вийти"
               >
                 <LogOut className="w-5 h-5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -93,5 +113,19 @@ export default function ManagerLayout({
         {children}
       </main>
     </div>
+  );
+}
+
+export default function ManagerLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthProvider>
+      <ProtectedRoute requiredRole="manager">
+        <ManagerLayoutContent>{children}</ManagerLayoutContent>
+      </ProtectedRoute>
+    </AuthProvider>
   );
 }
