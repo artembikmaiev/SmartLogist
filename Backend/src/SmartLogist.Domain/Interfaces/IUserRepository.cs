@@ -13,4 +13,10 @@ public interface IUserRepository
     Task<bool> EmailExistsAsync(string email);
     Task<bool> PhoneExistsAsync(string phone);
     Task<int> GetActiveDriversCountAsync(int managerId);
+
+    // Управління дозволами
+    Task<IEnumerable<ManagerPermission>> GetManagerPermissionsAsync(int managerId);
+    Task GrantPermissionAsync(int managerId, int permissionId, int? grantedBy = null);
+    Task RevokePermissionAsync(int managerId, int permissionId);
+    Task<bool> HasPermissionAsync(int managerId, int permissionId);
 }

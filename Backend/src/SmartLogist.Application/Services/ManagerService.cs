@@ -1,4 +1,5 @@
 using SmartLogist.Application.DTOs.Manager;
+using SmartLogist.Application.DTOs.Permission;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
@@ -9,10 +10,12 @@ namespace SmartLogist.Application.Services;
 public class ManagerService : IManagerService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IPermissionRepository _permissionRepository;
 
-    public ManagerService(IUserRepository userRepository)
+    public ManagerService(IUserRepository userRepository, IPermissionRepository permissionRepository)
     {
         _userRepository = userRepository;
+        _permissionRepository = permissionRepository;
     }
 
     public async Task<IEnumerable<ManagerDto>> GetAllManagersAsync()
@@ -74,7 +77,7 @@ public class ManagerService : IManagerService
             FullName = dto.FullName,
             Phone = dto.Phone,
             IsActive = true,
-            CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+            CreatedAt = DateTime.UtcNow
         };
 
         var createdManager = await _userRepository.AddAsync(manager);
@@ -134,5 +137,84 @@ public class ManagerService : IManagerService
 
         await _userRepository.DeleteAsync(id);
         return true;
+    }
+
+    public async Task<IEnumerable<PermissionDto>> GetAllPermissionsAsync()
+    {
+        var permissions = await _permissionRepository.GetAllAsync();
+        
+        return permissions.Select(p => new PermissionDto
+        {
+            Id = p.Id,
+            Code = p.Code,
+            Name = p.Name,
+            Description = p.Description,
+            Category = p.Category
+        });
+    }
+
+    public async Task<IEnumerable<PermissionDto>> GetManagerPermissionsAsync(int managerId)
+    {
+        var manager = await _userRepository.GetByIdAsync(managerId);
+        if (manager == null || manager.Role != UserRole.Manager)
+        {
+            throw new InvalidOperationException("Менеджера не знайдено");
+        }
+
+        var managerPermissions = await _userRepository.GetManagerPermissionsAsync(managerId);
+        
+        return managerPermissions.Select(mp => new PermissionDto
+        {
+            Id = mp.Permission.Id,
+            Code = mp.Permission.Code,
+            Name = mp.Permission.Name,
+            Description = mp.Permission.Description,
+            Category = mp.Permission.Category
+        });
+    }
+
+    public async Task GrantPermissionAsync(int managerId, int permissionId)
+    {
+        // Перевірити наявність менеджера
+        var manager = await _userRepository.GetByIdAsync(managerId);
+        if (manager == null || manager.Role != UserRole.Manager)
+        {
+            throw new InvalidOperationException("Менеджера не знайдено");
+        }
+
+        // Перевірити наявність дозволу
+        var permission = await _permissionRepository.GetByIdAsync(permissionId);
+        if (permission == null)
+        {
+            throw new InvalidOperationException("Дозвіл не знайдено");
+        }
+
+        // Перевірте, чи вже надано дозвіл
+        var hasPermission = await _userRepository.HasPermissionAsync(managerId, permissionId);
+        if (hasPermission)
+        {
+            throw new InvalidOperationException("Менеджер вже має цей дозвіл");
+        }
+
+        await _userRepository.GrantPermissionAsync(managerId, permissionId);
+    }
+
+    public async Task RevokePermissionAsync(int managerId, int permissionId)
+    {
+        // Перевірити наявність менеджера
+        var manager = await _userRepository.GetByIdAsync(managerId);
+        if (manager == null || manager.Role != UserRole.Manager)
+        {
+            throw new InvalidOperationException("Менеджера не знайдено");
+        }
+
+        // Перевірте, чи надано дозвіл
+        var hasPermission = await _userRepository.HasPermissionAsync(managerId, permissionId);
+        if (!hasPermission)
+        {
+            throw new InvalidOperationException("Менеджер не має цього дозволу");
+        }
+
+        await _userRepository.RevokePermissionAsync(managerId, permissionId);
     }
 }

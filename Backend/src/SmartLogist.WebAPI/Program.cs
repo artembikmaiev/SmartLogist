@@ -36,6 +36,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateManagerDtoValidator>(
 
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 
 // Services
 builder.Services.AddScoped<IManagerService, ManagerService>();

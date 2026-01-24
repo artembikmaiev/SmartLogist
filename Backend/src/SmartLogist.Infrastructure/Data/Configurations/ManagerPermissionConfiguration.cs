@@ -26,6 +26,7 @@ public class ManagerPermissionConfiguration : IEntityTypeConfiguration<ManagerPe
 
         builder.Property(mp => mp.GrantedAt)
             .HasColumnName("granted_at")
+            .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.HasIndex(mp => new { mp.ManagerId, mp.PermissionId }).IsUnique();

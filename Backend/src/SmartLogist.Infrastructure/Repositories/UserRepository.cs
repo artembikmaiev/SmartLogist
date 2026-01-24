@@ -84,4 +84,46 @@ public class UserRepository : IUserRepository
             .Where(u => u.ManagerId == managerId && u.IsActive)
             .CountAsync();
     }
+
+    public async Task<IEnumerable<ManagerPermission>> GetManagerPermissionsAsync(int managerId)
+    {
+        return await _context.ManagerPermissions
+            .Include(mp => mp.Permission)
+            .Where(mp => mp.ManagerId == managerId)
+            .OrderBy(mp => mp.Permission.Category)
+            .ThenBy(mp => mp.Permission.Name)
+            .ToListAsync();
+    }
+
+    public async Task GrantPermissionAsync(int managerId, int permissionId, int? grantedBy = null)
+    {
+        var managerPermission = new ManagerPermission
+        {
+            ManagerId = managerId,
+            PermissionId = permissionId,
+            GrantedBy = grantedBy,
+            GrantedAt = DateTime.UtcNow
+        };
+
+        await _context.ManagerPermissions.AddAsync(managerPermission);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RevokePermissionAsync(int managerId, int permissionId)
+    {
+        var managerPermission = await _context.ManagerPermissions
+            .FirstOrDefaultAsync(mp => mp.ManagerId == managerId && mp.PermissionId == permissionId);
+
+        if (managerPermission != null)
+        {
+            _context.ManagerPermissions.Remove(managerPermission);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<bool> HasPermissionAsync(int managerId, int permissionId)
+    {
+        return await _context.ManagerPermissions
+            .AnyAsync(mp => mp.ManagerId == managerId && mp.PermissionId == permissionId);
+    }
 }

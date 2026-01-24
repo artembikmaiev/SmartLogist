@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, Shield, Mail, Phone, Calendar } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Calendar } from 'lucide-react';
 import { managersService, Manager } from '@/services/managers.service';
 
 export default function AdminManagersPage() {
@@ -300,12 +300,6 @@ export default function AdminManagersPage() {
                                                     title="Редагувати"
                                                 >
                                                     <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                                    title="Дозволи"
-                                                >
-                                                    <Shield className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(manager)}

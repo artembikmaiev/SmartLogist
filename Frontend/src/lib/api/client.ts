@@ -40,6 +40,11 @@ class ApiClient {
                 throw new Error(error.message || 'API request failed');
             }
 
+            // Handle 204 No Content responses
+            if (response.status === 204 || response.headers.get('content-length') === '0') {
+                return undefined as T;
+            }
+
             return await response.json();
         } catch (error) {
             console.error('API Error:', error);

@@ -1,202 +1,295 @@
 'use client';
 
-import { useState } from 'react';
-import { Shield, Check, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Shield, Users, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { managersService, Manager } from '@/services/managers.service';
+import { permissionsService, Permission } from '@/services/permissions.service';
 
 export default function AdminPermissionsPage() {
-    const [selectedManager, setSelectedManager] = useState<number | null>(1);
+    const [managers, setManagers] = useState<Manager[]>([]);
+    const [selectedManager, setSelectedManager] = useState<Manager | null>(null);
+    const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
+    const [managerPermissions, setManagerPermissions] = useState<Permission[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [permissionsLoading, setPermissionsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-    // Mock data
-    const managers = [
-        { id: 1, name: 'Олена Коваль', email: 'olena.koval@smartlogist.ua' },
-        { id: 2, name: 'Андрій Мельник', email: 'andriy.melnyk@smartlogist.ua' },
-        { id: 3, name: 'Марія Шевченко', email: 'maria.shevchenko@smartlogist.ua' },
-    ];
+    // Load managers and all permissions on mount
+    useEffect(() => {
+        loadInitialData();
+    }, []);
 
-    const permissions = [
-        {
-            category: 'Рейси',
-            items: [
-                { id: 'trips.view', name: 'Перегляд рейсів', description: 'Можливість переглядати список рейсів' },
-                { id: 'trips.create', name: 'Створення рейсів', description: 'Можливість створювати нові рейси' },
-                { id: 'trips.edit', name: 'Редагування рейсів', description: 'Можливість редагувати існуючі рейси' },
-                { id: 'trips.delete', name: 'Видалення рейсів', description: 'Можливість видаляти рейси' },
-                { id: 'trips.assign', name: 'Призначення рейсів', description: 'Можливість призначати рейси водіям' },
-            ],
-        },
-        {
-            category: 'Водії',
-            items: [
-                { id: 'drivers.view', name: 'Перегляд водіїв', description: 'Можливість переглядати список водіїв' },
-                { id: 'drivers.create', name: 'Додавання водіїв', description: 'Можливість додавати нових водіїв' },
-                { id: 'drivers.edit', name: 'Редагування водіїв', description: 'Можливість редагувати дані водіїв' },
-                { id: 'drivers.delete', name: 'Видалення водіїв', description: 'Можливість видаляти водіїв' },
-            ],
-        },
-        {
-            category: 'Транспорт',
-            items: [
-                { id: 'vehicles.view', name: 'Перегляд транспорту', description: 'Можливість переглядати список транспорту' },
-                { id: 'vehicles.create', name: 'Додавання транспорту', description: 'Можливість додавати новий транспорт' },
-                { id: 'vehicles.edit', name: 'Редагування транспорту', description: 'Можливість редагувати дані транспорту' },
-                { id: 'vehicles.delete', name: 'Видалення транспорту', description: 'Можливість видаляти транспорт' },
-            ],
-        },
-        {
-            category: 'Аналітика',
-            items: [
-                { id: 'analytics.view', name: 'Перегляд аналітики', description: 'Доступ до звітів та аналітики' },
-                { id: 'analytics.export', name: 'Експорт даних', description: 'Можливість експортувати дані' },
-            ],
-        },
-    ];
+    // Load manager's permissions when selected manager changes
+    useEffect(() => {
+        if (selectedManager) {
+            loadManagerPermissions(selectedManager.id);
+        }
+    }, [selectedManager]);
 
-    // Mock permissions state
-    const [managerPermissions, setManagerPermissions] = useState<Record<number, string[]>>({
-        1: ['trips.view', 'trips.create', 'trips.edit', 'trips.assign', 'drivers.view', 'drivers.edit', 'vehicles.view', 'analytics.view'],
-        2: ['trips.view', 'trips.create', 'drivers.view', 'vehicles.view'],
-        3: ['trips.view', 'analytics.view'],
-    });
+    const loadInitialData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const [managersData, permissionsData] = await Promise.all([
+                managersService.getAll(),
+                permissionsService.getAll()
+            ]);
+            setManagers(managersData);
+            setAllPermissions(permissionsData);
 
-    const hasPermission = (permissionId: string) => {
-        if (!selectedManager) return false;
-        return managerPermissions[selectedManager]?.includes(permissionId) || false;
+            // Auto-select first manager if available
+            if (managersData.length > 0) {
+                setSelectedManager(managersData[0]);
+            }
+        } catch (err) {
+            setError('Помилка завантаження даних');
+            console.error('Error loading data:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const togglePermission = (permissionId: string) => {
+    const loadManagerPermissions = async (managerId: number) => {
+        try {
+            setPermissionsLoading(true);
+            const permissions = await permissionsService.getManagerPermissions(managerId);
+            setManagerPermissions(permissions);
+        } catch (err) {
+            console.error('Error loading manager permissions:', err);
+        } finally {
+            setPermissionsLoading(false);
+        }
+    };
+
+    const handleTogglePermission = async (permissionId: number, hasPermission: boolean) => {
         if (!selectedManager) return;
 
-        setManagerPermissions(prev => {
-            const current = prev[selectedManager] || [];
-            const updated = current.includes(permissionId)
-                ? current.filter(p => p !== permissionId)
-                : [...current, permissionId];
+        try {
+            setActionLoading(permissionId);
 
-            return {
-                ...prev,
-                [selectedManager]: updated,
-            };
-        });
+            if (hasPermission) {
+                await permissionsService.revokePermission(selectedManager.id, permissionId);
+            } else {
+                await permissionsService.grantPermission(selectedManager.id, permissionId);
+            }
+
+            // Reload manager permissions and managers list
+            await Promise.all([
+                loadManagerPermissions(selectedManager.id),
+                loadInitialData()
+            ]);
+        } catch (err) {
+            console.error('Error toggling permission:', err);
+            setError('Помилка зміни дозволу');
+        } finally {
+            setActionLoading(null);
+        }
     };
 
-    const selectedManagerData = managers.find(m => m.id === selectedManager);
+    const hasPermission = (permissionId: number): boolean => {
+        return managerPermissions.some(p => p.id === permissionId);
+    };
+
+    // Group permissions by category
+    const groupedPermissions = allPermissions.reduce((acc, permission) => {
+        if (!acc[permission.category]) {
+            acc[permission.category] = [];
+        }
+        acc[permission.category].push(permission);
+        return acc;
+    }, {} as Record<string, Permission[]>);
+
+    const categoryNames: Record<string, string> = {
+        'trips': 'Рейси',
+        'drivers': 'Водії',
+        'vehicles': 'Транспорт',
+        'analytics': 'Аналітика'
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-600">Завантаження...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-8 bg-slate-50 min-h-screen">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900">Управління дозволами</h1>
-                <p className="text-slate-600 mt-1">Налаштування прав доступу для менеджерів</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Managers List */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">Менеджери</h2>
-                    <div className="space-y-2">
-                        {managers.map((manager) => (
-                            <button
-                                key={manager.id}
-                                onClick={() => setSelectedManager(manager.id)}
-                                className={`w-full text-left p-3 rounded-lg transition-colors ${selectedManager === manager.id
-                                        ? 'bg-purple-50 border-2 border-purple-600'
-                                        : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span className="text-white font-semibold text-sm">
-                                            {manager.name.split(' ').map(n => n[0]).join('')}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-slate-900 truncate">{manager.name}</p>
-                                        <p className="text-xs text-slate-500 truncate">{manager.email}</p>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg">
+                            <Shield className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-800">Управління дозволами</h1>
+                            <p className="text-slate-600">Налаштування прав доступу для менеджерів</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Permissions Panel */}
-                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    {selectedManagerData ? (
-                        <>
-                            <div className="mb-6 pb-6 border-b border-slate-200">
-                                <h2 className="text-xl font-bold text-slate-900 mb-2">
-                                    Дозволи для {selectedManagerData.name}
-                                </h2>
-                                <p className="text-sm text-slate-600">{selectedManagerData.email}</p>
-                                <div className="mt-4 flex items-center gap-2">
-                                    <Shield className="w-5 h-5 text-purple-600" />
-                                    <span className="text-sm font-medium text-slate-700">
-                                        Активних дозволів: {managerPermissions[selectedManager!]?.length || 0}
-                                    </span>
-                                </div>
-                            </div>
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                        {error}
+                    </div>
+                )}
 
-                            <div className="space-y-6">
-                                {permissions.map((category) => (
-                                    <div key={category.category}>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-4">{category.category}</h3>
-                                        <div className="space-y-3">
-                                            {category.items.map((permission) => {
-                                                const isGranted = hasPermission(permission.id);
-                                                return (
-                                                    <div
-                                                        key={permission.id}
-                                                        className={`p-4 rounded-lg border-2 transition-all ${isGranted
-                                                                ? 'bg-purple-50 border-purple-200'
-                                                                : 'bg-slate-50 border-slate-200'
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Managers List */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                            <div className="p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-b border-purple-200">
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-purple-600" />
+                                    <h2 className="text-lg font-semibold text-slate-800">Менеджери</h2>
+                                </div>
+                                <p className="text-sm text-slate-600 mt-1">Всього: {managers.length}</p>
+                            </div>
+                            <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+                                {managers.map((manager) => (
+                                    <button
+                                        key={manager.id}
+                                        onClick={() => setSelectedManager(manager)}
+                                        className={`w-full p-4 text-left transition-all ${selectedManager?.id === manager.id
+                                            ? 'bg-purple-50 border-l-4 border-purple-600'
+                                            : 'hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-slate-800">{manager.fullName}</h3>
+                                                <p className="text-sm text-slate-600">{manager.email}</p>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="text-xs text-slate-500">
+                                                        {manager.permissions.length} дозволів
+                                                    </span>
+                                                    <span
+                                                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${manager.isActive
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-orange-100 text-orange-700'
                                                             }`}
                                                     >
-                                                        <div className="flex items-start justify-between gap-4">
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <p className="font-semibold text-slate-900">{permission.name}</p>
-                                                                    {isGranted && (
-                                                                        <span className="px-2 py-0.5 bg-purple-600 text-white rounded-full text-xs font-semibold">
-                                                                            Активно
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-sm text-slate-600">{permission.description}</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => togglePermission(permission.id)}
-                                                                className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${isGranted
-                                                                        ? 'bg-purple-600 hover:bg-purple-700'
-                                                                        : 'bg-slate-200 hover:bg-slate-300'
-                                                                    }`}
-                                                            >
-                                                                {isGranted ? (
-                                                                    <Check className="w-6 h-6 text-white" />
-                                                                ) : (
-                                                                    <X className="w-6 h-6 text-slate-600" />
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                        {manager.isActive ? 'Активний' : 'Неактивний'}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
-
-                            <div className="mt-8 pt-6 border-t border-slate-200">
-                                <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
-                                    Зберегти зміни
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="text-center py-12">
-                            <Shield className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                            <p className="text-slate-500">Виберіть менеджера для налаштування дозволів</p>
                         </div>
-                    )}
+                    </div>
+
+                    {/* Permissions Panel */}
+                    <div className="lg:col-span-2">
+                        {selectedManager ? (
+                            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                                <div className="p-6 bg-gradient-to-r from-purple-50 to-purple-100 border-b border-purple-200">
+                                    <h2 className="text-xl font-semibold text-slate-800 mb-1">
+                                        Дозволи для {selectedManager.fullName}
+                                    </h2>
+                                    <p className="text-sm text-slate-600">{selectedManager.email}</p>
+                                    <div className="mt-4 flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                            <span className="text-sm font-medium text-slate-700">
+                                                Активних: {managerPermissions.length}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <XCircle className="w-4 h-4 text-slate-400" />
+                                            <span className="text-sm font-medium text-slate-700">
+                                                Доступно: {allPermissions.length}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {permissionsLoading ? (
+                                    <div className="p-12 text-center">
+                                        <Loader2 className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-2" />
+                                        <p className="text-slate-600">Завантаження дозволів...</p>
+                                    </div>
+                                ) : (
+                                    <div className="p-6 space-y-6">
+                                        {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                                            <div key={category} className="space-y-3">
+                                                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                                                    <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+                                                    {categoryNames[category] || category}
+                                                </h3>
+                                                <div className="space-y-2">
+                                                    {permissions.map((permission) => {
+                                                        const isGranted = hasPermission(permission.id);
+                                                        const isLoading = actionLoading === permission.id;
+
+                                                        return (
+                                                            <div
+                                                                key={permission.id}
+                                                                className={`p-4 rounded-xl border-2 transition-all ${isGranted
+                                                                    ? 'bg-green-50 border-green-200'
+                                                                    : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-start justify-between">
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <h4 className="font-semibold text-slate-800">
+                                                                                {permission.name}
+                                                                            </h4>
+                                                                            {isGranted && (
+                                                                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                                                            )}
+                                                                        </div>
+                                                                        {permission.description && (
+                                                                            <p className="text-sm text-slate-600 mt-1">
+                                                                                {permission.description}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleTogglePermission(permission.id, isGranted)
+                                                                        }
+                                                                        disabled={isLoading}
+                                                                        className={`ml-4 px-4 py-2 rounded-lg font-semibold transition-all ${isGranted
+                                                                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                                                                            } disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+                                                                    >
+                                                                        {isLoading && (
+                                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                                        )}
+                                                                        {isGranted ? 'Відібрати' : 'Надати'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-12 text-center">
+                                <Shield className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                                    Оберіть менеджера
+                                </h3>
+                                <p className="text-slate-600">
+                                    Виберіть менеджера зі списку ліворуч для управління його дозволами
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

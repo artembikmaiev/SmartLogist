@@ -62,7 +62,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
-            .HasColumnType("timestamp without time zone")
+            .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // Relationships

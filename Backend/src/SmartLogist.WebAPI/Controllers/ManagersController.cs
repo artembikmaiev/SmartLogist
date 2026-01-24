@@ -15,7 +15,7 @@ public class ManagersController : ControllerBase
         _managerService = managerService;
     }
 
-    // Get all managers
+    // Отримати всіх менеджерів
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -23,7 +23,7 @@ public class ManagersController : ControllerBase
         return Ok(managers);
     }
 
-    // Get manager by ID
+    // Отримати менеджера за ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -35,7 +35,7 @@ public class ManagersController : ControllerBase
         return Ok(manager);
     }
 
-    // Create new manager
+    // Створити нового менеджера
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateManagerDto dto)
     {
@@ -50,7 +50,7 @@ public class ManagersController : ControllerBase
         }
     }
 
-    // Update manager
+    // Оновити менеджера
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateManagerDto dto)
     {
@@ -62,7 +62,7 @@ public class ManagersController : ControllerBase
         return Ok(manager);
     }
 
-    // Delete manager
+    // Видалити менеджера
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -73,6 +73,59 @@ public class ManagersController : ControllerBase
             if (!result)
                 return NotFound(new { Message = "Менеджера не знайдено" });
 
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    // Отримати всі доступні дозволи
+    [HttpGet("~/api/admin/permissions")]
+    public async Task<IActionResult> GetAllPermissions()
+    {
+        var permissions = await _managerService.GetAllPermissionsAsync();
+        return Ok(permissions);
+    }
+
+    // Отримати дозволи для конкретного менеджера
+    [HttpGet("{id}/permissions")]
+    public async Task<IActionResult> GetManagerPermissions(int id)
+    {
+        try
+        {
+            var permissions = await _managerService.GetManagerPermissionsAsync(id);
+            return Ok(permissions);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+    }
+
+    // Надати дозвіл менеджеру
+    [HttpPost("{id}/permissions/{permissionId}")]
+    public async Task<IActionResult> GrantPermission(int id, int permissionId)
+    {
+        try
+        {
+            await _managerService.GrantPermissionAsync(id, permissionId);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    // Скасувати дозвіл від менеджера
+    [HttpDelete("{id}/permissions/{permissionId}")]
+    public async Task<IActionResult> RevokePermission(int id, int permissionId)
+    {
+        try
+        {
+            await _managerService.RevokePermissionAsync(id, permissionId);
             return NoContent();
         }
         catch (InvalidOperationException ex)
