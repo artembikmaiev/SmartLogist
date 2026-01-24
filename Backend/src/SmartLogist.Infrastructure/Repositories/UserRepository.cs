@@ -126,4 +126,36 @@ public class UserRepository : IUserRepository
         return await _context.ManagerPermissions
             .AnyAsync(mp => mp.ManagerId == managerId && mp.PermissionId == permissionId);
     }
+
+    // Методи управління водіями
+    public async Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId)
+    {
+        return await _context.Users
+            .Include(u => u.AssignedVehicles)
+                .ThenInclude(dv => dv.Vehicle)
+            .Where(u => u.Role == UserRole.Driver && u.ManagerId == managerId)
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+    }
+
+    public async Task<User?> GetDriverByIdAsync(int driverId)
+    {
+        return await _context.Users
+            .Include(u => u.Manager)
+            .Include(u => u.AssignedVehicles)
+                .ThenInclude(dv => dv.Vehicle)
+            .FirstOrDefaultAsync(u => u.Id == driverId && u.Role == UserRole.Driver);
+    }
+
+    public async Task<bool> IsDriverAssignedToManagerAsync(int driverId, int managerId)
+    {
+        return await _context.Users
+            .AnyAsync(u => u.Id == driverId && u.Role == UserRole.Driver && u.ManagerId == managerId);
+    }
+
+    public async Task<int> GetDriversCountByManagerIdAsync(int managerId)
+    {
+        return await _context.Users
+            .CountAsync(u => u.Role == UserRole.Driver && u.ManagerId == managerId);
+    }
 }

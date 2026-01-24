@@ -34,4 +34,10 @@ public class PermissionRepository : IPermissionRepository
             .OrderBy(p => p.Name)
             .ToListAsync();
     }
+
+    public async Task<Permission?> GetByCodeAsync(string code)
+    {
+        return await _context.Permissions
+            .FirstOrDefaultAsync(p => p.Code == code);
+    }
 }

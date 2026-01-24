@@ -14,8 +14,17 @@ export interface AuthResponse {
         email: string;
         fullName: string;
         role: 'admin' | 'manager' | 'driver';
+        permissions?: Permission[];
     };
     token: string;
+}
+
+export interface Permission {
+    id: number;
+    code: string;
+    name: string;
+    description?: string;
+    category?: string;
 }
 
 export interface AuthState {

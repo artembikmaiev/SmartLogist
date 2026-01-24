@@ -44,6 +44,7 @@ builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 // Services
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<JwtService>();
 
 // JWT Authentication

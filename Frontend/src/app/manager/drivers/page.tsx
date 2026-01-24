@@ -1,159 +1,135 @@
 'use client';
 
-import { Users, CheckCircle, Truck, Moon, Search, Filter, Calendar, ArrowUpDown, Star, Trash2, Edit, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit, MapPin } from 'lucide-react';
+import { driversService } from '@/services/drivers.service';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Driver, DriverStats, DriverStatus } from '@/types/drivers.types';
+import { DriverStatusLabels } from '@/types/drivers.types';
 
 export default function DriversPage() {
-    // Stats data
-    const stats = [
-        {
-            title: 'Всього водіїв',
-            value: '48',
-            change: '+4',
-            subtitle: 'цього місяця',
-            icon: Users,
-            iconBg: 'bg-blue-100',
-            iconColor: 'text-blue-600',
-        },
-        {
-            title: 'Активні',
-            value: '32',
-            subtitle: '66.7% від загальної кількості',
-            icon: CheckCircle,
-            iconBg: 'bg-green-100',
-            iconColor: 'text-green-600',
-        },
-        {
-            title: 'На маршруті',
-            value: '24',
-            subtitle: '50% від загальної кількості',
-            icon: Truck,
-            iconBg: 'bg-orange-100',
-            iconColor: 'text-orange-600',
-        },
-        {
-            title: 'Офлайн',
-            value: '16',
-            subtitle: '33.3% від загальної кількості',
-            icon: Moon,
-            iconBg: 'bg-slate-100',
-            iconColor: 'text-slate-600',
-        },
-    ];
+    const { user } = useAuth();
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [stats, setStats] = useState<DriverStats | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
-    // Sample drivers data
-    const drivers = [
-        {
-            id: '#DRV-1234',
-            name: 'Іван Петренко',
-            avatar: 'ІП',
-            status: 'on-route',
-            vehicle: { model: 'MAN TGX', plate: 'AA 1234 BB' },
-            phone: '+380 67 123 4567',
-            rating: 4.8,
-            reviews: 124,
-            trips: 342,
-        },
-        {
-            id: '#DRV-1235',
-            name: 'Олег Коваленко',
-            avatar: 'ОК',
-            status: 'available',
-            vehicle: { model: 'Volvo FH16', plate: 'BB 5678 CC' },
-            phone: '+380 50 987 6543',
-            rating: 4.9,
-            reviews: 98,
-            trips: 256,
-        },
-        {
-            id: '#DRV-1236',
-            name: 'Марія Шевченко',
-            avatar: 'МШ',
-            status: 'busy',
-            vehicle: { model: 'Mercedes Actros', plate: 'CC 9012 DD' },
-            phone: '+380 63 456 7890',
-            rating: 4.7,
-            reviews: 156,
-            trips: 289,
-        },
-        {
-            id: '#DRV-1237',
-            name: 'Андрій Мельник',
-            avatar: 'АМ',
-            status: 'offline',
-            vehicle: { model: 'Scania R450', plate: 'DD 3456 EE' },
-            phone: '+380 99 234 5678',
-            rating: 4.6,
-            reviews: 87,
-            trips: 198,
-        },
-        {
-            id: '#DRV-1238',
-            name: 'Тарас Бондаренко',
-            avatar: 'ТБ',
-            status: 'on-route',
-            vehicle: { model: 'DAF XF', plate: 'EE 7890 FF' },
-            phone: '+380 68 345 6789',
-            rating: 4.9,
-            reviews: 203,
-            trips: 412,
-        },
-        {
-            id: '#DRV-1239',
-            name: 'Наталія Ковальчук',
-            avatar: 'НК',
-            status: 'available',
-            vehicle: { model: 'Iveco Stralis', plate: 'FF 2345 GG' },
-            phone: '+380 95 567 8901',
-            rating: 4.8,
-            reviews: 145,
-            trips: 267,
-        },
-    ];
+    // Check permissions
+    const hasCreatePermission = user?.permissions?.some(p => p.code === 'drivers.create') ?? false;
+    const hasEditPermission = user?.permissions?.some(p => p.code === 'drivers.edit') ?? false;
+    const hasDeletePermission = user?.permissions?.some(p => p.code === 'drivers.delete') ?? false;
+
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            setIsLoading(true);
+            setError('');
+            const [driversData, statsData] = await Promise.all([
+                driversService.getAll(),
+                driversService.getStats()
+            ]);
+            setDrivers(driversData);
+            setStats(statsData);
+        } catch (err: any) {
+            setError(err.message || 'Помилка завантаження даних');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Delete modal state
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [driverToDelete, setDriverToDelete] = useState<{ id: number; name: string } | null>(null);
+
+    const handleDeleteClick = (id: number, name: string) => {
+        setDriverToDelete({ id, name });
+        setDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!driverToDelete) return;
+
+        try {
+            await driversService.delete(driverToDelete.id);
+            setDeleteModalOpen(false);
+            setDriverToDelete(null);
+            await loadData();
+        } catch (err: any) {
+            setError(err.message || 'Помилка видалення водія');
+        }
+    };
+
+    // Filter and search drivers
+    const filteredDrivers = drivers.filter(driver => {
+        const matchesSearch = driver.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            driver.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            driver.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            driver.assignedVehicle?.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            driver.assignedVehicle?.licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesStatus = statusFilter === 'all' || driver.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'on-route':
+            case 'OnTrip':
                 return 'bg-green-100 text-green-700';
-            case 'available':
+            case 'Available':
                 return 'bg-blue-100 text-blue-700';
-            case 'busy':
+            case 'OnBreak':
                 return 'bg-orange-100 text-orange-700';
-            case 'offline':
+            case 'Offline':
                 return 'bg-slate-100 text-slate-700';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
     };
 
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'on-route':
-                return 'На маршруті';
-            case 'available':
-                return 'Вільний';
-            case 'busy':
-                return 'Зайнятий';
-            case 'offline':
-                return 'Офлайн';
-            default:
-                return status;
-        }
-    };
-
     const getStatusDotColor = (status: string) => {
         switch (status) {
-            case 'on-route':
+            case 'OnTrip':
                 return 'bg-green-500';
-            case 'available':
+            case 'Available':
                 return 'bg-blue-500';
-            case 'busy':
+            case 'OnBreak':
                 return 'bg-orange-500';
-            case 'offline':
+            case 'Offline':
                 return 'bg-slate-400';
             default:
                 return 'bg-gray-500';
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="p-8 bg-slate-50 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600">Завантаження...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error && !isModalOpen) {
+        return (
+            <div className="p-8 bg-slate-50 min-h-screen">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg">
+                    {error}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 bg-slate-50 min-h-screen">
@@ -163,43 +139,79 @@ export default function DriversPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Водії</h1>
                     </div>
-                    <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
-                        <span className="text-lg">+</span>
-                        Додати водія
-                    </button>
+                    {hasCreatePermission && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            <span className="text-lg">+</span>
+                            Додати водія
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => {
-                    const Icon = stat.icon;
-                    return (
-                        <div
-                            key={index}
-                            className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md"
-                        >
-                            <div className="flex items-start justify-between mb-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-2">{stat.title}</p>
-                                    <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
-                                </div>
-                                <div className={`w-12 h-12 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-                                    <Icon className={`w-6 h-6 ${stat.iconColor}`} />
-                                </div>
+            {stats && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-sm text-slate-500 mb-2">Всього водіїв</p>
+                                <p className="text-3xl font-bold text-slate-900">{stats.totalDrivers}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                {stat.change && (
-                                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                                        {stat.change}
-                                    </span>
-                                )}
-                                <span className="text-slate-500">{stat.subtitle}</span>
+                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <Users className="w-6 h-6 text-blue-600" />
                             </div>
                         </div>
-                    );
-                })}
-            </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-sm text-slate-500 mb-2">Активні</p>
+                                <p className="text-3xl font-bold text-slate-900">{stats.activeDrivers}</p>
+                            </div>
+                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                            {stats.totalDrivers > 0 ? Math.round((stats.activeDrivers / stats.totalDrivers) * 100) : 0}% від загальної кількості
+                        </p>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-sm text-slate-500 mb-2">На маршруті</p>
+                                <p className="text-3xl font-bold text-slate-900">{stats.onTripDrivers}</p>
+                            </div>
+                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                <Truck className="w-6 h-6 text-orange-600" />
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                            {stats.totalDrivers > 0 ? Math.round((stats.onTripDrivers / stats.totalDrivers) * 100) : 0}% від загальної кількості
+                        </p>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-sm text-slate-500 mb-2">Офлайн</p>
+                                <p className="text-3xl font-bold text-slate-900">{stats.offlineDrivers}</p>
+                            </div>
+                            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                <Moon className="w-6 h-6 text-slate-600" />
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                            {stats.totalDrivers > 0 ? Math.round((stats.offlineDrivers / stats.totalDrivers) * 100) : 0}% від загальної кількості
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Search and Filters */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
@@ -210,25 +222,24 @@ export default function DriversPage() {
                         <input
                             type="text"
                             placeholder="Пошук водія за ім'ям, телефоном або авто..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                         />
                     </div>
 
-                    {/* Filter Buttons */}
-                    <div className="flex gap-2">
-                        <button className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
-                            <Filter className="w-4 h-4" />
-                            Статус
-                        </button>
-                        <button className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Дата
-                        </button>
-                        <button className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2">
-                            <ArrowUpDown className="w-4 h-4" />
-                            Сортування
-                        </button>
-                    </div>
+                    {/* Status Filter */}
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    >
+                        <option value="all">Всі статуси</option>
+                        <option value="Available">Вільний</option>
+                        <option value="OnTrip">На маршруті</option>
+                        <option value="OnBreak">На перерві</option>
+                        <option value="Offline">Офлайн</option>
+                    </select>
                 </div>
             </div>
 
@@ -248,83 +259,252 @@ export default function DriversPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 bg-white">
-                            {drivers.map((driver) => (
-                                <tr key={driver.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                                {driver.avatar}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-slate-900">{driver.name}</p>
-                                                <p className="text-xs text-slate-500">{driver.id}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(driver.status)}`}></span>
-                                            {getStatusText(driver.status)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">{driver.vehicle.model}</p>
-                                            <p className="text-xs text-slate-500">{driver.vehicle.plate}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm text-slate-700">{driver.phone}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                            <span className="text-sm font-semibold text-slate-900">{driver.rating}</span>
-                                            <span className="text-xs text-slate-500">({driver.reviews})</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm font-semibold text-slate-900">{driver.trips}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Відстежити">
-                                                <MapPin className="w-5 h-5" />
-                                            </button>
-                                            <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Редагувати">
-                                                <Edit className="w-5 h-5" />
-                                            </button>
-                                            <button className="text-slate-400 hover:text-red-600 transition-colors" title="Видалити">
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                            {filteredDrivers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                                        {searchQuery || statusFilter !== 'all' ? 'Водіїв не знайдено' : 'Немає водіїв'}
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                filteredDrivers.map((driver) => (
+                                    <tr key={driver.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                                    {driver.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-900">{driver.fullName}</p>
+                                                    <p className="text-xs text-slate-500">{driver.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(driver.status)}`}></span>
+                                                {DriverStatusLabels[driver.status as DriverStatus]}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {driver.assignedVehicle ? (
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-900">{driver.assignedVehicle.model}</p>
+                                                    <p className="text-xs text-slate-500">{driver.assignedVehicle.licensePlate}</p>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm text-slate-400">Не призначено</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-slate-700">{driver.phone || '—'}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {driver.rating ? (
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                    <span className="text-sm font-semibold text-slate-900">{driver.rating.toFixed(1)}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm text-slate-400">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm font-semibold text-slate-900">{driver.totalTrips}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Відстежити">
+                                                    <MapPin className="w-5 h-5" />
+                                                </button>
+                                                {hasEditPermission && (
+                                                    <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Редагувати">
+                                                        <Edit className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                                {hasDeletePermission && (
+                                                    <button
+                                                        onClick={() => handleDeleteClick(driver.id, driver.fullName)}
+                                                        className="text-slate-400 hover:text-red-600 transition-colors"
+                                                        title="Видалити"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                {/* Pagination */}
-                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-                    <p className="text-sm text-slate-600">Показано <span className="font-medium">1-6</span> з <span className="font-medium">48</span> водіїв</p>
-                    <div className="flex items-center gap-2">
-                        <button className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">
-                            Попередня
-                        </button>
-                        <div className="flex gap-1">
-                            <button className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium shadow-sm">1</button>
-                            <button className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">2</button>
-                            <button className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">3</button>
-                            <span className="px-3 py-1.5 text-slate-400">...</span>
-                            <button className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">8</button>
-                        </div>
-                        <button className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">
-                            Наступна
-                        </button>
+            {/* Add Driver Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 backdrop-blur-[3px] flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-6">Додати нового водія</h2>
+
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            setError('');
+
+                            const formData = new FormData(e.currentTarget);
+                            const driverData = {
+                                email: formData.get('email') as string,
+                                fullName: formData.get('fullName') as string,
+                                password: formData.get('password') as string,
+                                phone: formData.get('phone') as string || undefined,
+                                licenseNumber: formData.get('licenseNumber') as string || undefined,
+                            };
+
+                            try {
+                                await driversService.create(driverData);
+                                setIsModalOpen(false);
+                                await loadData();
+                                e.currentTarget.reset();
+                            } catch (err: any) {
+                                setError(err.message || 'Помилка створення водія');
+                            }
+                        }} className="space-y-4 mb-6">
+                            {error && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Повне ім'я <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    required
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="Іван Петренко"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Email <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="driver@smartlogist.ua"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Пароль <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    required
+                                    minLength={8}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="Мінімум 8 символів"
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Мінімум 8 символів
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Телефон
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="+380671234567"
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Формат: +380XXXXXXXXX
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Номер водійського посвідчення
+                                </label>
+                                <input
+                                    type="text"
+                                    name="licenseNumber"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="ABC123456"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsModalOpen(false);
+                                        setError('');
+                                    }}
+                                    className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                >
+                                    Скасувати
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    Додати водія
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && driverToDelete && (
+                <div className="fixed inset-0 backdrop-blur-[3px] flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-8">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-4">Видалити водія?</h2>
+                        <p className="text-slate-600 mb-2">
+                            Ви впевнені що хочете видалити водія <span className="font-semibold text-slate-900">{driverToDelete.name}</span>?
+                        </p>
+
+                        {error && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDeleteModalOpen(false);
+                                    setDriverToDelete(null);
+                                    setError('');
+                                }}
+                                className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                            >
+                                Скасувати
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteConfirm}
+                                className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                            >
+                                Видалити
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

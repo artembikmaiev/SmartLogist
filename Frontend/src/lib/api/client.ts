@@ -36,18 +36,21 @@ class ApiClient {
             const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
             if (!response.ok) {
-                // Try to parse error as JSON, fallback to text
+                // Read response text first
+                const responseText = await response.text();
                 let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.message || errorData.Message || errorMessage;
-                } catch {
-                    // If JSON parsing fails, try to get text
-                    const errorText = await response.text();
-                    if (errorText) {
-                        errorMessage = errorText;
+
+                // Try to parse as JSON
+                if (responseText) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.Message || responseText;
+                    } catch {
+                        // If not JSON, use the text directly
+                        errorMessage = responseText;
                     }
                 }
+
                 throw new Error(errorMessage);
             }
 

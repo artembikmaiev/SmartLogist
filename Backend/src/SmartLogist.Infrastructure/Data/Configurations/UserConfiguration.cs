@@ -56,8 +56,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.DriverStatus)
             .HasColumnName("driver_status")
             .HasConversion(
-                v => v.HasValue ? v.Value.ToString() : null,
-                v => string.IsNullOrEmpty(v) ? null : Enum.Parse<SmartLogist.Domain.Enums.DriverStatus>(v))
+                v => v.HasValue ? ConvertDriverStatusToDb(v.Value) : null,
+                v => string.IsNullOrEmpty(v) ? null : ConvertDriverStatusFromDb(v))
             .HasMaxLength(50);
 
         builder.Property(u => u.CreatedAt)
@@ -75,5 +75,29 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(dv => dv.Driver)
             .HasForeignKey(dv => dv.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static string ConvertDriverStatusToDb(SmartLogist.Domain.Enums.DriverStatus status)
+    {
+        return status switch
+        {
+            SmartLogist.Domain.Enums.DriverStatus.Available => "available",
+            SmartLogist.Domain.Enums.DriverStatus.OnTrip => "on-trip",
+            SmartLogist.Domain.Enums.DriverStatus.Offline => "offline",
+            SmartLogist.Domain.Enums.DriverStatus.OnBreak => "on-break",
+            _ => "offline"
+        };
+    }
+
+    private static SmartLogist.Domain.Enums.DriverStatus ConvertDriverStatusFromDb(string value)
+    {
+        return value switch
+        {
+            "available" => SmartLogist.Domain.Enums.DriverStatus.Available,
+            "on-trip" => SmartLogist.Domain.Enums.DriverStatus.OnTrip,
+            "offline" => SmartLogist.Domain.Enums.DriverStatus.Offline,
+            "on-break" => SmartLogist.Domain.Enums.DriverStatus.OnBreak,
+            _ => SmartLogist.Domain.Enums.DriverStatus.Offline
+        };
     }
 }

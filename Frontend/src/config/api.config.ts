@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
         STATS: '/trips/stats',
     },
     DRIVERS: {
+        LIST: '/drivers',
         BASE: '/drivers',
         BY_ID: (id: string) => `/drivers/${id}`,
         STATS: '/drivers/stats',
