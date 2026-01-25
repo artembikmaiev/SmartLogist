@@ -49,12 +49,14 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateManagerDtoValidator>(
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 
 // Services
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<JwtService>();
 
 // JWT Authentication

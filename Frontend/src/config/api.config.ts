@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
         LOGOUT: '/auth/logout',
         REFRESH: '/auth/refresh',
         ME: '/auth/me',
+        PROFILE: '/auth/profile',
     },
     TRIPS: {
         BASE: '/trips',
@@ -39,5 +40,8 @@ export const API_ENDPOINTS = {
         STATS: '/analytics/stats',
         FUEL: '/analytics/fuel',
         COSTS: '/analytics/costs',
+    },
+    ACTIVITIES: {
+        RECENT: '/activities/recent',
     },
 };

@@ -13,7 +13,9 @@ export interface AuthResponse {
         id: number;
         email: string;
         fullName: string;
+        phone?: string;
         role: 'admin' | 'manager' | 'driver';
+        createdAt: string;
         permissions?: Permission[];
     };
     token: string;

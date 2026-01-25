@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<DriverVehicle> DriverVehicles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<ManagerPermission> ManagerPermissions { get; set; }
+    public DbSet<ActivityLog> ActivityLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

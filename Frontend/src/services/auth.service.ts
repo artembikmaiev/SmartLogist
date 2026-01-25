@@ -32,6 +32,17 @@ export const authService = {
         return response;
     },
 
+    async updateProfile(data: { fullName: string; email: string; phone?: string }): Promise<void> {
+        await apiClient.put(API_ENDPOINTS.AUTH.PROFILE, data);
+
+        // Update stored user data
+        const currentUser = this.getStoredUser();
+        if (currentUser) {
+            const updatedUser = { ...currentUser, ...data };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+    },
+
     getStoredUser(): AuthResponse['user'] | null {
         if (typeof window !== 'undefined') {
             const user = localStorage.getItem('user');

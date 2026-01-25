@@ -10,15 +10,18 @@ public class VehicleService : IVehicleService
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IUserRepository _userRepository;
     private readonly IPermissionRepository _permissionRepository;
+    private readonly IActivityService _activityService;
 
     public VehicleService(
         IVehicleRepository vehicleRepository, 
         IUserRepository userRepository,
-        IPermissionRepository permissionRepository)
+        IPermissionRepository permissionRepository,
+        IActivityService activityService)
     {
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
+        _activityService = activityService;
     }
 
     public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync(int managerId)
@@ -92,6 +95,15 @@ public class VehicleService : IVehicleService
         };
 
         var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
+        
+        await _activityService.LogAsync(
+            managerId, 
+            "Додано новий транспорт", 
+            $"{dto.Model} ({dto.LicensePlate})", 
+            "Vehicle", 
+            createdVehicle.Id.ToString()
+        );
+
         return MapToDto(createdVehicle);
     }
 
@@ -126,6 +138,15 @@ public class VehicleService : IVehicleService
         vehicle.Status = dto.Status;
 
         await _vehicleRepository.UpdateAsync(vehicle);
+
+        await _activityService.LogAsync(
+            managerId, 
+            "Оновлено дані транспорту", 
+            $"{vehicle.Model} ({vehicle.LicensePlate})", 
+            "Vehicle", 
+            vehicle.Id.ToString()
+        );
+
         return MapToDto(vehicle);
     }
 
@@ -151,6 +172,17 @@ public class VehicleService : IVehicleService
         }
 
         await _vehicleRepository.DeleteAsync(id);
+
+        if (vehicle != null)
+        {
+            await _activityService.LogAsync(
+                managerId, 
+                "Видалено транспорт", 
+                $"{vehicle.Model} ({vehicle.LicensePlate})", 
+                "Vehicle", 
+                id.ToString()
+            );
+        }
     }
 
     public async Task AssignVehicleAsync(int id, AssignVehicleDto dto, int managerId)
@@ -181,6 +213,15 @@ public class VehicleService : IVehicleService
         }
 
         await _vehicleRepository.AssignVehicleToDriverAsync(id, dto.DriverId, dto.IsPrimary);
+
+        var driver = await _userRepository.GetByIdAsync(dto.DriverId);
+        await _activityService.LogAsync(
+            managerId, 
+            "Призначено водія", 
+            $"{driver?.FullName} до {vehicle.Model}", 
+            "Vehicle", 
+            id.ToString()
+        );
     }
 
     public async Task UnassignVehicleAsync(int id, int driverId, int managerId)
@@ -203,6 +244,15 @@ public class VehicleService : IVehicleService
         }
 
         await _vehicleRepository.UnassignVehicleFromDriverAsync(id, driverId);
+
+        var driver = await _userRepository.GetByIdAsync(driverId);
+        await _activityService.LogAsync(
+            managerId, 
+            "Відкріплено водія", 
+            $"{driver?.FullName} від {vehicle.Model}", 
+            "Vehicle", 
+            id.ToString()
+        );
     }
 
     public async Task<VehicleStatsDto> GetVehicleStatsAsync(int managerId)

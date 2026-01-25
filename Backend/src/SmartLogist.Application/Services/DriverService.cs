@@ -10,11 +10,16 @@ public class DriverService : IDriverService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPermissionRepository _permissionRepository;
+    private readonly IActivityService _activityService;
 
-    public DriverService(IUserRepository userRepository, IPermissionRepository permissionRepository)
+    public DriverService(
+        IUserRepository userRepository, 
+        IPermissionRepository permissionRepository,
+        IActivityService activityService)
     {
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
+        _activityService = activityService;
     }
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
@@ -74,6 +79,15 @@ public class DriverService : IDriverService
         };
 
         var createdDriver = await _userRepository.AddAsync(driver);
+
+        await _activityService.LogAsync(
+            managerId, 
+            "Додано нового водія", 
+            createdDriver.FullName, 
+            "Driver", 
+            createdDriver.Id.ToString()
+        );
+
         return MapToDto(createdDriver);
     }
 
@@ -107,31 +121,52 @@ public class DriverService : IDriverService
         driver.IsActive = dto.IsActive;
 
         await _userRepository.UpdateAsync(driver);
+
+        await _activityService.LogAsync(
+            managerId, 
+            "Оновлено дані водія", 
+            driver.FullName, 
+            "Driver", 
+            driver.Id.ToString()
+        );
+
         return MapToDto(driver);
     }
 
     public async Task DeleteDriverAsync(int driverId, int managerId)
     {
-        // Check if manager has permission
+        // Перевірити, чи має менеджер дозвіл
         var permission = await _permissionRepository.GetByCodeAsync("drivers.delete");
         if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
         {
             throw new UnauthorizedAccessException("Недостатньо прав для видалення водія");
         }
 
-        // Verify driver belongs to manager
+        // Перевірити, чи водій належить до менеджера
         var isAssigned = await _userRepository.IsDriverAssignedToManagerAsync(driverId, managerId);
         if (!isAssigned)
         {
             throw new UnauthorizedAccessException("Водій не належить цьому менеджеру");
         }
 
+        var driver = await _userRepository.GetDriverByIdAsync(driverId);
         await _userRepository.DeleteAsync(driverId);
+
+        if (driver != null)
+        {
+            await _activityService.LogAsync(
+                managerId, 
+                "Видалено водія", 
+                driver.FullName, 
+                "Driver", 
+                driverId.ToString()
+            );
+        }
     }
 
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
     {
-        // Check if manager has permission to view drivers
+        // Перевірте, чи має менеджер дозвіл на перегляд водіїв
         var permission = await _permissionRepository.GetByCodeAsync("drivers.view");
         if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
         {
@@ -173,8 +208,8 @@ public class DriverService : IDriverService
                 IsPrimary = primaryVehicle.IsPrimary
             } : null,
             CreatedAt = driver.CreatedAt,
-            TotalTrips = 0, // TODO: Calculate from trips table when implemented
-            Rating = null // TODO: Calculate from ratings when implemented
+            TotalTrips = 0, // TODO: Розрахувати на основі таблиці поїздок після впровадження
+            Rating = null // TODO: Розрахувати на основі рейтингів після впровадження
         };
     }
 }

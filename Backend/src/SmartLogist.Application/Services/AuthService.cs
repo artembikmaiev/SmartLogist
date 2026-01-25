@@ -64,6 +64,7 @@ public class AuthService : IAuthService
                 Email = user.Email,
                 FullName = user.FullName,
                 Role = user.Role.ToString().ToLower(),
+                CreatedAt = user.CreatedAt,
                 Permissions = permissions
             }
         };
@@ -98,8 +99,37 @@ public class AuthService : IAuthService
             Id = user.Id,
             Email = user.Email,
             FullName = user.FullName,
+            Phone = user.Phone,
             Role = user.Role.ToString().ToLower(),
+            CreatedAt = user.CreatedAt,
             Permissions = permissions
         };
+    }
+
+    public async Task UpdateProfileAsync(int userId, UpdateProfileDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("Користувача не знайдено");
+        }
+
+        // Перевірити наявність email, якщо він змінився
+        if (user.Email != dto.Email && await _userRepository.EmailExistsAsync(dto.Email))
+        {
+            throw new InvalidOperationException("Цей email вже використовується іншим користувачем");
+        }
+
+        // Перевірити наявність телефону, якщо він змінився
+        if (!string.IsNullOrEmpty(dto.Phone) && user.Phone != dto.Phone && await _userRepository.PhoneExistsAsync(dto.Phone))
+        {
+            throw new InvalidOperationException("Цей номер телефону вже використовується іншим користувачем");
+        }
+
+        user.FullName = dto.FullName;
+        user.Email = dto.Email;
+        user.Phone = dto.Phone;
+
+        await _userRepository.UpdateAsync(user);
     }
 }

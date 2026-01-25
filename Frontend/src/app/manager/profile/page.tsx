@@ -1,10 +1,55 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { User, Mail, Phone, Calendar, Building, Shield, Edit, Save, X, TrendingUp, Users, Truck, Award } from 'lucide-react';
-import { useState } from 'react';
+import { authService } from '@/services/auth.service';
+import { activitiesService } from '@/services/activities.service';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ManagerProfilePage() {
+    const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        department: 'Відділ логістики'
+    });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                fullName: user.fullName || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                department: 'Відділ логістики'
+            });
+        }
+    }, [user]);
+
+    const handleSave = async () => {
+        try {
+            setIsLoading(true);
+            setError('');
+            await authService.updateProfile({
+                fullName: formData.fullName,
+                email: formData.email,
+                phone: formData.phone
+            });
+
+            setSuccessMessage('Профіль успішно оновлено');
+            setIsEditing(false);
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message || 'Помилка при оновленні профілю');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Manager stats
     const stats = [
@@ -42,33 +87,44 @@ export default function ManagerProfilePage() {
         },
     ];
 
-    // Recent activity
-    const recentActivity = [
-        {
-            action: 'Створено новий рейс',
-            details: 'Київ → Львів (#TR-2024-045)',
-            time: '15 хв тому',
-            icon: '🚛',
-        },
-        {
-            action: 'Додано нового водія',
-            details: 'Олександр Коваль',
-            time: '2 год тому',
-            icon: '👤',
-        },
-        {
-            action: 'Оновлено статус транспорту',
-            details: 'MAN TGX 18.440 (AA 1234 BB)',
-            time: '5 год тому',
-            icon: '🔧',
-        },
-        {
-            action: 'Завершено рейс',
-            details: 'Одеса → Харків (#TR-2024-042)',
-            time: 'Вчора',
-            icon: '✅',
-        },
-    ];
+    const [activities, setActivities] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchActivities = async () => {
+            try {
+                const data = await activitiesService.getRecent(4);
+                setActivities(data);
+            } catch (err) {
+                console.error('Failed to fetch activities:', err);
+            }
+        };
+
+        if (user) {
+            fetchActivities();
+        }
+    }, [user]);
+
+    const getActivityIcon = (action: string) => {
+        if (action.includes('транспорт')) return '🚛';
+        if (action.includes('водія')) return '👤';
+        if (action.includes('рейс')) return '📦';
+        if (action.includes('Статус')) return '🔧';
+        return '📝';
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+
+        if (diffInMinutes < 1) return 'щойно';
+        if (diffInMinutes < 60) return `${diffInMinutes} хв тому`;
+
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours} год тому`;
+
+        return date.toLocaleDateString('uk-UA');
+    };
 
     return (
         <div className="p-8 bg-slate-50 min-h-screen">
@@ -89,15 +145,31 @@ export default function ManagerProfilePage() {
                     ) : (
                         <div className="flex gap-2">
                             <button
-                                onClick={() => setIsEditing(false)}
-                                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                                onClick={handleSave}
+                                disabled={isLoading}
+                                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
                             >
-                                <Save className="w-5 h-5" />
-                                Зберегти
+                                {isLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    <Save className="w-5 h-5" />
+                                )}
+                                {isLoading ? 'Збереження...' : 'Зберегти'}
                             </button>
                             <button
-                                onClick={() => setIsEditing(false)}
-                                className="bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-300 transition-colors shadow-sm flex items-center gap-2"
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    if (user) {
+                                        setFormData({
+                                            fullName: user.fullName || '',
+                                            email: user.email || '',
+                                            phone: user.phone || '',
+                                            department: 'Відділ логістики'
+                                        });
+                                    }
+                                }}
+                                disabled={isLoading}
+                                className="bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-300 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
                             >
                                 <X className="w-5 h-5" />
                                 Скасувати
@@ -110,20 +182,36 @@ export default function ManagerProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Profile Information */}
                 <div className="lg:col-span-2 space-y-6">
+                    {/* Notifications */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex justify-between items-center transition-all animate-in fade-in slide-in-from-top-4 shadow-sm">
+                            <span>{error}</span>
+                            <button onClick={() => setError('')}><X className="w-5 h-5" /></button>
+                        </div>
+                    )}
+                    {successMessage && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl flex justify-between items-center transition-all animate-in fade-in slide-in-from-top-4 shadow-sm">
+                            <span>{successMessage}</span>
+                            <button onClick={() => setSuccessMessage('')}><X className="w-5 h-5" /></button>
+                        </div>
+                    )}
+
                     {/* Personal Info */}
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-900 mb-6">Особиста інформація</h2>
 
                         <div className="flex items-center gap-6 mb-6 pb-6 border-b border-slate-200">
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-white font-bold text-3xl">МЛ</span>
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                                <span className="text-white font-bold text-3xl">
+                                    {formData.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) || '??'}
+                                </span>
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-slate-900">Менеджер Логістики</h3>
-                                <p className="text-slate-600">Керівник відділу логістики</p>
+                                <h3 className="text-2xl font-bold text-slate-900">{formData.fullName}</h3>
+                                <p className="text-slate-600">{formData.department}</p>
                                 <div className="flex items-center gap-2 mt-2">
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                                        Менеджер
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold capitalize">
+                                        {user?.role}
                                     </span>
                                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
                                         Активний
@@ -141,11 +229,12 @@ export default function ManagerProfilePage() {
                                 {isEditing ? (
                                     <input
                                         type="text"
-                                        defaultValue="Менеджер Логістики"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all shadow-sm"
                                     />
                                 ) : (
-                                    <p className="font-semibold text-slate-900">Менеджер Логістики</p>
+                                    <p className="font-semibold text-slate-900">{formData.fullName}</p>
                                 )}
                             </div>
 
@@ -157,11 +246,12 @@ export default function ManagerProfilePage() {
                                 {isEditing ? (
                                     <input
                                         type="email"
-                                        defaultValue="manager@smartlogist.ua"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all shadow-sm"
                                     />
                                 ) : (
-                                    <p className="font-semibold text-slate-900">manager@smartlogist.ua</p>
+                                    <p className="font-semibold text-slate-900">{formData.email}</p>
                                 )}
                             </div>
 
@@ -173,11 +263,12 @@ export default function ManagerProfilePage() {
                                 {isEditing ? (
                                     <input
                                         type="tel"
-                                        defaultValue="+380 67 123 4567"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all shadow-sm"
                                     />
                                 ) : (
-                                    <p className="font-semibold text-slate-900">+380 67 123 4567</p>
+                                    <p className="font-semibold text-slate-900">{formData.phone || 'Не вказано'}</p>
                                 )}
                             </div>
 
@@ -189,11 +280,12 @@ export default function ManagerProfilePage() {
                                 {isEditing ? (
                                     <input
                                         type="text"
-                                        defaultValue="Відділ логістики"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        value={formData.department}
+                                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all shadow-sm"
                                     />
                                 ) : (
-                                    <p className="font-semibold text-slate-900">Відділ логістики</p>
+                                    <p className="font-semibold text-slate-900">{formData.department}</p>
                                 )}
                             </div>
 
@@ -202,7 +294,9 @@ export default function ManagerProfilePage() {
                                     <Calendar className="w-4 h-4" />
                                     Дата прийняття
                                 </label>
-                                <p className="font-semibold text-slate-900">15 січня 2022</p>
+                                <p className="font-semibold text-slate-900">
+                                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' }) : '15 січня 2022'}
+                                </p>
                             </div>
 
                             <div className="space-y-1">
@@ -210,7 +304,7 @@ export default function ManagerProfilePage() {
                                     <Shield className="w-4 h-4" />
                                     Рівень доступу
                                 </label>
-                                <p className="font-semibold text-slate-900">Адміністратор</p>
+                                <p className="font-semibold text-slate-900 capitalize">{user?.role === 'admin' ? 'Адміністратор' : 'Менеджер'}</p>
                             </div>
                         </div>
                     </div>
@@ -220,7 +314,7 @@ export default function ManagerProfilePage() {
                         <h2 className="text-xl font-bold text-slate-900 mb-6">Безпека</h2>
 
                         <div className="space-y-5">
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
                                 <div>
                                     <p className="font-semibold text-slate-900">Пароль</p>
                                     <p className="text-sm text-slate-500 mt-1">Останнє оновлення: 3 місяці тому</p>
@@ -230,17 +324,17 @@ export default function ManagerProfilePage() {
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
                                 <div>
                                     <p className="font-semibold text-slate-900">Двофакторна автентифікація</p>
                                     <p className="text-sm text-slate-500 mt-1">Додатковий захист облікового запису</p>
                                 </div>
-                                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm">
                                     Увімкнути
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
                                 <div>
                                     <p className="font-semibold text-slate-900">Активні сесії</p>
                                     <p className="text-sm text-slate-500 mt-1">2 пристрої підключені</p>
@@ -259,16 +353,22 @@ export default function ManagerProfilePage() {
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-900 mb-6">Остання активність</h2>
                         <div className="space-y-4">
-                            {recentActivity.map((activity, index) => (
-                                <div key={index} className="flex gap-3">
-                                    <div className="text-2xl flex-shrink-0">{activity.icon}</div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-slate-900 text-sm">{activity.action}</p>
-                                        <p className="text-xs text-slate-600 truncate">{activity.details}</p>
-                                        <p className="text-xs text-slate-400 mt-1">{activity.time}</p>
+                            {activities.length > 0 ? (
+                                activities.map((activity, index) => (
+                                    <div key={index} className="flex gap-3 items-start p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                                        <div className="text-2xl flex-shrink-0 bg-slate-100 w-10 h-10 flex items-center justify-center rounded-lg">
+                                            {getActivityIcon(activity.action)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-slate-900 text-sm">{activity.action}</p>
+                                            <p className="text-xs text-slate-600 truncate">{activity.details}</p>
+                                            <p className="text-xs text-slate-400 mt-1 font-medium">{formatTime(activity.createdAt)}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-sm text-slate-500 text-center py-4">Активність поки що відсутня</p>
+                            )}
                         </div>
                     </div>
 
@@ -276,41 +376,41 @@ export default function ManagerProfilePage() {
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-900">Курси валют</h2>
-                            <span className="text-xs text-slate-400">НБУ • Оновлено сьогодні</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">НБУ • Оновлено сьогодні</span>
                         </div>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors group">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
                                         <span className="text-white font-bold text-sm">$</span>
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-slate-900">USD</p>
-                                        <p className="text-xs text-slate-500">Долар США</p>
+                                        <p className="font-bold text-slate-900 text-sm">USD</p>
+                                        <p className="text-[10px] text-slate-500 font-medium">Долар США</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-slate-900">41.25 ₴</p>
-                                    <p className="text-xs text-green-600 flex items-center gap-1 justify-end">
+                                    <p className="font-bold text-slate-900 text-sm">41.25 ₴</p>
+                                    <p className="text-[10px] text-green-600 flex items-center gap-1 justify-end font-bold">
                                         <span>↑</span>
                                         <span>+0.15</span>
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors group">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-700 to-blue-800 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-700 to-blue-800 rounded-lg flex items-center justify-center shadow-sm">
                                         <span className="text-white font-bold text-sm">€</span>
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-slate-900">EUR</p>
-                                        <p className="text-xs text-slate-500">Євро</p>
+                                        <p className="font-bold text-slate-900 text-sm">EUR</p>
+                                        <p className="text-[10px] text-slate-500 font-medium">Євро</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-slate-900">44.80 ₴</p>
-                                    <p className="text-xs text-red-600 flex items-center gap-1 justify-end">
+                                    <p className="font-bold text-slate-900 text-sm">44.80 ₴</p>
+                                    <p className="text-[10px] text-red-600 flex items-center gap-1 justify-end font-bold">
                                         <span>↓</span>
                                         <span>-0.08</span>
                                     </p>
@@ -322,18 +422,27 @@ export default function ManagerProfilePage() {
                     {/* Notifications Settings */}
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-900 mb-6">Сповіщення</h2>
-                        <div className="space-y-3">
-                            <label className="flex items-center justify-between cursor-pointer">
-                                <span className="text-sm text-slate-700">Email сповіщення</span>
-                                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                        <div className="space-y-4">
+                            <label className="flex items-center justify-between cursor-pointer group">
+                                <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 transition-colors">Email сповіщення</span>
+                                <div className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </div>
                             </label>
-                            <label className="flex items-center justify-between cursor-pointer">
-                                <span className="text-sm text-slate-700">SMS сповіщення</span>
-                                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                            <label className="flex items-center justify-between cursor-pointer group">
+                                <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 transition-colors">SMS сповіщення</span>
+                                <div className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </div>
                             </label>
-                            <label className="flex items-center justify-between cursor-pointer">
-                                <span className="text-sm text-slate-700">Push сповіщення</span>
-                                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                            <label className="flex items-center justify-between cursor-pointer group">
+                                <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 transition-colors">Push сповіщення</span>
+                                <div className="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </div>
                             </label>
                         </div>
                     </div>
