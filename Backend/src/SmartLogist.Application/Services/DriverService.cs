@@ -19,6 +19,13 @@ public class DriverService : IDriverService
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
     {
+        // Перевірка, чи має менеджер дозвіл на перегляд водіїв
+        var permission = await _permissionRepository.GetByCodeAsync("drivers.view");
+        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
+        {
+            throw new UnauthorizedAccessException("Недостатньо прав для перегляду водіїв");
+        }
+
         var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
         return drivers.Select(MapToDto);
     }
@@ -124,6 +131,13 @@ public class DriverService : IDriverService
 
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
     {
+        // Check if manager has permission to view drivers
+        var permission = await _permissionRepository.GetByCodeAsync("drivers.view");
+        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
+        {
+            throw new UnauthorizedAccessException("Недостатньо прав для перегляду водіїв");
+        }
+
         var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
         var driversList = drivers.ToList();
 

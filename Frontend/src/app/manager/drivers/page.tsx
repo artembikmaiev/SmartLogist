@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit, MapPin } from 'lucide-react';
+import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit } from 'lucide-react';
 import { driversService } from '@/services/drivers.service';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Driver, DriverStats, DriverStatus } from '@/types/drivers.types';
@@ -17,6 +17,7 @@ export default function DriversPage() {
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
     // Check permissions
+    const hasViewPermission = user?.permissions?.some(p => p.code === 'drivers.view') ?? false;
     const hasCreatePermission = user?.permissions?.some(p => p.code === 'drivers.create') ?? false;
     const hasEditPermission = user?.permissions?.some(p => p.code === 'drivers.edit') ?? false;
     const hasDeletePermission = user?.permissions?.some(p => p.code === 'drivers.delete') ?? false;
@@ -25,8 +26,12 @@ export default function DriversPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        loadData();
-    }, []);
+        if (hasViewPermission) {
+            loadData();
+        } else {
+            setIsLoading(false);
+        }
+    }, [hasViewPermission]);
 
     const loadData = async () => {
         try {
@@ -64,6 +69,38 @@ export default function DriversPage() {
             await loadData();
         } catch (err: any) {
             setError(err.message || 'Помилка видалення водія');
+        }
+    };
+
+    // Edit modal state
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [driverToEdit, setDriverToEdit] = useState<Driver | null>(null);
+
+    const handleEditClick = (driver: Driver) => {
+        setDriverToEdit(driver);
+        setEditModalOpen(true);
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!driverToEdit) return;
+
+        const formData = new FormData(e.currentTarget);
+        const updateData = {
+            fullName: formData.get('fullName') as string,
+            phone: formData.get('phone') as string || undefined,
+            licenseNumber: formData.get('licenseNumber') as string || undefined,
+            status: formData.get('status') as DriverStatus,
+            isActive: formData.get('isActive') === 'true',
+        };
+
+        try {
+            await driversService.update(driverToEdit.id, updateData);
+            setEditModalOpen(false);
+            setDriverToEdit(null);
+            await loadData();
+        } catch (err: any) {
+            setError(err.message || 'Помилка оновлення водія');
         }
     };
 
@@ -116,6 +153,23 @@ export default function DriversPage() {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-slate-600">Завантаження...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Check if user has permission to view drivers
+    if (!hasViewPermission) {
+        return (
+            <div className="p-8 bg-slate-50 min-h-screen flex items-center justify-center">
+                <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md text-center shadow-sm">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Доступ заборонено</h2>
+                    <p className="text-slate-600">
+                        У вас немає дозволу на перегляд списку водіїв. Зверніться до адміністратора для отримання доступу.
+                    </p>
                 </div>
             </div>
         );
@@ -313,11 +367,13 @@ export default function DriversPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Відстежити">
-                                                    <MapPin className="w-5 h-5" />
-                                                </button>
+
                                                 {hasEditPermission && (
-                                                    <button className="text-slate-400 hover:text-slate-600 transition-colors" title="Редагувати">
+                                                    <button
+                                                        onClick={() => handleEditClick(driver)}
+                                                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                                                        title="Редагувати"
+                                                    >
                                                         <Edit className="w-5 h-5" />
                                                     </button>
                                                 )}
@@ -460,6 +516,125 @@ export default function DriversPage() {
                                     className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                                 >
                                     Додати водія
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Driver Modal */}
+            {editModalOpen && driverToEdit && (
+                <div className="fixed inset-0 backdrop-blur-[3px] flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-2xl w-full p-8 overflow-y-auto max-h-[90vh]">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-6">Редагувати водія</h2>
+
+                        <form onSubmit={handleEditSubmit} className="space-y-4 mb-6">
+                            {error && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Повне ім'я <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    required
+                                    defaultValue={driverToEdit.fullName}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="Іван Петренко"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Email (не можна змінити)
+                                </label>
+                                <input
+                                    type="email"
+                                    disabled
+                                    defaultValue={driverToEdit.email}
+                                    className="w-full px-4 py-2 border border-slate-200 bg-slate-50 rounded-lg text-slate-500 cursor-not-allowed"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Телефон
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    defaultValue={driverToEdit.phone || ''}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="+380671234567"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Номер водійського посвідчення
+                                </label>
+                                <input
+                                    type="text"
+                                    name="licenseNumber"
+                                    defaultValue={driverToEdit.licenseNumber || ''}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-600"
+                                    placeholder="ABC123456"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Статус
+                                </label>
+                                <select
+                                    name="status"
+                                    defaultValue={driverToEdit.status}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900"
+                                >
+                                    <option value="Available">Вільний</option>
+                                    <option value="OnTrip">На маршруті</option>
+                                    <option value="OnBreak">На перерві</option>
+                                    <option value="Offline">Офлайн</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Активний
+                                </label>
+                                <select
+                                    name="isActive"
+                                    defaultValue={driverToEdit.isActive ? 'true' : 'false'}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900"
+                                >
+                                    <option value="true">Так</option>
+                                    <option value="false">Ні</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditModalOpen(false);
+                                        setDriverToEdit(null);
+                                        setError('');
+                                    }}
+                                    className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                >
+                                    Скасувати
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    Зберегти зміни
                                 </button>
                             </div>
                         </form>
