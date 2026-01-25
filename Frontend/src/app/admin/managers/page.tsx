@@ -93,6 +93,11 @@ export default function AdminManagersPage() {
             setShowEditModal(false);
             setEditingManager(null);
             await loadManagers();
+
+            // Notify other tabs to sync
+            const authChannel = new BroadcastChannel('auth_sync');
+            authChannel.postMessage('sync');
+            authChannel.close();
         } catch (err: any) {
             setFormError(err.message || 'Помилка оновлення менеджера');
             console.error('Error updating manager:', err);

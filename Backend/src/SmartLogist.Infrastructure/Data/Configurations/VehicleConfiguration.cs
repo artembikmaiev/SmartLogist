@@ -25,6 +25,20 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 
         builder.HasIndex(v => v.LicensePlate).IsUnique();
 
+        builder.Property(v => v.Type)
+            .HasColumnName("type")
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Property(v => v.FuelType)
+            .HasColumnName("fuel_type")
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Property(v => v.FuelConsumption)
+            .HasColumnName("fuel_consumption")
+            .IsRequired();
+
         builder.Property(v => v.Status)
             .HasColumnName("status")
             .HasConversion<string>()
@@ -33,7 +47,8 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 
         builder.Property(v => v.CreatedAt)
             .HasColumnName("created_at")
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAdd();
 
         // Relationships
         builder.HasMany(v => v.AssignedDrivers)

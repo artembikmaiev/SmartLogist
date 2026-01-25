@@ -9,6 +9,9 @@ public class Vehicle
     public int Id { get; set; }
     public string Model { get; set; } = string.Empty;
     public string LicensePlate { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // e.g., Вантажівка
+    public string FuelType { get; set; } = string.Empty; // e.g., Дизель
+    public double FuelConsumption { get; set; } // L/100km
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public virtual ICollection<DriverVehicle> AssignedDrivers { get; set; } = new List<DriverVehicle>();

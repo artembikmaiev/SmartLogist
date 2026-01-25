@@ -79,6 +79,11 @@ export default function AdminPermissionsPage() {
                 loadManagerPermissions(selectedManager.id),
                 loadInitialData()
             ]);
+
+            // Notify other tabs to sync
+            const authChannel = new BroadcastChannel('auth_sync');
+            authChannel.postMessage('sync');
+            authChannel.close();
         } catch (err) {
             console.error('Error toggling permission:', err);
             setError('Помилка зміни дозволу');

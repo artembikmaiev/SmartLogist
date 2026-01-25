@@ -394,6 +394,19 @@ export default function DriversPage() {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination Footer - Mockup style */}
+                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+                    <p className="text-sm text-slate-600">
+                        Показано <span className="font-medium">1</span> до <span className="font-medium">{filteredDrivers.length}</span> з <span className="font-medium">{drivers.length}</span> водіїв
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">Попередня</button>
+                        <div className="flex gap-1">
+                            <button className="px-3 py-1.5 bg-slate-900 text-white rounded-md text-sm font-medium shadow-sm">1</button>
+                        </div>
+                        <button className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">Наступна</button>
+                    </div>
+                </div>
             </div>
 
             {/* Add Driver Modal */}
@@ -406,7 +419,8 @@ export default function DriversPage() {
                             e.preventDefault();
                             setError('');
 
-                            const formData = new FormData(e.currentTarget);
+                            const form = e.currentTarget;
+                            const formData = new FormData(form);
                             const driverData = {
                                 email: formData.get('email') as string,
                                 fullName: formData.get('fullName') as string,
@@ -419,7 +433,7 @@ export default function DriversPage() {
                                 await driversService.create(driverData);
                                 setIsModalOpen(false);
                                 await loadData();
-                                e.currentTarget.reset();
+                                form.reset();
                             } catch (err: any) {
                                 setError(err.message || 'Помилка створення водія');
                             }

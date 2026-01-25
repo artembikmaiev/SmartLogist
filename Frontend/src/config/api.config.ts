@@ -28,9 +28,12 @@ export const API_ENDPOINTS = {
         STATS: '/drivers/stats',
     },
     VEHICLES: {
+        LIST: '/vehicles',
         BASE: '/vehicles',
-        BY_ID: (id: string) => `/vehicles/${id}`,
+        BY_ID: (id: string | number) => `/vehicles/${id}`,
         STATS: '/vehicles/stats',
+        ASSIGN: (id: string | number) => `/vehicles/${id}/assign`,
+        UNASSIGN: (id: string | number, driverId: string | number) => `/vehicles/${id}/unassign/${driverId}`,
     },
     ANALYTICS: {
         STATS: '/analytics/stats',

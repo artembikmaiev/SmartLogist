@@ -78,12 +78,28 @@ public class AuthService : IAuthService
             return null;
         }
 
+        // Отримати дозволи для менеджерів
+        List<PermissionDto>? permissions = null;
+        if (user.Role == Domain.Enums.UserRole.Manager)
+        {
+            var userPermissions = await _userRepository.GetManagerPermissionsAsync(user.Id);
+            permissions = userPermissions.Select(mp => new PermissionDto
+            {
+                Id = mp.Permission.Id,
+                Code = mp.Permission.Code,
+                Name = mp.Permission.Name,
+                Description = mp.Permission.Description,
+                Category = mp.Permission.Category
+            }).ToList();
+        }
+
         return new UserInfoDto
         {
             Id = user.Id,
             Email = user.Email,
             FullName = user.FullName,
-            Role = user.Role.ToString().ToLower()
+            Role = user.Role.ToString().ToLower(),
+            Permissions = permissions
         };
     }
 }

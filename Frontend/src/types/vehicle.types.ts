@@ -1,34 +1,50 @@
+export enum VehicleStatus {
+    Available = 'Available',
+    InUse = 'InUse',
+    Maintenance = 'Maintenance',
+    Inactive = 'Inactive'
+}
+
 export interface Vehicle {
-    id: string;
+    id: number;
     model: string;
-    plate: string;
-    type: 'truck' | 'van' | 'car';
-    fuel: 'diesel' | 'petrol' | 'electric';
-    fuelConsumption: number; // liters per 100km
-    status: 'available' | 'in-route' | 'maintenance';
-    driver?: {
-        id: string;
-        name: string;
-    };
-    capacity: {
-        weight: number; // kg
-        volume: number; // m³
-    };
-    year: number;
+    licensePlate: string;
+    type: string;
+    fuelType: string;
+    fuelConsumption: number;
+    status: VehicleStatus;
     createdAt: string;
+    assignedDriverName?: string;
+    assignedDriverId?: number;
 }
 
 export interface CreateVehicleDto {
     model: string;
-    plate: string;
-    type: Vehicle['type'];
-    fuel: Vehicle['fuel'];
+    licensePlate: string;
+    type: string;
+    fuelType: string;
     fuelConsumption: number;
-    capacity: Vehicle['capacity'];
-    year: number;
+    status: VehicleStatus;
 }
 
-export interface UpdateVehicleDto extends Partial<CreateVehicleDto> {
-    status?: Vehicle['status'];
-    driverId?: string;
+export interface UpdateVehicleDto {
+    model: string;
+    licensePlate: string;
+    type: string;
+    fuelType: string;
+    fuelConsumption: number;
+    status: VehicleStatus;
+}
+
+export interface AssignVehicleDto {
+    driverId: number;
+    isPrimary: boolean;
+}
+
+export interface VehicleStats {
+    totalVehicles: number;
+    addedThisMonth: number;
+    inUseCount: number;
+    availableCount: number;
+    maintenanceCount: number;
 }
