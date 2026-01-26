@@ -57,6 +57,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<JwtService>();
 
 // JWT Authentication

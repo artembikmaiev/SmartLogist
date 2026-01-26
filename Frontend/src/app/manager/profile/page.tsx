@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { User, Mail, Phone, Calendar, Building, Shield, Edit, Save, X, TrendingUp, Users, Truck, Award } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 import { activitiesService } from '@/services/activities.service';
+import { currencyService } from '@/services/currency.service';
+import { CurrencyRate } from '@/types/currency.types';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function ManagerProfilePage() {
@@ -88,6 +90,7 @@ export default function ManagerProfilePage() {
     ];
 
     const [activities, setActivities] = useState<any[]>([]);
+    const [rates, setRates] = useState<CurrencyRate[]>([]);
 
     useEffect(() => {
         const fetchActivities = async () => {
@@ -99,8 +102,18 @@ export default function ManagerProfilePage() {
             }
         };
 
+        const fetchRates = async () => {
+            try {
+                const data = await currencyService.getRates();
+                setRates(data);
+            } catch (err) {
+                console.error('Failed to fetch rates:', err);
+            }
+        };
+
         if (user) {
             fetchActivities();
+            fetchRates();
         }
     }, [user]);
 
@@ -376,46 +389,32 @@ export default function ManagerProfilePage() {
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-900">Курси валют</h2>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">НБУ • Оновлено сьогодні</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                НБУ • {rates.length > 0 ? `Оновлено ${rates[0].date}` : 'Оновлення...'}
+                            </span>
                         </div>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                                        <span className="text-white font-bold text-sm">$</span>
+                            {rates.length > 0 ? (
+                                rates.map((rate) => (
+                                    <div key={rate.code} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors group">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 bg-gradient-to-br ${rate.code === 'USD' ? 'from-blue-500 to-blue-600' : 'from-blue-700 to-blue-800'} rounded-lg flex items-center justify-center shadow-sm`}>
+                                                <span className="text-white font-bold text-sm">{rate.code === 'USD' ? '$' : '€'}</span>
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 text-sm">{rate.code}</p>
+                                                <p className="text-[10px] text-slate-500 font-medium">{rate.name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-slate-900 text-sm">{rate.rate.toFixed(2)} ₴</p>
+                                            <p className="text-[10px] text-slate-400 font-bold">Офіційний курс</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-slate-900 text-sm">USD</p>
-                                        <p className="text-[10px] text-slate-500 font-medium">Долар США</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-slate-900 text-sm">41.25 ₴</p>
-                                    <p className="text-[10px] text-green-600 flex items-center gap-1 justify-end font-bold">
-                                        <span>↑</span>
-                                        <span>+0.15</span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-700 to-blue-800 rounded-lg flex items-center justify-center shadow-sm">
-                                        <span className="text-white font-bold text-sm">€</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-900 text-sm">EUR</p>
-                                        <p className="text-[10px] text-slate-500 font-medium">Євро</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-slate-900 text-sm">44.80 ₴</p>
-                                    <p className="text-[10px] text-red-600 flex items-center gap-1 justify-end font-bold">
-                                        <span>↓</span>
-                                        <span>-0.08</span>
-                                    </p>
-                                </div>
-                            </div>
+                                ))
+                            ) : (
+                                <p className="text-sm text-slate-500 text-center py-4">Завантаження курсів...</p>
+                            )}
                         </div>
                     </div>
 

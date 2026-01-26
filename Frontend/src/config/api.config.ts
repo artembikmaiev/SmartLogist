@@ -44,4 +44,7 @@ export const API_ENDPOINTS = {
     ACTIVITIES: {
         RECENT: '/activities/recent',
     },
+    EXTERNAL: {
+        CURRENCY: '/external/currency',
+    },
 };
