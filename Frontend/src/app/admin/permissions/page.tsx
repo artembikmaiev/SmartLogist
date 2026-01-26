@@ -27,9 +27,9 @@ export default function AdminPermissionsPage() {
         }
     }, [selectedManager]);
 
-    const loadInitialData = async () => {
+    const loadInitialData = async (showLoader = true) => {
         try {
-            setLoading(true);
+            if (showLoader) setLoading(true);
             setError(null);
             const [managersData, permissionsData] = await Promise.all([
                 managersService.getAll(),
@@ -38,27 +38,27 @@ export default function AdminPermissionsPage() {
             setManagers(managersData);
             setAllPermissions(permissionsData);
 
-            // Auto-select first manager if available
-            if (managersData.length > 0) {
+            // Auto-select first manager only if none is currently selected (for initial load)
+            if (managersData.length > 0 && !selectedManager) {
                 setSelectedManager(managersData[0]);
             }
         } catch (err) {
             setError('Помилка завантаження даних');
             console.error('Error loading data:', err);
         } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
         }
     };
 
-    const loadManagerPermissions = async (managerId: number) => {
+    const loadManagerPermissions = async (managerId: number, showLoader = true) => {
         try {
-            setPermissionsLoading(true);
+            if (showLoader) setPermissionsLoading(true);
             const permissions = await permissionsService.getManagerPermissions(managerId);
             setManagerPermissions(permissions);
         } catch (err) {
             console.error('Error loading manager permissions:', err);
         } finally {
-            setPermissionsLoading(false);
+            if (showLoader) setPermissionsLoading(false);
         }
     };
 
@@ -74,10 +74,10 @@ export default function AdminPermissionsPage() {
                 await permissionsService.grantPermission(selectedManager.id, permissionId);
             }
 
-            // Reload manager permissions and managers list
+            // Reload manager permissions and managers list (silent)
             await Promise.all([
-                loadManagerPermissions(selectedManager.id),
-                loadInitialData()
+                loadManagerPermissions(selectedManager.id, false),
+                loadInitialData(false)
             ]);
 
             // Notify other tabs to sync
