@@ -11,7 +11,7 @@ class ApiClient {
 
     private getAuthToken(): string | null {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('token');
+            return sessionStorage.getItem('token');
         }
         return null;
     }

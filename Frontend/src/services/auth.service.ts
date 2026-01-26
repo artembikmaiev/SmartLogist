@@ -10,10 +10,10 @@ export const authService = {
             credentials
         );
 
-        // Store token in localStorage
+        // Store token in sessionStorage
         if (response.token) {
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
+            sessionStorage.setItem('token', response.token);
+            sessionStorage.setItem('user', JSON.stringify(response.user));
         }
 
         return response;
@@ -21,8 +21,8 @@ export const authService = {
 
     async logout(): Promise<void> {
         await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
     },
 
     async getCurrentUser(): Promise<AuthResponse['user']> {
@@ -39,13 +39,13 @@ export const authService = {
         const currentUser = this.getStoredUser();
         if (currentUser) {
             const updatedUser = { ...currentUser, ...data };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            sessionStorage.setItem('user', JSON.stringify(updatedUser));
         }
     },
 
     getStoredUser(): AuthResponse['user'] | null {
         if (typeof window !== 'undefined') {
-            const user = localStorage.getItem('user');
+            const user = sessionStorage.getItem('user');
             return user ? JSON.parse(user) : null;
         }
         return null;
@@ -53,7 +53,7 @@ export const authService = {
 
     getStoredToken(): string | null {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('token');
+            return sessionStorage.getItem('token');
         }
         return null;
     },
