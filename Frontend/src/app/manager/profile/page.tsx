@@ -91,6 +91,7 @@ export default function ManagerProfilePage() {
 
     const [activities, setActivities] = useState<any[]>([]);
     const [rates, setRates] = useState<CurrencyRate[]>([]);
+    const [lastUpdated, setLastUpdated] = useState<string>('');
 
     useEffect(() => {
         const fetchActivities = async () => {
@@ -106,6 +107,7 @@ export default function ManagerProfilePage() {
             try {
                 const data = await currencyService.getRates();
                 setRates(data);
+                setLastUpdated(new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }));
             } catch (err) {
                 console.error('Failed to fetch rates:', err);
             }
@@ -114,6 +116,11 @@ export default function ManagerProfilePage() {
         if (user) {
             fetchActivities();
             fetchRates();
+
+            // Оновлюємо курс кожні 30 хвилин (30 * 60 * 1000 мс)
+            const interval = setInterval(fetchRates, 1800000);
+
+            return () => clearInterval(interval);
         }
     }, [user]);
 
@@ -390,7 +397,7 @@ export default function ManagerProfilePage() {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-900">Курси валют</h2>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                НБУ • {rates.length > 0 ? `Оновлено ${rates[0].date}` : 'Оновлення...'}
+                                НБУ • {lastUpdated ? `Оновлено о ${lastUpdated}` : 'Оновлення...'}
                             </span>
                         </div>
                         <div className="space-y-3">
@@ -408,7 +415,15 @@ export default function ManagerProfilePage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-slate-900 text-sm">{rate.rate.toFixed(2)} ₴</p>
-                                            <p className="text-[10px] text-slate-400 font-bold">Офіційний курс</p>
+                                            <div className="flex items-center justify-end gap-1">
+                                                {rate.change !== 0 && (
+                                                    <span className={`text-[10px] font-bold ${rate.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {rate.change > 0 ? '↑' : '↓'}
+                                                        {Math.abs(rate.change).toFixed(2)}
+                                                    </span>
+                                                )}
+                                                <p className="text-[10px] text-slate-400 font-bold">Офіційний курс</p>
+                                            </div>
                                         </div>
                                     </div>
                                 ))

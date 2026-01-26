@@ -18,26 +18,40 @@ public class CurrencyService : ICurrencyService
     {
         try
         {
-            var allRates = await _httpClient.GetFromJsonAsync<List<NbuCurrencyResponse>>(NbuApiUrl);
-            
-            if (allRates == null) return Enumerable.Empty<CurrencyDto>();
+            // Поточний курс (може бути на завтра після 16:00)
+            var currentRates = await _httpClient.GetFromJsonAsync<List<NbuCurrencyResponse>>(NbuApiUrl);
+            if (currentRates == null) return Enumerable.Empty<CurrencyDto>();
 
-            // Фільтруємо USD та EUR
-            var targetCodes = new[] { "USD", "EUR" };
+            // Отримуємо курс на вчора для розрахунку зміни
+            var yesterday = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
+            var yesterdayUrl = $"{NbuApiUrl}&date={yesterday}";
+            var oldRates = await _httpClient.GetFromJsonAsync<List<NbuCurrencyResponse>>(yesterdayUrl);
             
-            return allRates
-                .Where(r => targetCodes.Contains(r.Cc))
-                .Select(r => new CurrencyDto
+            var targetCodes = new[] { "USD", "EUR" };
+            var result = new List<CurrencyDto>();
+
+            foreach (var code in targetCodes)
+            {
+                var current = currentRates.FirstOrDefault(r => r.Cc == code);
+                if (current == null) continue;
+
+                var previous = oldRates?.FirstOrDefault(r => r.Cc == code);
+                var change = previous != null ? current.Rate - previous.Rate : 0;
+
+                result.Add(new CurrencyDto
                 {
-                    Code = r.Cc,
-                    Name = r.Txt,
-                    Rate = r.Rate,
-                    Date = r.Exchangedate
+                    Code = current.Cc,
+                    Name = current.Txt,
+                    Rate = current.Rate,
+                    Change = change,
+                    Date = current.Exchangedate
                 });
+            }
+
+            return result;
         }
         catch (Exception)
         {
-            // Повертаємо пустий список у разі помилки API
             return Enumerable.Empty<CurrencyDto>();
         }
     }
