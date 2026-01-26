@@ -29,6 +29,12 @@ export const authService = {
         const response = await apiClient.get<AuthResponse['user']>(
             API_ENDPOINTS.AUTH.ME
         );
+
+        // Sync sessionStorage with fresh data from server
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('user', JSON.stringify(response));
+        }
+
         return response;
     },
 

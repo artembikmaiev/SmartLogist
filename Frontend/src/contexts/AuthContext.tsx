@@ -31,6 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (storedUser && storedToken) {
                 setUser(storedUser);
                 setToken(storedToken);
+
+                // Fetch fresh user data from server to update permissions/profile
+                authService.getCurrentUser()
+                    .then(freshUser => {
+                        setUser(freshUser);
+                    })
+                    .catch(err => {
+                        console.error('Failed to refresh user data:', err);
+                        // If token is invalid, logout might be needed, but for now we just log
+                    });
             } else {
                 setUser(null);
                 setToken(null);
