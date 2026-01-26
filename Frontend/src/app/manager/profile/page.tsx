@@ -96,7 +96,7 @@ export default function ManagerProfilePage() {
     useEffect(() => {
         const fetchActivities = async () => {
             try {
-                const data = await activitiesService.getRecent(4);
+                const data = await activitiesService.getRecent(3);
                 setActivities(data);
             } catch (err) {
                 console.error('Failed to fetch activities:', err);
