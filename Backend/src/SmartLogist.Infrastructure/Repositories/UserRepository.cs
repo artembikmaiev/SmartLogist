@@ -127,13 +127,24 @@ public class UserRepository : IUserRepository
             .AnyAsync(mp => mp.ManagerId == managerId && mp.PermissionId == permissionId);
     }
 
-    // Методи управління водіями
+    // Управління водіями
     public async Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId)
     {
         return await _context.Users
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
             .Where(u => u.Role == UserRole.Driver && u.ManagerId == managerId)
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<User>> GetAllDriversAsync()
+    {
+        return await _context.Users
+            .Include(u => u.Manager)
+            .Include(u => u.AssignedVehicles)
+                .ThenInclude(dv => dv.Vehicle)
+            .Where(u => u.Role == UserRole.Driver)
             .OrderBy(u => u.FullName)
             .ToListAsync();
     }

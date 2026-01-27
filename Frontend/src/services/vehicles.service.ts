@@ -33,5 +33,9 @@ export const vehiclesService = {
 
     async getStats(): Promise<VehicleStats> {
         return apiClient.get<VehicleStats>(API_ENDPOINTS.VEHICLES.STATS);
+    },
+
+    async getAllAdmin(): Promise<Vehicle[]> {
+        return apiClient.get<Vehicle[]>('/admin/drivers/vehicles');
     }
 };

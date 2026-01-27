@@ -18,8 +18,9 @@ public interface IUserRepository
     Task RevokePermissionAsync(int managerId, int permissionId);
     Task<bool> HasPermissionAsync(int managerId, int permissionId);
 
-    // Методи управління водіями
+    // Управління водіями
     Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId);
+    Task<IEnumerable<User>> GetAllDriversAsync();
     Task<User?> GetDriverByIdAsync(int driverId);
     Task<bool> IsDriverAssignedToManagerAsync(int driverId, int managerId);
     Task<int> GetDriversCountByManagerIdAsync(int managerId);

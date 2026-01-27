@@ -285,6 +285,12 @@ public class VehicleService : IVehicleService
         };
     }
 
+    public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAdminAsync()
+    {
+        var vehicles = await _vehicleRepository.GetAllAsync();
+        return vehicles.Select(MapToDto);
+    }
+
     private VehicleDto MapToDto(Vehicle vehicle)
     {
         var primaryAssignment = vehicle.AssignedDrivers.FirstOrDefault(dv => dv.IsPrimary) 

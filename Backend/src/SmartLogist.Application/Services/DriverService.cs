@@ -11,15 +11,18 @@ public class DriverService : IDriverService
     private readonly IUserRepository _userRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IActivityService _activityService;
+    private readonly IVehicleRepository _vehicleRepository;
 
     public DriverService(
         IUserRepository userRepository, 
         IPermissionRepository permissionRepository,
-        IActivityService activityService)
+        IActivityService activityService,
+        IVehicleRepository vehicleRepository)
     {
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
         _activityService = activityService;
+        _vehicleRepository = vehicleRepository;
     }
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
@@ -183,6 +186,156 @@ public class DriverService : IDriverService
             OnTripDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.OnTrip),
             OfflineDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Offline)
         };
+    }
+
+    public async Task<IEnumerable<DriverDto>> GetAllDriversAdminAsync()
+    {
+        var drivers = await _userRepository.GetAllDriversAsync();
+        return drivers.Select(MapToDto);
+    }
+
+    public async Task<DriverDto?> GetDriverByIdAdminAsync(int driverId)
+    {
+        var driver = await _userRepository.GetDriverByIdAsync(driverId);
+        return driver != null ? MapToDto(driver) : null;
+    }
+
+    public async Task<DriverDto> CreateDriverAdminAsync(CreateDriverDto dto)
+    {
+        if (await _userRepository.EmailExistsAsync(dto.Email))
+        {
+            throw new InvalidOperationException("Користувач з таким email вже існує");
+        }
+
+        var driver = new User
+        {
+            Email = dto.Email,
+            FullName = dto.FullName,
+            Phone = dto.Phone,
+            LicenseNumber = dto.LicenseNumber,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = UserRole.Driver,
+            DriverStatus = DriverStatus.Offline,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var createdDriver = await _userRepository.AddAsync(driver);
+        return MapToDto(createdDriver);
+    }
+
+    public async Task<DriverDto> UpdateDriverAdminAsync(int driverId, UpdateDriverDto dto)
+    {
+        var driver = await _userRepository.GetByIdAsync(driverId);
+        if (driver == null || driver.Role != UserRole.Driver)
+        {
+            throw new KeyNotFoundException("Водія не знайдено");
+        }
+
+        driver.FullName = dto.FullName;
+        driver.Phone = dto.Phone;
+        driver.LicenseNumber = dto.LicenseNumber;
+        driver.DriverStatus = dto.Status;
+        driver.IsActive = dto.IsActive;
+
+        await _userRepository.UpdateAsync(driver);
+        return MapToDto(driver);
+    }
+
+    public async Task DeleteDriverAdminAsync(int driverId)
+    {
+        var driver = await _userRepository.GetByIdAsync(driverId);
+        if (driver == null || driver.Role != UserRole.Driver)
+        {
+            throw new KeyNotFoundException("Водія не знайдено");
+        }
+
+        await _userRepository.DeleteAsync(driverId);
+    }
+
+    public async Task<DriverStatsDto> GetAdminDriverStatsAsync()
+    {
+        var drivers = await _userRepository.GetAllDriversAsync();
+        var driversList = drivers.ToList();
+
+        return new DriverStatsDto
+        {
+            TotalDrivers = driversList.Count,
+            ActiveDrivers = driversList.Count(d => d.IsActive),
+            OnTripDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.OnTrip),
+            OfflineDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Offline)
+        };
+    }
+
+    public async Task AssignManagerAsync(int driverId, int? managerId)
+    {
+        var driver = await _userRepository.GetByIdAsync(driverId);
+        if (driver == null || driver.Role != UserRole.Driver)
+        {
+            throw new KeyNotFoundException("Водія не знайдено");
+        }
+
+        if (managerId.HasValue)
+        {
+            var manager = await _userRepository.GetByIdAsync(managerId.Value);
+            if (manager == null || manager.Role != UserRole.Manager)
+            {
+                throw new InvalidOperationException("Менеджера не знайдено");
+            }
+        }
+
+        driver.ManagerId = managerId;
+        await _userRepository.UpdateAsync(driver);
+
+        string action = managerId.HasValue ? "Призначено менеджера" : "Відв'язано від менеджера";
+        await _activityService.LogAsync(
+            driverId, 
+            action,
+            driver.FullName,
+            "Driver",
+            driver.Id.ToString()
+        );
+    }
+
+    public async Task AssignVehicleAsync(int driverId, int vehicleId)
+    {
+        var driver = await _userRepository.GetByIdAsync(driverId);
+        if (driver == null || driver.Role != UserRole.Driver)
+            throw new KeyNotFoundException("Водія не знайдено");
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId);
+        if (vehicle == null)
+            throw new KeyNotFoundException("Транспорт не знайдено");
+
+        if (vehicle.AssignedDrivers != null && vehicle.AssignedDrivers.Any())
+        {
+            var currentDriver = vehicle.AssignedDrivers.First().Driver;
+            throw new InvalidOperationException($"Транспорт уже закріплений за водієм {currentDriver.FullName}");
+        }
+
+        await _vehicleRepository.AssignVehicleToDriverAsync(vehicleId, driverId, true);
+
+        await _activityService.LogAsync(
+            driverId,
+            "Призначено транспорт",
+            $"{vehicle.Model} ({vehicle.LicensePlate})",
+            "Vehicle",
+            vehicleId.ToString()
+        );
+    }
+
+    public async Task UnassignVehicleAsync(int driverId, int vehicleId)
+    {
+        await _vehicleRepository.UnassignVehicleFromDriverAsync(vehicleId, driverId);
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId);
+        await _activityService.LogAsync(
+            driverId,
+            "Відкріплено транспорт",
+            $"{vehicle?.Model ?? "Транспорт"}",
+            "Vehicle",
+            vehicleId.ToString()
+        );
     }
 
     private DriverDto MapToDto(User driver)

@@ -10,4 +10,15 @@ public interface IDriverService
     Task<DriverDto> UpdateDriverAsync(int driverId, UpdateDriverDto dto, int managerId);
     Task DeleteDriverAsync(int driverId, int managerId);
     Task<DriverStatsDto> GetDriverStatsAsync(int managerId);
+
+    // Admin methods
+    Task<IEnumerable<DriverDto>> GetAllDriversAdminAsync();
+    Task<DriverDto?> GetDriverByIdAdminAsync(int driverId);
+    Task<DriverDto> CreateDriverAdminAsync(CreateDriverDto dto);
+    Task<DriverDto> UpdateDriverAdminAsync(int driverId, UpdateDriverDto dto);
+    Task DeleteDriverAdminAsync(int driverId);
+    Task<DriverStatsDto> GetAdminDriverStatsAsync();
+    Task AssignManagerAsync(int driverId, int? managerId);
+    Task AssignVehicleAsync(int driverId, int vehicleId);
+    Task UnassignVehicleAsync(int driverId, int vehicleId);
 }

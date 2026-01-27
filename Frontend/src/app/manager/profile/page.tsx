@@ -53,42 +53,6 @@ export default function ManagerProfilePage() {
         }
     };
 
-    // Manager stats
-    const stats = [
-        {
-            title: 'Активних рейсів',
-            value: '24',
-            change: '+12%',
-            icon: Truck,
-            iconBg: 'bg-blue-100',
-            iconColor: 'text-blue-600',
-        },
-        {
-            title: 'Водіїв у команді',
-            value: '48',
-            change: '+4',
-            icon: Users,
-            iconBg: 'bg-green-100',
-            iconColor: 'text-green-600',
-        },
-        {
-            title: 'Завершено рейсів',
-            value: '1,247',
-            change: '+18%',
-            icon: TrendingUp,
-            iconBg: 'bg-purple-100',
-            iconColor: 'text-purple-600',
-        },
-        {
-            title: 'Рейтинг ефективності',
-            value: '94.2%',
-            subtitle: 'Відмінний показник',
-            icon: Award,
-            iconBg: 'bg-orange-100',
-            iconColor: 'text-orange-600',
-        },
-    ];
-
     const [activities, setActivities] = useState<any[]>([]);
     const [rates, setRates] = useState<CurrencyRate[]>([]);
     const [lastUpdated, setLastUpdated] = useState<string>('');
