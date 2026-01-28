@@ -241,8 +241,8 @@ export default function AdminDriversPage() {
                     <p className="text-3xl font-bold text-slate-900">{stats?.totalDrivers || 0}</p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-2xl p-6">
-                    <p className="text-sm text-slate-500 mb-2">Активні</p>
-                    <p className="text-3xl font-bold text-green-600">{stats?.activeDrivers || 0}</p>
+                    <p className="text-sm text-slate-500 mb-2">Вільні</p>
+                    <p className="text-3xl font-bold text-green-600">{stats?.availableDrivers || 0}</p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-2xl p-6">
                     <p className="text-sm text-slate-500 mb-2">На рейсі</p>
@@ -380,6 +380,18 @@ export default function AdminDriversPage() {
                                                     {driver.status === 'Available' ? 'Доступний' :
                                                         driver.status === 'OnTrip' ? 'На рейсі' : 'Офлайн'}
                                                 </span>
+                                                {driver.hasPendingDeletion && (
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-100 uppercase animate-pulse">
+                                                        <AlertCircle className="w-3 h-3" />
+                                                        Запит на видалення
+                                                    </span>
+                                                )}
+                                                {driver.hasPendingUpdate && (
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-100 uppercase animate-pulse">
+                                                        <Edit className="w-3 h-3" />
+                                                        Запит на редагування
+                                                    </span>
+                                                )}
                                                 {!driver.isActive && (
                                                     <span className="text-[10px] text-red-500 font-bold uppercase">Деактивовано</span>
                                                 )}
@@ -406,8 +418,12 @@ export default function AdminDriversPage() {
                                                         setSelectedDriver(driver);
                                                         setShowDeleteModal(true);
                                                     }}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Видалити"
+                                                    disabled={driver.hasPendingDeletion}
+                                                    className={`p-2 rounded-lg transition-colors ${driver.hasPendingDeletion
+                                                        ? 'text-slate-300 cursor-not-allowed'
+                                                        : 'text-red-600 hover:bg-red-50'
+                                                        }`}
+                                                    title={driver.hasPendingDeletion ? "Запит вже обробляється" : "Видалити"}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

@@ -37,5 +37,17 @@ export const vehiclesService = {
 
     async getAllAdmin(): Promise<Vehicle[]> {
         return apiClient.get<Vehicle[]>('/admin/drivers/vehicles');
+    },
+
+    async createAdmin(data: CreateVehicleDto): Promise<Vehicle> {
+        return apiClient.post<Vehicle>('/admin/drivers/vehicles', data);
+    },
+
+    async updateAdmin(id: number | string, data: UpdateVehicleDto): Promise<Vehicle> {
+        return apiClient.put<Vehicle>(`/admin/drivers/vehicles/${id}`, data);
+    },
+
+    async deleteAdmin(id: number | string): Promise<void> {
+        return apiClient.delete<void>(`/admin/drivers/vehicles/${id}`);
     }
 };

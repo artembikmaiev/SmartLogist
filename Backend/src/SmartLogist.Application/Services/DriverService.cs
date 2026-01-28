@@ -12,17 +12,20 @@ public class DriverService : IDriverService
     private readonly IPermissionRepository _permissionRepository;
     private readonly IActivityService _activityService;
     private readonly IVehicleRepository _vehicleRepository;
+    private readonly IAdminRequestService _adminRequestService;
 
     public DriverService(
         IUserRepository userRepository, 
         IPermissionRepository permissionRepository,
         IActivityService activityService,
-        IVehicleRepository vehicleRepository)
+        IVehicleRepository vehicleRepository,
+        IAdminRequestService adminRequestService)
     {
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
         _activityService = activityService;
         _vehicleRepository = vehicleRepository;
+        _adminRequestService = adminRequestService;
     }
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
@@ -35,7 +38,19 @@ public class DriverService : IDriverService
         }
 
         var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
-        return drivers.Select(MapToDto);
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+        
+        var pendingDeletionTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return drivers.Select(d => MapToDto(d, pendingDeletionTargetIds, pendingUpdateTargetIds));
     }
 
     public async Task<DriverDto?> GetDriverByIdAsync(int driverId, int managerId)
@@ -48,7 +63,21 @@ public class DriverService : IDriverService
         }
 
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
-        return driver != null ? MapToDto(driver) : null;
+        if (driver == null) return null;
+
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+        
+        var pendingDeletionTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
     }
 
     public async Task<DriverDto> CreateDriverAsync(CreateDriverDto dto, int managerId)
@@ -116,21 +145,21 @@ public class DriverService : IDriverService
             throw new KeyNotFoundException("Водія не знайдено");
         }
 
-        // Оновити водія
-        driver.FullName = dto.FullName;
-        driver.Phone = dto.Phone;
-        driver.LicenseNumber = dto.LicenseNumber;
-        driver.DriverStatus = dto.Status;
-        driver.IsActive = dto.IsActive;
-
-        await _userRepository.UpdateAsync(driver);
+        // Створити запит замість оновлення
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
+        {
+            Type = RequestType.DriverUpdate,
+            TargetId = driverId,
+            TargetName = driver.FullName,
+            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
+        }, managerId);
 
         await _activityService.LogAsync(
             managerId, 
-            "Оновлено дані водія", 
+            "Створено запит на оновлення водія", 
             driver.FullName, 
             "Driver", 
-            driver.Id.ToString()
+            driverId.ToString()
         );
 
         return MapToDto(driver);
@@ -153,18 +182,24 @@ public class DriverService : IDriverService
         }
 
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
-        await _userRepository.DeleteAsync(driverId);
+        if (driver == null) return;
 
-        if (driver != null)
+        // Створити запит замість видалення
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
         {
-            await _activityService.LogAsync(
-                managerId, 
-                "Видалено водія", 
-                driver.FullName, 
-                "Driver", 
-                driverId.ToString()
-            );
-        }
+            Type = RequestType.DriverDeletion,
+            TargetId = driverId,
+            TargetName = driver.FullName,
+            Comment = "Запит на видалення водія від менеджера"
+        }, managerId);
+
+        await _activityService.LogAsync(
+            managerId, 
+            "Створено запит на видалення водія", 
+            driver.FullName, 
+            "Driver", 
+            driverId.ToString()
+        );
     }
 
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
@@ -182,7 +217,7 @@ public class DriverService : IDriverService
         return new DriverStatsDto
         {
             TotalDrivers = driversList.Count,
-            ActiveDrivers = driversList.Count(d => d.IsActive),
+            AvailableDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Available),
             OnTripDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.OnTrip),
             OfflineDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Offline)
         };
@@ -191,13 +226,39 @@ public class DriverService : IDriverService
     public async Task<IEnumerable<DriverDto>> GetAllDriversAdminAsync()
     {
         var drivers = await _userRepository.GetAllDriversAsync();
-        return drivers.Select(MapToDto);
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+        
+        var pendingDeletionTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return drivers.Select(d => MapToDto(d, pendingDeletionTargetIds, pendingUpdateTargetIds));
     }
 
     public async Task<DriverDto?> GetDriverByIdAdminAsync(int driverId)
     {
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
-        return driver != null ? MapToDto(driver) : null;
+        if (driver == null) return null;
+
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+        
+        var pendingDeletionTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateTargetIds = pendingRequests
+            .Where(r => r.Type == RequestType.DriverUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
     }
 
     public async Task<DriverDto> CreateDriverAdminAsync(CreateDriverDto dto)
@@ -261,7 +322,7 @@ public class DriverService : IDriverService
         return new DriverStatsDto
         {
             TotalDrivers = driversList.Count,
-            ActiveDrivers = driversList.Count(d => d.IsActive),
+            AvailableDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Available),
             OnTripDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.OnTrip),
             OfflineDrivers = driversList.Count(d => d.DriverStatus == DriverStatus.Offline)
         };
@@ -338,7 +399,7 @@ public class DriverService : IDriverService
         );
     }
 
-    private DriverDto MapToDto(User driver)
+    private DriverDto MapToDto(User driver, IEnumerable<int>? pendingDeletionTargetIds = null, IEnumerable<int>? pendingUpdateTargetIds = null)
     {
         var primaryVehicle = driver.AssignedVehicles?.FirstOrDefault(dv => dv.IsPrimary);
         
@@ -353,6 +414,8 @@ public class DriverService : IDriverService
             IsActive = driver.IsActive,
             ManagerId = driver.ManagerId,
             ManagerName = driver.Manager?.FullName,
+            HasPendingDeletion = pendingDeletionTargetIds?.Contains(driver.Id) ?? false,
+            HasPendingUpdate = pendingUpdateTargetIds?.Contains(driver.Id) ?? false,
             AssignedVehicle = primaryVehicle != null ? new AssignedVehicleDto
             {
                 VehicleId = primaryVehicle.VehicleId,

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Driver;
+using SmartLogist.Application.DTOs.Vehicle;
 using SmartLogist.Application.Interfaces;
 using System.Threading.Tasks;
 
@@ -118,6 +119,52 @@ public class DriversController : ControllerBase
     {
         var vehicles = await _vehicleService.GetAllVehiclesAdminAsync();
         return Ok(vehicles);
+    }
+
+    [HttpPost("vehicles")]
+    public async Task<IActionResult> CreateVehicle([FromBody] CreateVehicleDto dto)
+    {
+        try
+        {
+            var vehicle = await _vehicleService.CreateVehicleAdminAsync(dto);
+            return Ok(vehicle);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpPut("vehicles/{id}")]
+    public async Task<IActionResult> UpdateVehicle(int id, [FromBody] UpdateVehicleDto dto)
+    {
+        try
+        {
+            var vehicle = await _vehicleService.UpdateVehicleAdminAsync(id, dto);
+            return Ok(vehicle);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpDelete("vehicles/{id}")]
+    public async Task<IActionResult> DeleteVehicle(int id)
+    {
+        try
+        {
+            await _vehicleService.DeleteVehicleAdminAsync(id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/assign-vehicle")]

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Truck, CheckCircle, Settings, CircleCheck, Search, Filter, ChevronDown, Edit, Trash2, X, Eye } from 'lucide-react';
+import { Truck, CheckCircle, Settings, CircleCheck, Search, Filter, ChevronDown, Edit, Trash2, X, Eye, AlertCircle } from 'lucide-react';
 import { vehiclesService } from '@/services/vehicles.service';
 import { driversService } from '@/services/drivers.service';
 import { useAuth } from '@/contexts/AuthContext';
@@ -401,9 +401,23 @@ export default function VehiclesPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(v.status)}`}>
-                                            {getStatusText(v.status)}
-                                        </span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(v.status)}`}>
+                                                {getStatusText(v.status)}
+                                            </span>
+                                            {v.hasPendingDeletion && (
+                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-100 uppercase animate-pulse">
+                                                    <AlertCircle className="w-3 h-3" />
+                                                    Запит на видалення
+                                                </span>
+                                            )}
+                                            {v.hasPendingUpdate && (
+                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-100 uppercase animate-pulse">
+                                                    <Edit className="w-3 h-3" />
+                                                    Запит на редагування
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -413,8 +427,12 @@ export default function VehiclesPage() {
                                             {hasEditPermission && (
                                                 <button
                                                     onClick={() => { setSelectedVehicle(v); setIsEditModalOpen(true); }}
-                                                    className="text-slate-400 hover:text-slate-600 transition-colors"
-                                                    title="Редагувати"
+                                                    disabled={v.hasPendingUpdate || v.hasPendingDeletion}
+                                                    className={`transition-colors ${v.hasPendingUpdate || v.hasPendingDeletion
+                                                        ? 'text-slate-200 cursor-not-allowed'
+                                                        : 'text-slate-400 hover:text-slate-600'
+                                                        }`}
+                                                    title={v.hasPendingUpdate ? "Запит на редагування в процесі" : "Редагувати"}
                                                 >
                                                     <Edit className="w-5 h-5" />
                                                 </button>
@@ -422,8 +440,12 @@ export default function VehiclesPage() {
                                             {hasDeletePermission && (
                                                 <button
                                                     onClick={() => { setSelectedVehicle(v); setIsDeleteModalOpen(true); }}
-                                                    className="text-slate-400 hover:text-red-600 transition-colors"
-                                                    title="Видалити"
+                                                    disabled={v.hasPendingDeletion}
+                                                    className={`transition-colors ${v.hasPendingDeletion
+                                                        ? 'text-slate-200 cursor-not-allowed'
+                                                        : 'text-slate-400 hover:text-red-600'
+                                                        }`}
+                                                    title={v.hasPendingDeletion ? "Запит вже обробляється" : "Видалити"}
                                                 >
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>

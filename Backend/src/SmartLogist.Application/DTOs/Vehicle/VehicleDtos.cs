@@ -14,6 +14,8 @@ public class VehicleDto
     public DateTime CreatedAt { get; set; }
     public string? AssignedDriverName { get; set; }
     public int? AssignedDriverId { get; set; }
+    public bool HasPendingDeletion { get; set; }
+    public bool HasPendingUpdate { get; set; }
 }
 
 public class CreateVehicleDto

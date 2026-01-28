@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit } from 'lucide-react';
+import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit, AlertCircle } from 'lucide-react';
 import { driversService } from '@/services/drivers.service';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Driver, DriverStats, DriverStatus } from '@/types/drivers.types';
@@ -223,15 +223,15 @@ export default function DriversPage() {
                     <div className="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
                         <div className="flex items-start justify-between mb-4">
                             <div>
-                                <p className="text-sm text-slate-500 mb-2">Активні</p>
-                                <p className="text-3xl font-bold text-slate-900">{stats.activeDrivers}</p>
+                                <p className="text-sm text-slate-500 mb-2">Вільні</p>
+                                <p className="text-3xl font-bold text-slate-900">{stats.availableDrivers}</p>
                             </div>
                             <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                                 <CheckCircle className="w-6 h-6 text-green-600" />
                             </div>
                         </div>
                         <p className="text-sm text-slate-500">
-                            {stats.totalDrivers > 0 ? Math.round((stats.activeDrivers / stats.totalDrivers) * 100) : 0}% від загальної кількості
+                            {stats.totalDrivers > 0 ? Math.round((stats.availableDrivers / stats.totalDrivers) * 100) : 0}% від загальної кількості
                         </p>
                     </div>
 
@@ -334,10 +334,24 @@ export default function DriversPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(driver.status)}`}></span>
-                                                {DriverStatusLabels[driver.status as DriverStatus]}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(driver.status)}`}></span>
+                                                    {DriverStatusLabels[driver.status as DriverStatus]}
+                                                </span>
+                                                {driver.hasPendingDeletion && (
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-100 uppercase animate-pulse">
+                                                        <AlertCircle className="w-3 h-3" />
+                                                        Запит на видалення
+                                                    </span>
+                                                )}
+                                                {driver.hasPendingUpdate && (
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-100 uppercase animate-pulse">
+                                                        <Edit className="w-3 h-3" />
+                                                        Запит на редагування
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {driver.assignedVehicle ? (
@@ -367,12 +381,15 @@ export default function DriversPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-
                                                 {hasEditPermission && (
                                                     <button
                                                         onClick={() => handleEditClick(driver)}
-                                                        className="text-slate-400 hover:text-slate-600 transition-colors"
-                                                        title="Редагувати"
+                                                        disabled={driver.hasPendingUpdate || driver.hasPendingDeletion}
+                                                        className={`transition-colors ${driver.hasPendingUpdate || driver.hasPendingDeletion
+                                                            ? 'text-slate-200 cursor-not-allowed'
+                                                            : 'text-slate-400 hover:text-slate-600'
+                                                            }`}
+                                                        title={driver.hasPendingUpdate ? "Запит на редагування в процесі" : "Редагувати"}
                                                     >
                                                         <Edit className="w-5 h-5" />
                                                     </button>
@@ -380,8 +397,12 @@ export default function DriversPage() {
                                                 {hasDeletePermission && (
                                                     <button
                                                         onClick={() => handleDeleteClick(driver.id, driver.fullName)}
-                                                        className="text-slate-400 hover:text-red-600 transition-colors"
-                                                        title="Видалити"
+                                                        disabled={driver.hasPendingDeletion}
+                                                        className={`transition-colors ${driver.hasPendingDeletion
+                                                            ? 'text-slate-300 cursor-not-allowed'
+                                                            : 'text-slate-400 hover:text-red-600'
+                                                            }`}
+                                                        title={driver.hasPendingDeletion ? "Запит вже обробляється" : "Видалити"}
                                                     >
                                                         <Trash2 className="w-5 h-5" />
                                                     </button>

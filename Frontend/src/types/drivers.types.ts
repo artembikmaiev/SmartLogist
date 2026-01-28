@@ -12,6 +12,8 @@ export interface Driver {
     createdAt: string;
     totalTrips: number;
     rating?: number;
+    hasPendingDeletion: boolean;
+    hasPendingUpdate: boolean;
 }
 
 export interface AssignedVehicle {
@@ -39,7 +41,7 @@ export interface UpdateDriverData {
 
 export interface DriverStats {
     totalDrivers: number;
-    activeDrivers: number;
+    availableDrivers: number;
     onTripDrivers: number;
     offlineDrivers: number;
 }

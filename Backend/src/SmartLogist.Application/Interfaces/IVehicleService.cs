@@ -13,4 +13,7 @@ public interface IVehicleService
     Task UnassignVehicleAsync(int id, int driverId, int managerId);
     Task<VehicleStatsDto> GetVehicleStatsAsync(int managerId);
     Task<IEnumerable<VehicleDto>> GetAllVehiclesAdminAsync();
+    Task<VehicleDto> CreateVehicleAdminAsync(CreateVehicleDto dto);
+    Task<VehicleDto> UpdateVehicleAdminAsync(int id, UpdateVehicleDto dto);
+    Task DeleteVehicleAdminAsync(int id);
 }

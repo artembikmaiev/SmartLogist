@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<ManagerPermission> ManagerPermissions { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
+    public DbSet<AdminRequest> AdminRequests { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

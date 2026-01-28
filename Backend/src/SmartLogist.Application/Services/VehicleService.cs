@@ -2,6 +2,7 @@ using SmartLogist.Application.DTOs.Vehicle;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;
+using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Application.Services;
 
@@ -11,17 +12,20 @@ public class VehicleService : IVehicleService
     private readonly IUserRepository _userRepository;
     private readonly IPermissionRepository _permissionRepository;
     private readonly IActivityService _activityService;
+    private readonly IAdminRequestService _adminRequestService;
 
     public VehicleService(
         IVehicleRepository vehicleRepository, 
         IUserRepository userRepository,
         IPermissionRepository permissionRepository,
-        IActivityService activityService)
+        IActivityService activityService,
+        IAdminRequestService adminRequestService)
     {
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
         _activityService = activityService;
+        _adminRequestService = adminRequestService;
     }
 
     public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync(int managerId)
@@ -34,6 +38,17 @@ public class VehicleService : IVehicleService
         }
 
         var allVehicles = await _vehicleRepository.GetAllAsync();
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+
+        var pendingDeletionIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
 
         // Фільтр: Показати тільки якщо не призначено АБО призначено водієві цього менеджера
         var visibleVehicles = allVehicles.Where(v => 
@@ -41,7 +56,7 @@ public class VehicleService : IVehicleService
             v.AssignedDrivers.Any(ad => ad.Driver.ManagerId == managerId)
         );
 
-        return visibleVehicles.Select(MapToDto);
+        return visibleVehicles.Select(v => MapToDto(v, pendingDeletionIds, pendingUpdateIds));
     }
 
     public async Task<VehicleDto?> GetVehicleByIdAsync(int id, int managerId)
@@ -67,7 +82,21 @@ public class VehicleService : IVehicleService
             }
         }
 
-        return vehicle != null ? MapToDto(vehicle) : null;
+        if (vehicle == null) return null;
+
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+
+        var pendingDeletionIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return MapToDto(vehicle, pendingDeletionIds, pendingUpdateIds);
     }
 
     public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto dto, int managerId)
@@ -130,18 +159,18 @@ public class VehicleService : IVehicleService
             throw new UnauthorizedAccessException("Ви не можете редагувати цей автомобіль");
         }
 
-        vehicle.Model = dto.Model;
-        vehicle.LicensePlate = dto.LicensePlate;
-        vehicle.Type = dto.Type;
-        vehicle.FuelType = dto.FuelType;
-        vehicle.FuelConsumption = dto.FuelConsumption;
-        vehicle.Status = dto.Status;
-
-        await _vehicleRepository.UpdateAsync(vehicle);
+        // Створити запит замість оновлення
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
+        {
+            Type = RequestType.VehicleUpdate,
+            TargetId = id,
+            TargetName = vehicle.Model,
+            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
+        }, managerId);
 
         await _activityService.LogAsync(
             managerId, 
-            "Оновлено дані транспорту", 
+            "Створено запит на оновлення транспорту", 
             $"{vehicle.Model} ({vehicle.LicensePlate})", 
             "Vehicle", 
             vehicle.Id.ToString()
@@ -171,13 +200,20 @@ public class VehicleService : IVehicleService
             }
         }
 
-        await _vehicleRepository.DeleteAsync(id);
+        // Створити запит замість видалення
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
+        {
+            Type = RequestType.VehicleDeletion,
+            TargetId = id,
+            TargetName = vehicle?.Model ?? "Транспорт",
+            Comment = "Запит на видалення транспорту від менеджера"
+        }, managerId);
 
         if (vehicle != null)
         {
             await _activityService.LogAsync(
                 managerId, 
-                "Видалено транспорт", 
+                "Створено запит на видалення транспорту", 
                 $"{vehicle.Model} ({vehicle.LicensePlate})", 
                 "Vehicle", 
                 id.ToString()
@@ -288,10 +324,64 @@ public class VehicleService : IVehicleService
     public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAdminAsync()
     {
         var vehicles = await _vehicleRepository.GetAllAsync();
-        return vehicles.Select(MapToDto);
+        var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
+
+        var pendingDeletionIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleDeletion && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        var pendingUpdateIds = pendingRequests
+            .Where(r => r.Type == RequestType.VehicleUpdate && r.TargetId.HasValue)
+            .Select(r => r.TargetId!.Value)
+            .ToList();
+
+        return vehicles.Select(v => MapToDto(v, pendingDeletionIds, pendingUpdateIds));
     }
 
-    private VehicleDto MapToDto(Vehicle vehicle)
+    public async Task<VehicleDto> CreateVehicleAdminAsync(CreateVehicleDto dto)
+    {
+        if (await _vehicleRepository.ExistsAsync(dto.LicensePlate))
+        {
+            throw new InvalidOperationException("Транспорт з таким номером вже існує");
+        }
+
+        var vehicle = new Vehicle
+        {
+            Model = dto.Model,
+            LicensePlate = dto.LicensePlate,
+            Type = dto.Type,
+            FuelType = dto.FuelType,
+            FuelConsumption = dto.FuelConsumption,
+            Status = dto.Status
+        };
+
+        var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
+        return MapToDto(createdVehicle);
+    }
+
+    public async Task<VehicleDto> UpdateVehicleAdminAsync(int id, UpdateVehicleDto dto)
+    {
+        var vehicle = await _vehicleRepository.GetByIdAsync(id);
+        if (vehicle == null) throw new KeyNotFoundException("Транспорт не знайдено");
+
+        vehicle.Model = dto.Model;
+        vehicle.LicensePlate = dto.LicensePlate;
+        vehicle.Type = dto.Type;
+        vehicle.FuelType = dto.FuelType;
+        vehicle.FuelConsumption = dto.FuelConsumption;
+        vehicle.Status = dto.Status;
+
+        await _vehicleRepository.UpdateAsync(vehicle);
+        return MapToDto(vehicle);
+    }
+
+    public async Task DeleteVehicleAdminAsync(int id)
+    {
+        await _vehicleRepository.DeleteAsync(id);
+    }
+
+    private VehicleDto MapToDto(Vehicle vehicle, IEnumerable<int>? pendingDeletionIds = null, IEnumerable<int>? pendingUpdateIds = null)
     {
         var primaryAssignment = vehicle.AssignedDrivers.FirstOrDefault(dv => dv.IsPrimary) 
                                ?? vehicle.AssignedDrivers.FirstOrDefault();
@@ -307,7 +397,9 @@ public class VehicleService : IVehicleService
             Status = vehicle.Status.ToString(),
             CreatedAt = vehicle.CreatedAt,
             AssignedDriverId = primaryAssignment?.DriverId,
-            AssignedDriverName = primaryAssignment?.Driver?.FullName
+            AssignedDriverName = primaryAssignment?.Driver?.FullName,
+            HasPendingDeletion = pendingDeletionIds?.Contains(vehicle.Id) ?? false,
+            HasPendingUpdate = pendingUpdateIds?.Contains(vehicle.Id) ?? false
         };
     }
 }

@@ -16,6 +16,8 @@ export interface Vehicle {
     createdAt: string;
     assignedDriverName?: string;
     assignedDriverId?: number;
+    hasPendingDeletion: boolean;
+    hasPendingUpdate: boolean;
 }
 
 export interface CreateVehicleDto {

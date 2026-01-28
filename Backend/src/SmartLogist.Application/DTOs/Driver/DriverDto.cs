@@ -15,6 +15,8 @@ public class DriverDto
     public DateTime CreatedAt { get; set; }
     public int TotalTrips { get; set; }
     public double? Rating { get; set; }
+    public bool HasPendingDeletion { get; set; }
+    public bool HasPendingUpdate { get; set; }
 }
 
 public class AssignedVehicleDto
