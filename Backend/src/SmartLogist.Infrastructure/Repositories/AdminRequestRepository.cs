@@ -40,6 +40,16 @@ public class AdminRequestRepository : IAdminRequestRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<AdminRequest>> GetByRequesterIdAsync(int requesterId)
+    {
+        return await _context.AdminRequests
+            .Include(r => r.Requester)
+            .Include(r => r.ProcessedBy)
+            .Where(r => r.RequesterId == requesterId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task AddAsync(AdminRequest request)
     {
         await _context.AdminRequests.AddAsync(request);

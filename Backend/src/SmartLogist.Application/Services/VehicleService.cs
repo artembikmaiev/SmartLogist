@@ -113,27 +113,24 @@ public class VehicleService : IVehicleService
             throw new InvalidOperationException("Транспорт з таким номером вже існує");
         }
 
-        var vehicle = new Vehicle
+        // Створити запит замість транспорту
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
         {
-            Model = dto.Model,
-            LicensePlate = dto.LicensePlate,
-            Type = dto.Type,
-            FuelType = dto.FuelType,
-            FuelConsumption = dto.FuelConsumption,
-            Status = dto.Status
-        };
+            Type = RequestType.VehicleCreation,
+            TargetId = null,
+            TargetName = dto.Model,
+            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
+        }, managerId);
 
-        var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
-        
         await _activityService.LogAsync(
             managerId, 
-            "Додано новий транспорт", 
+            "Створено запит на додавання транспорту", 
             $"{dto.Model} ({dto.LicensePlate})", 
             "Vehicle", 
-            createdVehicle.Id.ToString()
+            "0"
         );
 
-        return MapToDto(createdVehicle);
+        return new VehicleDto { Model = dto.Model, LicensePlate = dto.LicensePlate, Status = "Pending" };
     }
 
     public async Task<VehicleDto> UpdateVehicleAsync(int id, UpdateVehicleDto dto, int managerId)
@@ -159,18 +156,19 @@ public class VehicleService : IVehicleService
             throw new UnauthorizedAccessException("Ви не можете редагувати цей автомобіль");
         }
 
-        // Створити запит замість оновлення
-        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
-        {
-            Type = RequestType.VehicleUpdate,
-            TargetId = id,
-            TargetName = vehicle.Model,
-            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
-        }, managerId);
+        // Оновити транспорт безпосередньо
+        vehicle.Model = dto.Model;
+        vehicle.LicensePlate = dto.LicensePlate;
+        vehicle.Type = dto.Type;
+        vehicle.FuelType = dto.FuelType;
+        vehicle.FuelConsumption = dto.FuelConsumption;
+        vehicle.Status = dto.Status;
+
+        await _vehicleRepository.UpdateAsync(vehicle);
 
         await _activityService.LogAsync(
             managerId, 
-            "Створено запит на оновлення транспорту", 
+            "Оновлено дані транспорту", 
             $"{vehicle.Model} ({vehicle.LicensePlate})", 
             "Vehicle", 
             vehicle.Id.ToString()

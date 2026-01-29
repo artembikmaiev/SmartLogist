@@ -5,6 +5,8 @@ export enum RequestType {
     DriverUpdate = 'DriverUpdate',
     VehicleDeletion = 'VehicleDeletion',
     VehicleUpdate = 'VehicleUpdate',
+    DriverCreation = 'DriverCreation',
+    VehicleCreation = 'VehicleCreation',
     Other = 'Other'
 }
 
@@ -41,6 +43,10 @@ export const requestsService = {
 
     async getPending(): Promise<AdminRequest[]> {
         return apiClient.get<AdminRequest[]>('/admin/requests/pending');
+    },
+
+    async getMy(): Promise<AdminRequest[]> {
+        return apiClient.get<AdminRequest[]>('/admin/requests/my');
     },
 
     async processRequest(id: number, dto: ProcessRequestDto): Promise<void> {

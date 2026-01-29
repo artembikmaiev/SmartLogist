@@ -56,6 +56,21 @@ public class AdminRequestsController : ControllerBase
         }
     }
 
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMy()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var requests = await _requestService.GetRequesterRequestsAsync(userId);
+            return Ok(requests);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("{id}/process")]
     public async Task<IActionResult> Process(int id, [FromBody] ProcessRequestDto dto)
     {

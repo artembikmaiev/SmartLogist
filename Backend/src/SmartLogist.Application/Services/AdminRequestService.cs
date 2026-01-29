@@ -44,63 +44,12 @@ public class AdminRequestService : IAdminRequestService
 
     public async Task<AdminRequestDto> CreateRequestAsync(CreateRequestDto dto, int requesterId)
     {
-        string finalComment = dto.Comment;
-
-        // For update requests, capture original state for "was -> becomes" history
-        try 
-        {
-            if (dto.TargetId.HasValue && (dto.Type == RequestType.DriverUpdate || dto.Type == RequestType.VehicleUpdate))
-            {
-                object? originalData = null;
-                if (dto.Type == RequestType.DriverUpdate)
-                {
-                    var driver = await _userRepository.GetByIdAsync(dto.TargetId.Value);
-                    if (driver != null)
-                    {
-                        originalData = new {
-                            driver.FullName,
-                            driver.Phone,
-                            driver.LicenseNumber,
-                            Status = driver.DriverStatus,
-                            driver.IsActive
-                        };
-                    }
-                }
-                else if (dto.Type == RequestType.VehicleUpdate)
-                {
-                    var vehicle = await _vehicleRepository.GetByIdAsync(dto.TargetId.Value);
-                    if (vehicle != null)
-                    {
-                        originalData = new {
-                            vehicle.Model,
-                            vehicle.LicensePlate,
-                            vehicle.Type,
-                            vehicle.FuelType,
-                            vehicle.FuelConsumption,
-                            vehicle.Status
-                        };
-                    }
-                }
-
-                if (originalData != null)
-                {
-                    var commentObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonObject>(dto.Comment);
-                    if (commentObj != null)
-                    {
-                        commentObj["_original"] = System.Text.Json.JsonSerializer.SerializeToNode(originalData);
-                        finalComment = commentObj.ToJsonString();
-                    }
-                }
-            }
-        }
-        catch {  }
-
         var request = new AdminRequest
         {
             Type = dto.Type,
             TargetId = dto.TargetId,
             TargetName = dto.TargetName,
-            Comment = finalComment,
+            Comment = dto.Comment,
             RequesterId = requesterId,
             CreatedAt = DateTime.UtcNow,
             Status = RequestStatus.Pending
@@ -132,49 +81,61 @@ public class AdminRequestService : IAdminRequestService
         request.ProcessedAt = DateTime.UtcNow;
         request.ProcessedById = adminId;
 
-        if (dto.Approved && request.TargetId.HasValue)
+        if (dto.Approved)
         {
             switch (request.Type)
             {
                 case RequestType.DriverDeletion:
-                    await _userRepository.DeleteAsync(request.TargetId.Value);
+                    if (request.TargetId.HasValue)
+                        await _userRepository.DeleteAsync(request.TargetId.Value);
                     break;
 
-                case RequestType.DriverUpdate:
-                    var driver = await _userRepository.GetByIdAsync(request.TargetId.Value);
-                    if (driver != null && !string.IsNullOrEmpty(request.Comment))
+                case RequestType.VehicleDeletion:
+                    if (request.TargetId.HasValue)
+                        await _vehicleRepository.DeleteAsync(request.TargetId.Value);
+                    break;
+
+                case RequestType.DriverCreation:
+                    if (!string.IsNullOrEmpty(request.Comment))
                     {
-                        var updateDto = System.Text.Json.JsonSerializer.Deserialize<SmartLogist.Application.DTOs.Driver.UpdateDriverDto>(request.Comment);
-                        if (updateDto != null)
+                        var createDto = System.Text.Json.JsonSerializer.Deserialize<SmartLogist.Application.DTOs.Driver.CreateDriverDto>(request.Comment);
+                        if (createDto != null)
                         {
-                            driver.FullName = updateDto.FullName;
-                            driver.Phone = updateDto.Phone;
-                            driver.LicenseNumber = updateDto.LicenseNumber;
-                            driver.DriverStatus = updateDto.Status;
-                            driver.IsActive = updateDto.IsActive;
-                            await _userRepository.UpdateAsync(driver);
+                            var newDriver = new User
+                            {
+                                Email = createDto.Email,
+                                FullName = createDto.FullName,
+                                Phone = createDto.Phone,
+                                LicenseNumber = createDto.LicenseNumber,
+                                PasswordHash = BCrypt.Net.BCrypt.HashPassword(createDto.Password),
+                                Role = UserRole.Driver,
+                                ManagerId = request.RequesterId,
+                                DriverStatus = DriverStatus.Offline,
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            await _userRepository.AddAsync(newDriver);
                         }
                     }
                     break;
 
-                case RequestType.VehicleDeletion:
-                    await _vehicleRepository.DeleteAsync(request.TargetId.Value);
-                    break;
-
-                case RequestType.VehicleUpdate:
-                    var vehicle = await _vehicleRepository.GetByIdAsync(request.TargetId.Value);
-                    if (vehicle != null && !string.IsNullOrEmpty(request.Comment))
+                case RequestType.VehicleCreation:
+                    if (!string.IsNullOrEmpty(request.Comment))
                     {
-                        var updateDto = System.Text.Json.JsonSerializer.Deserialize<SmartLogist.Application.DTOs.Vehicle.UpdateVehicleDto>(request.Comment);
-                        if (updateDto != null)
+                        var createDto = System.Text.Json.JsonSerializer.Deserialize<SmartLogist.Application.DTOs.Vehicle.CreateVehicleDto>(request.Comment);
+                        if (createDto != null)
                         {
-                            vehicle.Model = updateDto.Model;
-                            vehicle.LicensePlate = updateDto.LicensePlate;
-                            vehicle.Type = updateDto.Type;
-                            vehicle.FuelType = updateDto.FuelType;
-                            vehicle.FuelConsumption = updateDto.FuelConsumption;
-                            vehicle.Status = updateDto.Status;
-                            await _vehicleRepository.UpdateAsync(vehicle);
+                            var newVehicle = new Vehicle
+                            {
+                                Model = createDto.Model,
+                                LicensePlate = createDto.LicensePlate,
+                                Type = createDto.Type,
+                                FuelType = createDto.FuelType,
+                                FuelConsumption = createDto.FuelConsumption,
+                                Status = createDto.Status,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            await _vehicleRepository.AddAsync(newVehicle);
                         }
                     }
                     break;
@@ -185,13 +146,13 @@ public class AdminRequestService : IAdminRequestService
                 $"Запит схвалено: {request.Type}",
                 request.TargetName,
                 request.Type.ToString().Contains("Driver") ? "User" : "Vehicle",
-                request.TargetId.Value.ToString()
+                request.TargetId?.ToString() ?? "0"
             );
 
             await _notificationService.CreateNotificationAsync(
                 request.RequesterId,
                 "Запит схвалено",
-                $"Ваш запит на {request.Type} щодо {request.TargetName} було схвалено.",
+                $"Ваш запит на {request.Type} щодо {request.TargetName} було схвалено. Коментар адміна: {dto.Response}",
                 "Success",
                 "AdminRequest",
                 request.Id.ToString()
@@ -201,7 +162,7 @@ public class AdminRequestService : IAdminRequestService
         {
              await _activityService.LogAsync(
                 adminId,
-                dto.Approved ? "Запит схвалено" : "Запит відхилено",
+                "Запит відхилено",
                 $"{request.Type}: {request.TargetName}",
                 "AdminRequest",
                 request.Id.ToString()
@@ -209,9 +170,9 @@ public class AdminRequestService : IAdminRequestService
 
             await _notificationService.CreateNotificationAsync(
                 request.RequesterId,
-                dto.Approved ? "Запит схвалено" : "Запит відхилено",
-                $"Ваш запит ({request.Type}) щодо {request.TargetName} було {(dto.Approved ? "схвалено" : "відхилено")}. Коментар адміна: {dto.Response}",
-                dto.Approved ? "Success" : "Error",
+                "Запит відхилено",
+                $"Ваш запит ({request.Type}) щодо {request.TargetName} було відхилено. Коментар адміна: {dto.Response}",
+                "Error",
                 "AdminRequest",
                 request.Id.ToString()
             );
@@ -223,6 +184,12 @@ public class AdminRequestService : IAdminRequestService
     public async Task ClearProcessedRequestsAsync()
     {
         await _requestRepository.ClearProcessedAsync();
+    }
+
+    public async Task<IEnumerable<AdminRequestDto>> GetRequesterRequestsAsync(int requesterId)
+    {
+        var requests = await _requestRepository.GetByRequesterIdAsync(requesterId);
+        return requests.OrderByDescending(r => r.CreatedAt).Select(MapToDto);
     }
 
     private AdminRequestDto MapToDto(AdminRequest request)

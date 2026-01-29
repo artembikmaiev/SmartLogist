@@ -216,7 +216,13 @@ function ManagerLayoutContent({
                                     </p>
                                     <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
                                       <Clock className="w-3 h-3" />
-                                      {new Date(notif.createdAt).toLocaleString()}
+                                      {(() => {
+                                        let dateString = notif.createdAt;
+                                        if (!dateString.endsWith('Z') && !dateString.includes('+')) {
+                                          dateString += 'Z';
+                                        }
+                                        return new Date(dateString).toLocaleString();
+                                      })()}
                                     </div>
                                   </div>
                                   {!notif.isRead && (

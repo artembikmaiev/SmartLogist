@@ -1,18 +1,22 @@
 'use client';
 
+'use client';
+
 import { useState, useEffect } from 'react';
-import { Truck, CheckCircle, Settings, CircleCheck, Search, Filter, ChevronDown, Edit, Trash2, X, Eye, AlertCircle } from 'lucide-react';
+import { Truck, CheckCircle, Settings, CircleCheck, Search, Filter, ChevronDown, Edit, Trash2, X, Eye, AlertCircle, Clock } from 'lucide-react';
 import { vehiclesService } from '@/services/vehicles.service';
 import { driversService } from '@/services/drivers.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { Driver } from '@/types/drivers.types';
 import { Vehicle, VehicleStatus, VehicleStats } from '@/types/vehicle.types';
+import { requestsService, AdminRequest, RequestType, RequestStatus } from '@/services/requests.service';
 
 export default function VehiclesPage() {
     const { user } = useAuth();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [stats, setStats] = useState<VehicleStats | null>(null);
+    const [pendingRequests, setPendingRequests] = useState<AdminRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -63,14 +67,19 @@ export default function VehiclesPage() {
     const loadData = async () => {
         try {
             setIsLoading(true);
-            const [vehiclesData, driversData, statsData] = await Promise.all([
+            const [vehiclesData, driversData, statsData, myRequests] = await Promise.all([
                 vehiclesService.getAll(),
                 driversService.getAll(),
-                vehiclesService.getStats()
+                vehiclesService.getStats(),
+                requestsService.getMy()
             ]);
             setVehicles(vehiclesData);
             setDrivers(driversData);
             setStats(statsData);
+            setPendingRequests(myRequests.filter(r =>
+                r.status === RequestStatus.Pending &&
+                r.type === RequestType.VehicleCreation
+            ));
         } catch (err: any) {
             setError(err.message || 'Помилка завантаження даних');
         } finally {
@@ -256,6 +265,21 @@ export default function VehiclesPage() {
                 </div>
             </div>
 
+            {/* Pending Requests Indicator */}
+            {pendingRequests.length > 0 && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-pulse">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-amber-100 p-2 rounded-lg">
+                            <Clock className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-amber-900">Запити на розгляді ({pendingRequests.length})</p>
+                            <p className="text-xs text-amber-700">Очікуйте схвалення адміністратора для нових транспортних засобів</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {statsCards.map((stat, index) => {
@@ -411,12 +435,6 @@ export default function VehiclesPage() {
                                                     Запит на видалення
                                                 </span>
                                             )}
-                                            {v.hasPendingUpdate && (
-                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-100 uppercase animate-pulse">
-                                                    <Edit className="w-3 h-3" />
-                                                    Запит на редагування
-                                                </span>
-                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -427,12 +445,12 @@ export default function VehiclesPage() {
                                             {hasEditPermission && (
                                                 <button
                                                     onClick={() => { setSelectedVehicle(v); setIsEditModalOpen(true); }}
-                                                    disabled={v.hasPendingUpdate || v.hasPendingDeletion}
-                                                    className={`transition-colors ${v.hasPendingUpdate || v.hasPendingDeletion
+                                                    disabled={v.hasPendingDeletion}
+                                                    className={`transition-colors ${v.hasPendingDeletion
                                                         ? 'text-slate-200 cursor-not-allowed'
                                                         : 'text-slate-400 hover:text-slate-600'
                                                         }`}
-                                                    title={v.hasPendingUpdate ? "Запит на редагування в процесі" : "Редагувати"}
+                                                    title="Редагувати"
                                                 >
                                                     <Edit className="w-5 h-5" />
                                                 </button>

@@ -95,32 +95,25 @@ public class DriverService : IDriverService
             throw new InvalidOperationException("Користувач з таким email вже існує");
         }
 
-        // Створити водія
-        var driver = new User
+        // Створити запит замість водія
+        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
         {
-            Email = dto.Email,
-            FullName = dto.FullName,
-            Phone = dto.Phone,
-            LicenseNumber = dto.LicenseNumber,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Role = UserRole.Driver,
-            ManagerId = managerId,
-            DriverStatus = DriverStatus.Offline,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var createdDriver = await _userRepository.AddAsync(driver);
+            Type = RequestType.DriverCreation,
+            TargetId = null,
+            TargetName = dto.FullName,
+            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
+        }, managerId);
 
         await _activityService.LogAsync(
             managerId, 
-            "Додано нового водія", 
-            createdDriver.FullName, 
+            "Створено запит на додавання водія", 
+            dto.FullName, 
             "Driver", 
-            createdDriver.Id.ToString()
+            "0"
         );
 
-        return MapToDto(createdDriver);
+        // Повернути порожній об'єкт або спеціальний статус, оскільки водія ще немає
+        return new DriverDto { FullName = dto.FullName, Email = dto.Email, Status = "Pending" };
     }
 
     public async Task<DriverDto> UpdateDriverAsync(int driverId, UpdateDriverDto dto, int managerId)
@@ -145,18 +138,18 @@ public class DriverService : IDriverService
             throw new KeyNotFoundException("Водія не знайдено");
         }
 
-        // Створити запит замість оновлення
-        await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
-        {
-            Type = RequestType.DriverUpdate,
-            TargetId = driverId,
-            TargetName = driver.FullName,
-            Comment = System.Text.Json.JsonSerializer.Serialize(dto)
-        }, managerId);
+        // Оновити водія безпосередньо
+        driver.FullName = dto.FullName;
+        driver.Phone = dto.Phone;
+        driver.LicenseNumber = dto.LicenseNumber;
+        driver.DriverStatus = dto.Status;
+        driver.IsActive = dto.IsActive;
+
+        await _userRepository.UpdateAsync(driver);
 
         await _activityService.LogAsync(
             managerId, 
-            "Створено запит на оновлення водія", 
+            "Оновлено дані водія", 
             driver.FullName, 
             "Driver", 
             driverId.ToString()

@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit, AlertCircle } from 'lucide-react';
+import { Users, CheckCircle, Truck, Moon, Search, Star, Trash2, Edit, AlertCircle, Clock } from 'lucide-react';
 import { driversService } from '@/services/drivers.service';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Driver, DriverStats, DriverStatus } from '@/types/drivers.types';
 import { DriverStatusLabels } from '@/types/drivers.types';
+import { requestsService, AdminRequest, RequestType, RequestStatus } from '@/services/requests.service';
 
 export default function DriversPage() {
     const { user } = useAuth();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [stats, setStats] = useState<DriverStats | null>(null);
+    const [pendingRequests, setPendingRequests] = useState<AdminRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -37,12 +39,17 @@ export default function DriversPage() {
         try {
             setIsLoading(true);
             setError('');
-            const [driversData, statsData] = await Promise.all([
+            const [driversData, statsData, myRequests] = await Promise.all([
                 driversService.getAll(),
-                driversService.getStats()
+                driversService.getStats(),
+                requestsService.getMy()
             ]);
             setDrivers(driversData);
             setStats(statsData);
+            setPendingRequests(myRequests.filter(r =>
+                r.status === RequestStatus.Pending &&
+                r.type === RequestType.DriverCreation
+            ));
         } catch (err: any) {
             setError(err.message || 'Помилка завантаження даних');
         } finally {
@@ -205,6 +212,21 @@ export default function DriversPage() {
                 </div>
             </div>
 
+            {/* Pending Requests Indicator */}
+            {pendingRequests.length > 0 && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-pulse">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-amber-100 p-2 rounded-lg">
+                            <Clock className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-amber-900">Запити на розгляді ({pendingRequests.length})</p>
+                            <p className="text-xs text-amber-700">Очікуйте схвалення адміністратора для нових водіїв</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Stats Cards */}
             {stats && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -345,12 +367,6 @@ export default function DriversPage() {
                                                         Запит на видалення
                                                     </span>
                                                 )}
-                                                {driver.hasPendingUpdate && (
-                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-100 uppercase animate-pulse">
-                                                        <Edit className="w-3 h-3" />
-                                                        Запит на редагування
-                                                    </span>
-                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -384,12 +400,12 @@ export default function DriversPage() {
                                                 {hasEditPermission && (
                                                     <button
                                                         onClick={() => handleEditClick(driver)}
-                                                        disabled={driver.hasPendingUpdate || driver.hasPendingDeletion}
-                                                        className={`transition-colors ${driver.hasPendingUpdate || driver.hasPendingDeletion
+                                                        disabled={driver.hasPendingDeletion}
+                                                        className={`transition-colors ${driver.hasPendingDeletion
                                                             ? 'text-slate-200 cursor-not-allowed'
                                                             : 'text-slate-400 hover:text-slate-600'
                                                             }`}
-                                                        title={driver.hasPendingUpdate ? "Запит на редагування в процесі" : "Редагувати"}
+                                                        title="Редагувати"
                                                     >
                                                         <Edit className="w-5 h-5" />
                                                     </button>
