@@ -1,62 +1,49 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { Driver, CreateDriverData, UpdateDriverData, DriverStats } from '@/types/drivers.types';
+import { BaseApiService } from './base.service';
 
-export const driversService = {
-    async getAll(): Promise<Driver[]> {
-        return apiClient.get<Driver[]>(API_ENDPOINTS.DRIVERS.LIST);
-    },
+class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriverData> {
+    constructor() {
+        super(API_ENDPOINTS.DRIVERS.LIST);
+    }
 
-    async getById(id: number): Promise<Driver> {
-        return apiClient.get<Driver>(`${API_ENDPOINTS.DRIVERS.LIST}/${id}`);
-    },
-
-    async create(data: CreateDriverData): Promise<Driver> {
-        return apiClient.post<Driver>(API_ENDPOINTS.DRIVERS.LIST, data);
-    },
-
-    async update(id: number, data: UpdateDriverData): Promise<Driver> {
-        return apiClient.put<Driver>(`${API_ENDPOINTS.DRIVERS.LIST}/${id}`, data);
-    },
-
-    async delete(id: number): Promise<void> {
-        return apiClient.delete<void>(`${API_ENDPOINTS.DRIVERS.LIST}/${id}`);
-    },
-
-    async getStats(): Promise<DriverStats> {
-        return apiClient.get<DriverStats>(`${API_ENDPOINTS.DRIVERS.LIST}/stats`);
-    },
+    getStats = async (): Promise<DriverStats> => {
+        return apiClient.get<DriverStats>(`${this.endpoint}/stats`);
+    };
 
     // Admin methods
-    async getAllAdmin(): Promise<Driver[]> {
+    getAllAdmin = async (): Promise<Driver[]> => {
         return apiClient.get<Driver[]>('/admin/drivers');
-    },
+    };
 
-    async createAdmin(data: CreateDriverData): Promise<Driver> {
+    createAdmin = async (data: CreateDriverData): Promise<Driver> => {
         return apiClient.post<Driver>('/admin/drivers', data);
-    },
+    };
 
-    async updateAdmin(id: number, data: UpdateDriverData): Promise<Driver> {
+    updateAdmin = async (id: number, data: UpdateDriverData): Promise<Driver> => {
         return apiClient.put<Driver>(`/admin/drivers/${id}`, data);
-    },
+    };
 
-    async deleteAdmin(id: number): Promise<void> {
+    deleteAdmin = async (id: number): Promise<void> => {
         return apiClient.delete(`/admin/drivers/${id}`);
-    },
+    };
 
-    async assignManager(driverId: number, managerId: number | null): Promise<void> {
+    assignManager = async (driverId: number, managerId: number | null): Promise<void> => {
         return apiClient.post(`/admin/drivers/${driverId}/assign-manager`, managerId);
-    },
+    };
 
-    async getStatsAdmin(): Promise<DriverStats> {
+    getStatsAdmin = async (): Promise<DriverStats> => {
         return apiClient.get<DriverStats>('/admin/drivers/stats');
-    },
+    };
 
-    async assignVehicle(driverId: number, vehicleId: number): Promise<void> {
+    assignVehicle = async (driverId: number, vehicleId: number): Promise<void> => {
         return apiClient.post(`/admin/drivers/${driverId}/assign-vehicle`, vehicleId);
-    },
+    };
 
-    async unassignVehicle(driverId: number, vehicleId: number): Promise<void> {
+    unassignVehicle = async (driverId: number, vehicleId: number): Promise<void> => {
         return apiClient.post(`/admin/drivers/${driverId}/unassign-vehicle`, vehicleId);
-    }
-};
+    };
+}
+
+export const driversService = new DriversService();

@@ -1,6 +1,7 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Clock, CheckCircle, Fuel, Truck, MapPin, Search } from 'lucide-react';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function ManagerTripsPage() {
   // Stats data
@@ -249,7 +250,7 @@ export default function ManagerTripsPage() {
               <input
                 type="text"
                 placeholder="Пошук рейсів..."
-                className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder:text-slate-500 text-slate-900"
               />
             </div>
           </div>
@@ -338,14 +339,16 @@ export default function ManagerTripsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-          <p className="text-sm text-slate-600">Показано <span className="font-medium">1-3</span> з <span className="font-medium">3</span> рейсів</p>
-          <div className="flex gap-1">
-            <button className="px-3 py-1.5 bg-slate-900 text-white rounded-md text-sm font-medium shadow-sm">1</button>
-            <button className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">2</button>
-            <button className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">3</button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={1}
+          totalPages={1}
+          totalItems={trips.length}
+          pageSize={10}
+          onPageChange={() => { }}
+          onPageSizeChange={() => { }}
+          label="рейсів"
+          className="mt-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        />
       </div>
     </div>
   );

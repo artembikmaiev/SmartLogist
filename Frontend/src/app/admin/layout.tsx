@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Users, Shield, UserCog, LogOut, Settings, Bell, X, Check, Info, AlertCircle, Clock, MessageSquare, Trash2, Loader2, Truck } from 'lucide-react';
 import { notificationsService, Notification } from '@/services/notifications.service';
+import { formatDateTime } from '@/lib/utils/date.utils';
 
 export default function AdminLayout({
     children,
@@ -197,13 +198,7 @@ export default function AdminLayout({
                                                                     </p>
                                                                     <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
                                                                         <Clock className="w-3 h-3" />
-                                                                        {(() => {
-                                                                            let dateString = notif.createdAt;
-                                                                            if (!dateString.endsWith('Z') && !dateString.includes('+')) {
-                                                                                dateString += 'Z';
-                                                                            }
-                                                                            return new Date(dateString).toLocaleString();
-                                                                        })()}
+                                                                        {formatDateTime(notif.createdAt)}
                                                                     </div>
                                                                 </div>
                                                                 {!notif.isRead && (

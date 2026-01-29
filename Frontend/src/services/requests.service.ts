@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api/client';
+import { BaseApiService } from './base.service';
 
 export enum RequestType {
     DriverDeletion = 'DriverDeletion',
@@ -36,24 +37,26 @@ export interface ProcessRequestDto {
     response?: string;
 }
 
-export const requestsService = {
-    async getAll(): Promise<AdminRequest[]> {
-        return apiClient.get<AdminRequest[]>('/admin/requests');
-    },
+class RequestsService extends BaseApiService<AdminRequest> {
+    constructor() {
+        super('/admin/requests');
+    }
 
     async getPending(): Promise<AdminRequest[]> {
-        return apiClient.get<AdminRequest[]>('/admin/requests/pending');
-    },
+        return apiClient.get<AdminRequest[]>(`${this.endpoint}/pending`);
+    }
 
     async getMy(): Promise<AdminRequest[]> {
-        return apiClient.get<AdminRequest[]>('/admin/requests/my');
-    },
+        return apiClient.get<AdminRequest[]>(`${this.endpoint}/my`);
+    }
 
     async processRequest(id: number, dto: ProcessRequestDto): Promise<void> {
-        return apiClient.post(`/admin/requests/${id}/process`, dto);
-    },
+        return apiClient.post(`${this.endpoint}/${id}/process`, dto);
+    }
 
     async clearProcessed(): Promise<void> {
-        return apiClient.delete('/admin/requests/clear-processed');
+        return apiClient.delete(`${this.endpoint}/clear-processed`);
     }
-};
+}
+
+export const requestsService = new RequestsService();

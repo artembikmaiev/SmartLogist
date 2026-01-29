@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { notificationsService, Notification } from '@/services/notifications.service';
+import { formatDateTime } from '@/lib/utils/date.utils';
 
 function ManagerLayoutContent({
   children,
@@ -216,13 +217,7 @@ function ManagerLayoutContent({
                                     </p>
                                     <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
                                       <Clock className="w-3 h-3" />
-                                      {(() => {
-                                        let dateString = notif.createdAt;
-                                        if (!dateString.endsWith('Z') && !dateString.includes('+')) {
-                                          dateString += 'Z';
-                                        }
-                                        return new Date(dateString).toLocaleString();
-                                      })()}
+                                      {formatDateTime(notif.createdAt)}
                                     </div>
                                   </div>
                                   {!notif.isRead && (
@@ -282,46 +277,48 @@ function ManagerLayoutContent({
             </div>
           </div>
         </div>
-      </header>
+      </header >
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto">
+      < main className="max-w-7xl mx-auto" >
         {children}
-      </main>
+      </main >
       {/* Clear Notifications Confirmation Modal */}
-      {showClearConfirm && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
-                <Trash2 className="w-8 h-8 text-red-500" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Очистити сповіщення?</h2>
-              <p className="text-slate-500 text-sm mb-8">
-                Ви впевнені, що хочете видалити всі сповіщення? Цю дію неможливо скасувати.
-              </p>
+      {
+        showClearConfirm && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[70] p-4">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">Очистити сповіщення?</h2>
+                <p className="text-slate-500 text-sm mb-8">
+                  Ви впевнені, що хочете видалити всі сповіщення? Цю дію неможливо скасувати.
+                </p>
 
-              <div className="flex flex-col w-full gap-3">
-                <button
-                  onClick={handleClearAll}
-                  disabled={loading}
-                  className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-100 active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                  Так, видалити все
-                </button>
-                <button
-                  onClick={() => setShowClearConfirm(false)}
-                  className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-2xl transition-all"
-                >
-                  Скасувати
-                </button>
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={handleClearAll}
+                    disabled={loading}
+                    className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-100 active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                    Так, видалити все
+                  </button>
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-2xl transition-all"
+                  >
+                    Скасувати
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
 
@@ -331,10 +328,8 @@ export default function ManagerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
-      <ProtectedRoute requiredRole="manager">
-        <ManagerLayoutContent>{children}</ManagerLayoutContent>
-      </ProtectedRoute>
-    </AuthProvider>
+    <ProtectedRoute requiredRole="manager">
+      <ManagerLayoutContent>{children}</ManagerLayoutContent>
+    </ProtectedRoute>
   );
 }

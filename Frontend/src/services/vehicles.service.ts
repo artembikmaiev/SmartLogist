@@ -1,53 +1,40 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { Vehicle, CreateVehicleDto, UpdateVehicleDto, AssignVehicleDto, VehicleStats } from '@/types/vehicle.types';
+import { BaseApiService } from './base.service';
 
-export const vehiclesService = {
-    async getAll(): Promise<Vehicle[]> {
-        return apiClient.get<Vehicle[]>(API_ENDPOINTS.VEHICLES.LIST);
-    },
+class VehiclesService extends BaseApiService<Vehicle, CreateVehicleDto, UpdateVehicleDto> {
+    constructor() {
+        super(API_ENDPOINTS.VEHICLES.LIST);
+    }
 
-    async getById(id: number | string): Promise<Vehicle> {
-        return apiClient.get<Vehicle>(API_ENDPOINTS.VEHICLES.BY_ID(id));
-    },
-
-    async create(data: CreateVehicleDto): Promise<Vehicle> {
-        return apiClient.post<Vehicle>(API_ENDPOINTS.VEHICLES.LIST, data);
-    },
-
-    async update(id: number | string, data: UpdateVehicleDto): Promise<Vehicle> {
-        return apiClient.put<Vehicle>(API_ENDPOINTS.VEHICLES.BY_ID(id), data);
-    },
-
-    async delete(id: number | string): Promise<void> {
-        return apiClient.delete<void>(API_ENDPOINTS.VEHICLES.BY_ID(id));
-    },
-
-    async assign(id: number | string, data: AssignVehicleDto): Promise<void> {
+    assign = async (id: number | string, data: AssignVehicleDto): Promise<void> => {
         return apiClient.post<void>(API_ENDPOINTS.VEHICLES.ASSIGN(id), data);
-    },
+    };
 
-    async unassign(id: number | string, driverId: number | string): Promise<void> {
+    unassign = async (id: number | string, driverId: number | string): Promise<void> => {
         return apiClient.post<void>(API_ENDPOINTS.VEHICLES.UNASSIGN(id, driverId), {});
-    },
+    };
 
-    async getStats(): Promise<VehicleStats> {
+    getStats = async (): Promise<VehicleStats> => {
         return apiClient.get<VehicleStats>(API_ENDPOINTS.VEHICLES.STATS);
-    },
+    };
 
     async getAllAdmin(): Promise<Vehicle[]> {
         return apiClient.get<Vehicle[]>('/admin/drivers/vehicles');
-    },
+    }
 
     async createAdmin(data: CreateVehicleDto): Promise<Vehicle> {
         return apiClient.post<Vehicle>('/admin/drivers/vehicles', data);
-    },
+    }
 
     async updateAdmin(id: number | string, data: UpdateVehicleDto): Promise<Vehicle> {
         return apiClient.put<Vehicle>(`/admin/drivers/vehicles/${id}`, data);
-    },
+    }
 
     async deleteAdmin(id: number | string): Promise<void> {
         return apiClient.delete<void>(`/admin/drivers/vehicles/${id}`);
     }
-};
+}
+
+export const vehiclesService = new VehiclesService();

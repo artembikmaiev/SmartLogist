@@ -2,6 +2,9 @@
 
 import { User, Mail, Phone, Calendar, Award, Edit, Save, X, Truck, MapPin, Clock, DollarSign } from 'lucide-react';
 import { useState } from 'react';
+import Button from '@/components/ui/Button';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
 
 export default function DriverProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
@@ -44,29 +47,30 @@ export default function DriverProfilePage() {
                         <p className="text-slate-500 text-sm mt-1">Персональна інформація та налаштування облікового запису</p>
                     </div>
                     {!isEditing ? (
-                        <button
+                        <Button
                             onClick={() => setIsEditing(true)}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 h-12 gap-2"
                         >
                             <Edit className="w-5 h-5" />
                             Редагувати профіль
-                        </button>
+                        </Button>
                     ) : (
                         <div className="flex gap-2">
-                            <button
+                            <Button
                                 onClick={() => setIsEditing(false)}
-                                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                                className="bg-green-600 hover:bg-green-700 px-6 py-3 h-12 gap-2"
                             >
                                 <Save className="w-5 h-5" />
                                 Зберегти
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="secondary"
                                 onClick={() => setIsEditing(false)}
-                                className="bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-300 transition-colors shadow-sm flex items-center gap-2"
+                                className="px-6 py-3 h-12 gap-2"
                             >
                                 <X className="w-5 h-5" />
                                 Скасувати
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -98,77 +102,53 @@ export default function DriverProfilePage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <User className="w-4 h-4" />
-                                    Повне ім'я
-                                </label>
+                            <FormField label="Повне ім'я" id="fullName">
                                 {isEditing ? (
-                                    <input
+                                    <Input
+                                        id="fullName"
                                         type="text"
                                         defaultValue="Іван Петренко"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                                     />
                                 ) : (
                                     <p className="font-semibold text-slate-900">Іван Петренко</p>
                                 )}
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <Mail className="w-4 h-4" />
-                                    Email
-                                </label>
+                            <FormField label="Email" id="email">
                                 {isEditing ? (
-                                    <input
+                                    <Input
+                                        id="email"
                                         type="email"
                                         defaultValue="ivan.petrenko@smartlogist.ua"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                                     />
                                 ) : (
                                     <p className="font-semibold text-slate-900">ivan.petrenko@smartlogist.ua</p>
                                 )}
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <Phone className="w-4 h-4" />
-                                    Телефон
-                                </label>
+                            <FormField label="Телефон" id="phone">
                                 {isEditing ? (
-                                    <input
+                                    <Input
+                                        id="phone"
                                         type="tel"
                                         defaultValue="+380 67 234 5678"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                                     />
                                 ) : (
                                     <p className="font-semibold text-slate-900">+380 67 234 5678</p>
                                 )}
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <Award className="w-4 h-4" />
-                                    Посвідчення водія
-                                </label>
+                            <FormField label="Посвідчення водія" id="license">
                                 <p className="font-semibold text-slate-900">АВС 123456</p>
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <Calendar className="w-4 h-4" />
-                                    Дата прийняття
-                                </label>
+                            <FormField label="Дата прийняття" id="hiredAt">
                                 <p className="font-semibold text-slate-900">10 березня 2021</p>
-                            </div>
+                            </FormField>
 
-                            <div className="space-y-1">
-                                <label className="text-sm text-slate-500 flex items-center gap-2">
-                                    <Truck className="w-4 h-4" />
-                                    Категорії
-                                </label>
+                            <FormField label="Категорії" id="categories">
                                 <p className="font-semibold text-slate-900">B, C, CE</p>
-                            </div>
+                            </FormField>
                         </div>
                     </div>
 

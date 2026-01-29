@@ -4,6 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { authService } from '@/services/auth.service';
+import Button from '@/components/ui/Button';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
+
 export default function DriverLogin() {
     const router = useRouter();
     const [email, setEmail] = useState('');
@@ -17,12 +22,10 @@ export default function DriverLogin() {
         setIsLoading(true);
 
         try {
-            // TODO: Implement actual authentication
-            // For now, just redirect to driver dashboard
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+            await authService.login({ email, password });
             router.push('/driver');
-        } catch (err) {
-            setError('Невірний email або пароль');
+        } catch (err: any) {
+            setError(err.message || 'Невірний email або пароль');
         } finally {
             setIsLoading(false);
         }
@@ -44,55 +47,46 @@ export default function DriverLogin() {
                 </div>
 
                 {/* Login Form */}
-                <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Email */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                                Email
-                            </label>
-                            <input
+                        <FormField label="Email" id="email">
+                            <Input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent outline-none transition-all"
+                                className="py-3 focus:ring-green-600/20 focus:border-green-600"
                                 placeholder="driver@smartlogist.ua"
                             />
-                        </div>
+                        </FormField>
 
-                        {/* Password */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                                Пароль
-                            </label>
-                            <input
+                        <FormField label="Пароль" id="password">
+                            <Input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent outline-none transition-all"
+                                className="py-3 focus:ring-green-600/20 focus:border-green-600"
                                 placeholder="••••••••"
                             />
-                        </div>
+                        </FormField>
 
                         {/* Error Message */}
                         {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm animate-in fade-in slide-in-from-top-1">
                                 {error}
                             </div>
                         )}
 
-                        {/* Submit Button */}
-                        <button
+                        <Button
                             type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-slate-900 text-white py-3 rounded-lg font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            isLoading={isLoading}
+                            className="w-full py-3 h-12 text-base font-semibold"
                         >
-                            {isLoading ? 'Вхід...' : 'Увійти'}
-                        </button>
+                            Увійти
+                        </Button>
                     </form>
 
                     {/* Links */}
