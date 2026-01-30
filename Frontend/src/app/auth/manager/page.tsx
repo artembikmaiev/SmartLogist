@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/auth.service';
+import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Input from '@/components/ui/Input';
 
 export default function ManagerLogin() {
     const router = useRouter();
+    const { login, user } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -21,7 +22,9 @@ export default function ManagerLogin() {
         setIsLoading(true);
 
         try {
-            await authService.login({ email, password });
+            await login(email, password);
+            // Redirection logic can be more complex here
+            // but for now we follow the existing pattern
             router.push('/manager');
         } catch (err: any) {
             setError(err.message || 'Невірний email або пароль');

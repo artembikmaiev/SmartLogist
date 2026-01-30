@@ -11,6 +11,7 @@ export function useDrivers() {
     const { success, error: notifyError } = useNotifications();
     const [stats, setStats] = useState<DriverStats | null>(null);
     const [pendingRequests, setPendingRequests] = useState<AdminRequest[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
     const permissions = useMemo(() => ({
         view: user?.permissions?.some(p => p.code === 'drivers.view') ?? false,
@@ -37,16 +38,22 @@ export function useDrivers() {
 
     const resource = useResource<Driver>({
         fetchFn: driversService.getAll,
-        deleteFn: driversService.delete,
+        deleteFn: driversService.delete as (id: string | number) => Promise<void>,
         onSuccess: () => fetchExtraData(),
         filterFn: (driver, query) => {
-            if (!query) return true;
-            const search = query.toLowerCase();
-            return driver.fullName.toLowerCase().includes(search) ||
-                driver.email.toLowerCase().includes(search) ||
-                (driver.phone && driver.phone.toLowerCase().includes(search)) ||
-                (driver.assignedVehicle?.model.toLowerCase().includes(search)) ||
-                (driver.assignedVehicle?.licensePlate.toLowerCase().includes(search));
+            const matchesSearch = !query || (
+                driver.fullName.toLowerCase().includes(query.toLowerCase()) ||
+                driver.email.toLowerCase().includes(query.toLowerCase()) ||
+                !!(driver.phone && driver.phone.toLowerCase().includes(query.toLowerCase())) ||
+                !!(driver.assignedVehicle?.model.toLowerCase().includes(query.toLowerCase())) ||
+                !!(driver.assignedVehicle?.licensePlate.toLowerCase().includes(query.toLowerCase()))
+            );
+
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'active' && !!driver.assignedVehicle) ||
+                (statusFilter === 'inactive' && !driver.assignedVehicle);
+
+            return matchesSearch && matchesStatus;
         }
     });
 
@@ -89,6 +96,8 @@ export function useDrivers() {
         stats,
         pendingRequests,
         permissions,
+        statusFilter,
+        setStatusFilter,
         modals: {
             add: {
                 isOpen: resource.showCreateModal,

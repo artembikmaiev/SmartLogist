@@ -18,7 +18,7 @@ export default function useResource<T extends { id: number | string }>({
     onSuccess
 }: UseResourceProps<T>) {
     const [allItems, setAllItems] = useState<T[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +35,7 @@ export default function useResource<T extends { id: number | string }>({
 
     const loadData = useCallback(async (showLoader = true) => {
         try {
-            if (showLoader) setLoading(true);
+            if (showLoader) setIsLoading(true);
             const result = await fetchFn();
             setAllItems(initialSort ? result.sort(initialSort) : result);
             if (onSuccess) onSuccess(result);
@@ -45,7 +45,7 @@ export default function useResource<T extends { id: number | string }>({
         } catch (err: any) {
             setError(err.message || 'Помилка при завантаженні даних');
         } finally {
-            if (showLoader) setLoading(false);
+            if (showLoader) setIsLoading(false);
         }
     }, [fetchFn, initialSort]);
 
@@ -94,7 +94,8 @@ export default function useResource<T extends { id: number | string }>({
         if (!selectedItem || !deleteFn) return;
         try {
             setIsSubmitting(true);
-            await deleteFn(Number(selectedItem.id));
+            const id = typeof selectedItem.id === 'string' ? selectedItem.id : Number(selectedItem.id);
+            await deleteFn(id);
             setShowDeleteModal(false);
             setSelectedItem(null);
             await loadData(false);
@@ -116,7 +117,7 @@ export default function useResource<T extends { id: number | string }>({
         allItems,
         filteredData,
         paginatedData,
-        loading,
+        isLoading,
         error,
         searchQuery,
         setSearchQuery,

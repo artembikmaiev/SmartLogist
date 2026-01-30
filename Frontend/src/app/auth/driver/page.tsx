@@ -4,13 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { authService } from '@/services/auth.service';
+import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Input from '@/components/ui/Input';
 
 export default function DriverLogin() {
     const router = useRouter();
+    const { login, user } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -22,7 +23,8 @@ export default function DriverLogin() {
         setIsLoading(true);
 
         try {
-            await authService.login({ email, password });
+            await login(email, password);
+            // Redirection will happen in useEffect or after this await
             router.push('/driver');
         } catch (err: any) {
             setError(err.message || 'Невірний email або пароль');

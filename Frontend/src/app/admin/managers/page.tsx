@@ -17,7 +17,7 @@ export default function AdminManagersPage() {
     const {
         paginatedData: managers,
         allItems,
-        loading,
+        isLoading,
         searchQuery,
         setSearchQuery,
         isSubmitting,
@@ -188,7 +188,7 @@ export default function AdminManagersPage() {
             <DataTable
                 data={managers}
                 columns={columns}
-                isLoading={loading}
+                isLoading={isLoading}
                 emptyMessage="Менеджерів не знайдено"
                 pagination={{
                     currentPage,

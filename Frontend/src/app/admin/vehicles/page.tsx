@@ -20,7 +20,7 @@ export default function AdminVehiclesPage() {
 
     const {
         paginatedData: vehicles,
-        loading,
+        isLoading,
         searchQuery,
         setSearchQuery,
         isSubmitting,
@@ -190,7 +190,7 @@ export default function AdminVehiclesPage() {
             <DataTable
                 data={vehicles}
                 columns={columns}
-                isLoading={loading}
+                isLoading={isLoading}
                 emptyMessage="Транспорту не знайдено"
                 pagination={{
                     currentPage,

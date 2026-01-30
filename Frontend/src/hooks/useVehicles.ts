@@ -12,6 +12,8 @@ export function useVehicles() {
     const { user } = useAuth();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [stats, setStats] = useState<VehicleStats | null>(null);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [typeFilter, setTypeFilter] = useState<string>('all');
 
     const permissions = useMemo(() => ({
         view: user?.permissions?.some(p => p.code === 'vehicles.view') ?? false,
@@ -35,14 +37,22 @@ export function useVehicles() {
 
     const resource = useResource<Vehicle>({
         fetchFn: vehiclesService.getAll,
-        deleteFn: vehiclesService.delete,
+        deleteFn: vehiclesService.delete as (id: string | number) => Promise<void>,
         onSuccess: () => fetchExtraData(),
         filterFn: (v, query) => {
-            if (!query) return true;
-            const search = query.toLowerCase();
-            return v.model.toLowerCase().includes(search) ||
-                v.licensePlate.toLowerCase().includes(search) ||
-                (v.assignedDriverName && v.assignedDriverName.toLowerCase().includes(search));
+            const matchesSearch = !query || (
+                v.model.toLowerCase().includes(query.toLowerCase()) ||
+                v.licensePlate.toLowerCase().includes(query.toLowerCase()) ||
+                !!(v.assignedDriverName && v.assignedDriverName.toLowerCase().includes(query.toLowerCase()))
+            );
+
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'active' && !!v.assignedDriverId) ||
+                (statusFilter === 'inactive' && !v.assignedDriverId);
+
+            const matchesType = typeFilter === 'all' || v.type === typeFilter;
+
+            return matchesSearch && matchesStatus && matchesType;
         }
     });
 
@@ -124,6 +134,10 @@ export function useVehicles() {
         drivers,
         stats,
         permissions,
+        statusFilter,
+        setStatusFilter,
+        typeFilter,
+        setTypeFilter,
         modals: {
             add: {
                 isOpen: resource.showCreateModal,

@@ -43,7 +43,7 @@ export default function AdminRequestsPage() {
     const {
         paginatedData: requests,
         allItems,
-        loading,
+        isLoading,
         searchQuery,
         setSearchQuery,
         isSubmitting,
@@ -173,7 +173,7 @@ export default function AdminRequestsPage() {
             </FilterBar>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {loading ? (
+                {isLoading ? (
                     <div className="col-span-full py-20 flex justify-center"><RotateCcw className="w-10 h-10 text-purple-600 animate-spin" /></div>
                 ) : requests.length > 0 ? (
                     requests.map((request: AdminRequest) => {

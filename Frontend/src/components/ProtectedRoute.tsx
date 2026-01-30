@@ -17,7 +17,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         if (!isLoading) {
             if (!isAuthenticated) {
                 // Redirect to login if not authenticated
-                router.push('/auth/manager');
+                const loginPath = requiredRole === 'driver' ? '/auth/driver' : '/auth/manager';
+                router.push(loginPath);
             } else if (requiredRole && user?.role !== requiredRole) {
                 // Redirect to home if user doesn't have required role
                 router.push('/');

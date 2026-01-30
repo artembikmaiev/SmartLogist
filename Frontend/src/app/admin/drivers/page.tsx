@@ -35,7 +35,7 @@ export default function AdminDriversPage() {
 
     const {
         filteredData: drivers,
-        loading,
+        isLoading,
         searchQuery,
         setSearchQuery,
         isSubmitting,
@@ -63,7 +63,7 @@ export default function AdminDriversPage() {
         paginatedData
     } = useResource<Driver>({
         fetchFn: driversService.getAllAdmin,
-        deleteFn: driversService.deleteAdmin,
+        deleteFn: driversService.deleteAdmin as (id: string | number) => Promise<void>,
         filterFn: (driver, query) => {
             const matchesSearch =
                 driver.fullName.toLowerCase().includes(query.toLowerCase()) ||
@@ -313,7 +313,7 @@ export default function AdminDriversPage() {
             <DataTable
                 data={drivers}
                 columns={columns}
-                isLoading={loading}
+                isLoading={isLoading}
                 emptyMessage="Водіїв не знайдено"
                 pagination={{
                     currentPage,
