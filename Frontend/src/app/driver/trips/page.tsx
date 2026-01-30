@@ -1,9 +1,16 @@
 'use client';
 
-import { Truck, MapPin, Clock, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { Truck, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, RefreshCcw, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { driversService } from '@/services/drivers.service';
+import { DriverStatus, DriverStatusLabels } from '@/types/drivers.types';
 
 export default function DriverTripsPage() {
+    const { user, refreshUser } = useAuth();
+    const [isChangingStatus, setIsChangingStatus] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
     // Stats data
     const stats = [
         { label: 'Поточний рейс', value: '1', icon: Truck, color: 'blue' },
@@ -36,12 +43,25 @@ export default function DriverTripsPage() {
         },
     ];
 
-    // Current trip
     const currentTrip = {
         id: 'RTR-28420',
         status: 'Виконується',
         from: { city: 'Дніпро', address: 'Терминал А', completed: true },
         to: { city: 'Запоріжжя', address: 'вул. Соборна 120', expectedTime: '18:30' },
+    };
+
+    const handleStatusUpdate = async (newStatus: DriverStatus) => {
+        setIsUpdating(true);
+        try {
+            await driversService.updateStatusFromDriver(newStatus);
+            await refreshUser();
+            setIsChangingStatus(false);
+        } catch (err: any) {
+            console.error('Failed to update status:', err);
+            alert(`Не вдалося оновити статус: ${err.message || 'Невідома помилка'}`);
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     return (
@@ -50,7 +70,7 @@ export default function DriverTripsPage() {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900">Кабінет водія</h1>
-                    <p className="text-slate-600 mt-1">Іван Петренко</p>
+                    <p className="text-slate-600 mt-1">{user?.fullName}</p>
                 </div>
 
                 {/* Stats Cards */}
@@ -187,35 +207,78 @@ export default function DriverTripsPage() {
                         {/* My Vehicle */}
                         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                             <h2 className="text-xl font-bold text-slate-900 mb-6">Моя вантажівка</h2>
-                            <div className="p-4 bg-slate-50 rounded-lg">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                                        <Truck className="w-6 h-6 text-white" />
+                            {user?.assignedVehicle ? (
+                                <div className="p-4 bg-slate-50 rounded-lg">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                            <Truck className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900">{user.assignedVehicle.model}</p>
+                                            <p className="text-sm text-slate-600">Номер: {user.assignedVehicle.licensePlate}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-slate-900">MAN TGX 18.480</p>
-                                        <p className="text-sm text-slate-600">Номер: AA 1234 BC</p>
+                                    <div className="pt-3 border-t border-slate-200">
+                                        <p className="text-xs text-slate-500 mb-1">Наступне ТО</p>
+                                        <p className="text-sm font-semibold text-orange-600 italic">Дані про ТО недоступні</p>
                                     </div>
                                 </div>
-                                <div className="pt-3 border-t border-slate-200">
-                                    <p className="text-xs text-slate-500 mb-1">Наступне ТО</p>
-                                    <p className="text-sm font-semibold text-orange-600">Через 2,500 км або 20 Січня</p>
+                            ) : (
+                                <div className="p-8 text-center bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                                    <Truck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                                    <p className="text-sm text-slate-500 font-medium">Транспорт не закріплено</p>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Quick Actions */}
                         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                             <h2 className="text-xl font-bold text-slate-900 mb-6">Швидкі дії</h2>
                             <div className="space-y-3">
-                                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                    <p className="font-semibold text-slate-900 mb-1">Ваш статус</p>
-                                    <p className="text-sm text-green-600 font-medium">Доступний</p>
-                                    <p className="text-xs text-slate-600 mt-1">Готовий до прийняття нових рейсів</p>
-                                </div>
-                                <button className="w-full px-4 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors">
-                                    Змінити статус
-                                </button>
+                                {!isChangingStatus ? (
+                                    <>
+                                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                            <p className="font-semibold text-slate-900 mb-1">Ваш статус</p>
+                                            <p className={`text-sm font-medium ${user?.status === 'Available' ? 'text-green-600' : 'text-slate-600'}`}>
+                                                {user?.status === 'Available' ? 'Доступний' : (DriverStatusLabels[user?.status as DriverStatus] || user?.status || 'Offline')}
+                                            </p>
+                                            <p className="text-xs text-slate-600 mt-1">
+                                                {user?.status === 'Available' ? 'Готовий до прийняття нових рейсів' : 'Наразі ви не приймаєте замовлення'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsChangingStatus(true)}
+                                            className="w-full px-4 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+                                        >
+                                            Змінити статус
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-semibold text-slate-700 mb-2">Оберіть новий статус:</p>
+                                        {(Object.keys(DriverStatusLabels) as DriverStatus[]).map((status) => (
+                                            <button
+                                                key={status}
+                                                disabled={isUpdating}
+                                                onClick={() => handleStatusUpdate(status)}
+                                                className={`w-full px-4 py-2 text-left rounded-lg text-sm font-medium transition-colors border ${user?.status === status
+                                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                                    } flex items-center justify-between`}
+                                            >
+                                                {DriverStatusLabels[status]}
+                                                {isUpdating && user?.status !== status && <RefreshCcw className="w-4 h-4 animate-spin text-slate-400" />}
+                                                {user?.status === status && <CheckCircle className="w-4 h-4 text-blue-600" />}
+                                            </button>
+                                        ))}
+                                        <button
+                                            onClick={() => setIsChangingStatus(false)}
+                                            className="w-full mt-2 px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
+                                        >
+                                            Скасувати
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

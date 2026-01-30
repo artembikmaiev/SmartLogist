@@ -15,6 +15,13 @@ export interface AuthResponse {
         fullName: string;
         phone?: string;
         role: 'admin' | 'manager' | 'driver';
+        licenseNumber?: string;
+        status?: string;
+        assignedVehicle?: {
+            vehicleId: number;
+            model: string;
+            licensePlate: string;
+        };
         createdAt: string;
         permissions?: Permission[];
     };

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Route, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function DriverLayout({
   children,
@@ -10,6 +11,15 @@ export default function DriverLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
   const navigation = [
     { name: 'Мої рейси', href: '/driver/trips', icon: Route },
@@ -56,20 +66,22 @@ export default function DriverLayout({
           <div className="flex items-center gap-4">
             <Link href="/driver/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">ІП</span>
+                <span className="text-white font-semibold text-sm">
+                  {user?.fullName ? getInitials(user.fullName) : '??'}
+                </span>
               </div>
               <div className="hidden md:block">
-                <p className="text-sm font-medium text-slate-900">Іван Петренко</p>
-                <p className="text-xs text-slate-500">Водій</p>
+                <p className="text-sm font-medium text-slate-900">{user?.fullName || 'Гість'}</p>
+                <p className="text-xs text-slate-500 capitalize">{user?.role || 'Користувач'}</p>
               </div>
             </Link>
-            <Link
-              href="/"
+            <button
+              onClick={logout}
               className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span className="hidden md:inline">Вийти</span>
-            </Link>
+            </button>
           </div>
         </div>
       </header>

@@ -195,6 +195,26 @@ public class DriverService : IDriverService
         );
     }
 
+    public async Task UpdateStatusAsync(int driverId, DriverStatus status)
+    {
+        var driver = await _userRepository.GetDriverByIdAsync(driverId);
+        if (driver == null)
+        {
+            throw new KeyNotFoundException("Водія не знайдено");
+        }
+
+        driver.DriverStatus = status;
+        await _userRepository.UpdateAsync(driver);
+
+        await _activityService.LogAsync(
+            driverId,
+            "Оновлено статус",
+            status.ToString(),
+            "Driver",
+            driverId.ToString()
+        );
+    }
+
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
     {
         // Перевірте, чи має менеджер дозвіл на перегляд водіїв

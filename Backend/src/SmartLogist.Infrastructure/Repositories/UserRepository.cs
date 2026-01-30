@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+п»їusing Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
 using SmartLogist.Domain.Interfaces;
@@ -20,6 +20,8 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.Manager)
             .Include(u => u.ManagedDrivers)
+            .Include(u => u.AssignedVehicles)
+                .ThenInclude(dv => dv.Vehicle)
             .Include(u => u.ManagerPermissions)
                 .ThenInclude(mp => mp.Permission)
             .FirstOrDefaultAsync(u => u.Id == id);
@@ -28,6 +30,8 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
+            .Include(u => u.AssignedVehicles)
+                .ThenInclude(dv => dv.Vehicle)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -127,7 +131,7 @@ public class UserRepository : IUserRepository
             .AnyAsync(mp => mp.ManagerId == managerId && mp.PermissionId == permissionId);
     }
 
-    // Управління водіями
+    // РњРµС‚РѕРґРё РІРѕРґС–С—РІ
     public async Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId)
     {
         return await _context.Users

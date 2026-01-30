@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Driver;
 using SmartLogist.Application.Interfaces;
 using System.Security.Claims;
+using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.WebAPI.Controllers;
 
@@ -18,7 +19,7 @@ public class DriversController : ControllerBase
         _driverService = driverService;
     }
 
-    private int GetCurrentManagerId()
+    private int GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
@@ -34,7 +35,7 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             var drivers = await _driverService.GetDriversByManagerIdAsync(managerId);
             return Ok(drivers);
         }
@@ -50,7 +51,7 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             var driver = await _driverService.GetDriverByIdAsync(id, managerId);
             
             if (driver == null)
@@ -76,7 +77,7 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             var driver = await _driverService.CreateDriverAsync(dto, managerId);
             return CreatedAtAction(nameof(GetById), new { id = driver.Id }, driver);
         }
@@ -110,7 +111,7 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             var driver = await _driverService.UpdateDriverAsync(id, dto, managerId);
             return Ok(driver);
         }
@@ -134,7 +135,7 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             await _driverService.DeleteDriverAsync(id, managerId);
             return NoContent();
         }
@@ -154,9 +155,30 @@ public class DriversController : ControllerBase
     {
         try
         {
-            var managerId = GetCurrentManagerId();
+            var managerId = GetUserId();
             var stats = await _driverService.GetDriverStatsAsync(managerId);
             return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    // PUT: api/drivers/status
+    [HttpPut("status")]
+    public async Task<IActionResult> UpdateStatus([FromBody] UpdateDriverStatusDto dto)
+    {
+        try
+        {
+            var driverId = GetUserId();
+
+            await _driverService.UpdateStatusAsync(driverId, dto.Status);
+            return Ok(new { Message = "Статус оновлено успішно" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
         }
         catch (Exception ex)
         {

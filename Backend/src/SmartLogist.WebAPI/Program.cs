@@ -62,6 +62,7 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IAdminRequestService, AdminRequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddScoped<IRoadConditionService, RoadConditionService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<JwtService>();
 

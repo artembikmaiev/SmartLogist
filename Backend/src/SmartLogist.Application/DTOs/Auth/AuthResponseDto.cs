@@ -13,8 +13,18 @@ public class UserInfoDto
     public string FullName { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string Role { get; set; } = string.Empty;
+    public string? LicenseNumber { get; set; }
+    public string? Status { get; set; }
+    public DriverVehicleInfoDto? AssignedVehicle { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<PermissionDto>? Permissions { get; set; }
+}
+
+public class DriverVehicleInfoDto
+{
+    public int VehicleId { get; set; }
+    public string Model { get; set; } = string.Empty;
+    public string LicensePlate { get; set; } = string.Empty;
 }
 
 public class PermissionDto

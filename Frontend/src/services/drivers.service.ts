@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
-import type { Driver, CreateDriverData, UpdateDriverData, DriverStats } from '@/types/drivers.types';
+import type { Driver, CreateDriverData, UpdateDriverData, DriverStats, DriverStatus } from '@/types/drivers.types';
 import { BaseApiService } from './base.service';
 
 class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriverData> {
@@ -43,6 +43,10 @@ class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriv
 
     unassignVehicle = async (driverId: number, vehicleId: number): Promise<void> => {
         return apiClient.post(`/admin/drivers/${driverId}/unassign-vehicle`, vehicleId);
+    };
+
+    updateStatusFromDriver = async (status: DriverStatus): Promise<void> => {
+        return apiClient.put(`${this.endpoint}/status`, { status });
     };
 }
 

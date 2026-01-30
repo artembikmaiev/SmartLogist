@@ -10,10 +10,12 @@ namespace SmartLogist.WebAPI.Controllers;
 public class ExternalDataController : ControllerBase
 {
     private readonly ICurrencyService _currencyService;
+    private readonly IRoadConditionService _roadConditionService;
 
-    public ExternalDataController(ICurrencyService currencyService)
+    public ExternalDataController(ICurrencyService currencyService, IRoadConditionService roadConditionService)
     {
         _currencyService = currencyService;
+        _roadConditionService = roadConditionService;
     }
 
     [HttpGet("currency")]
@@ -21,5 +23,12 @@ public class ExternalDataController : ControllerBase
     {
         var rates = await _currencyService.GetExchangeRatesAsync();
         return Ok(rates);
+    }
+
+    [HttpGet("road-conditions")]
+    public async Task<IActionResult> GetRoadConditions()
+    {
+        var conditions = await _roadConditionService.GetRoadConditionsAsync();
+        return Ok(conditions);
     }
 }
