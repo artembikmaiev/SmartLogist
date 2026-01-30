@@ -52,6 +52,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IAdminRequestRepository, AdminRequestRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<ITripRepository, TripRepository>();
 
 // Services
 builder.Services.AddScoped<IManagerService, ManagerService>();
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IAdminRequestService, AdminRequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IRoadConditionService, RoadConditionService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<JwtService>();

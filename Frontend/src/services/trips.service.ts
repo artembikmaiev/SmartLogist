@@ -8,20 +8,23 @@ class TripsService extends BaseApiService<Trip, CreateTripDto, UpdateTripDto> {
         super(API_ENDPOINTS.TRIPS.BASE);
     }
 
-    // Overriding getAll to support current pagination logic if needed
-    // In this project some services return T[] and some PaginatedResponse
-    // For now we preserve the specific implementation for trips
-    async getAllPaginated(params?: { page: number; limit: number }): Promise<any> {
-        const queryString = params
-            ? `?page=${params.page}&limit=${params.limit}`
-            : '';
-
-        return apiClient.get(`${this.endpoint}${queryString}`);
+    async getMyTrips(): Promise<Trip[]> {
+        return apiClient.get(API_ENDPOINTS.TRIPS.MY);
     }
 
-    async getStats(): Promise<any> {
-        return apiClient.get(API_ENDPOINTS.TRIPS.STATS);
+    async getDriverStats(): Promise<DriverStatsSummary> {
+        return apiClient.get(API_ENDPOINTS.TRIPS.DRIVER_STATS);
+    }
+
+    async acceptTrip(id: number): Promise<void> {
+        return apiClient.post(API_ENDPOINTS.TRIPS.ACCEPT(id));
+    }
+
+    async declineTrip(id: number): Promise<void> {
+        return apiClient.post(API_ENDPOINTS.TRIPS.DECLINE(id));
     }
 }
+
+import type { DriverStatsSummary } from '@/types/trip.types';
 
 export const tripsService = new TripsService();

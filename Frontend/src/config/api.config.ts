@@ -19,8 +19,11 @@ export const API_ENDPOINTS = {
     },
     TRIPS: {
         BASE: '/trips',
-        BY_ID: (id: string) => `/trips/${id}`,
-        STATS: '/trips/stats',
+        BY_ID: (id: string | number) => `/trips/${id}`,
+        MY: '/trips/my',
+        DRIVER_STATS: '/trips/driver-stats',
+        ACCEPT: (id: string | number) => `/trips/${id}/accept`,
+        DECLINE: (id: string | number) => `/trips/${id}/decline`,
     },
     DRIVERS: {
         LIST: '/drivers',

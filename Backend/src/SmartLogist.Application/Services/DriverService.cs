@@ -215,6 +215,31 @@ public class DriverService : IDriverService
         );
     }
 
+    public async Task<DriverDto> UpdateSelfAsync(int driverId, UpdateDriverSelfDto dto)
+    {
+        var driver = await _userRepository.GetDriverByIdAsync(driverId);
+        if (driver == null)
+        {
+            throw new KeyNotFoundException("Водія не знайдено");
+        }
+
+        driver.FullName = dto.FullName;
+        driver.Phone = dto.Phone;
+        driver.LicenseNumber = dto.LicenseNumber;
+
+        await _userRepository.UpdateAsync(driver);
+
+        await _activityService.LogAsync(
+            driverId,
+            "Оновлено профіль",
+            driver.FullName,
+            "Driver",
+            driverId.ToString()
+        );
+
+        return MapToDto(driver);
+    }
+
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
     {
         // Перевірте, чи має менеджер дозвіл на перегляд водіїв

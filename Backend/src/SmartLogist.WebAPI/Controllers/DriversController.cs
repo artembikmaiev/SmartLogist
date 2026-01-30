@@ -185,4 +185,24 @@ public class DriversController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+
+    // PUT: api/drivers/profile
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateDriverSelfDto dto)
+    {
+        try
+        {
+            var driverId = GetUserId();
+            var driver = await _driverService.UpdateSelfAsync(driverId, dto);
+            return Ok(driver);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 }

@@ -59,10 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
-        await authService.logout();
-        setUser(null);
-        setToken(null);
-        router.push('/');
+        try {
+            await authService.logout();
+        } finally {
+            setUser(null);
+            setToken(null);
+            router.push('/');
+        }
     };
 
     const refreshUser = async () => {

@@ -25,6 +25,21 @@ export default function DriverProfilePage() {
     const [roadConditions, setRoadConditions] = useState<RoadCondition[]>([]);
     const [isLoadingRoads, setIsLoadingRoads] = useState(true);
     const [roadsUpdatedAt, setRoadsUpdatedAt] = useState<Date>(new Date());
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+    // Form states
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [licenseNumber, setLicenseNumber] = useState('');
+
+    // Initialize form states when user data is available
+    useEffect(() => {
+        if (user) {
+            setFullName(user.fullName || '');
+            setPhone(user.phone || '');
+            setLicenseNumber(user.licenseNumber || '');
+        }
+    }, [user]);
 
     // Fetch activities
     useEffect(() => {
@@ -72,6 +87,27 @@ export default function DriverProfilePage() {
         }
     };
 
+    const handleSaveProfile = async () => {
+        setIsSavingProfile(true);
+        try {
+            await driversService.updateProfileFromDriver({
+                fullName,
+                phone,
+                licenseNumber
+            });
+            await refreshUser();
+            setIsEditing(false);
+            // Refresh activities too
+            const data = await activitiesService.getRecent(3);
+            setActivities(data);
+        } catch (err: any) {
+            console.error('Failed to save profile:', err);
+            alert(`Не вдалося зберегти профіль: ${err.message || 'Невідома помилка'}`);
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
     const getInitials = (name: string) => {
         return name
             .split(' ')
@@ -110,7 +146,8 @@ export default function DriverProfilePage() {
                         ) : (
                             <div className="flex gap-2">
                                 <Button
-                                    onClick={() => setIsEditing(false)}
+                                    onClick={handleSaveProfile}
+                                    isLoading={isSavingProfile}
                                     className="bg-green-600 hover:bg-green-700 px-6 py-3 h-12 gap-2"
                                 >
                                     <Save className="w-5 h-5" />
@@ -118,7 +155,14 @@ export default function DriverProfilePage() {
                                 </Button>
                                 <Button
                                     variant="secondary"
-                                    onClick={() => setIsEditing(false)}
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        // Reset to original values
+                                        setFullName(user?.fullName || '');
+                                        setPhone(user?.phone || '');
+                                        setLicenseNumber(user?.licenseNumber || '');
+                                    }}
+                                    disabled={isSavingProfile}
                                     className="px-6 py-3 h-12 gap-2"
                                 >
                                     <X className="w-5 h-5" />
@@ -192,7 +236,8 @@ export default function DriverProfilePage() {
                                         <Input
                                             id="fullName"
                                             type="text"
-                                            defaultValue={user?.fullName}
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
                                         />
                                     ) : (
                                         <p className="font-semibold text-slate-900">{user?.fullName}</p>
@@ -200,15 +245,7 @@ export default function DriverProfilePage() {
                                 </FormField>
 
                                 <FormField label="Email" id="email">
-                                    {isEditing ? (
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            defaultValue={user?.email}
-                                        />
-                                    ) : (
-                                        <p className="font-semibold text-slate-900">{user?.email}</p>
-                                    )}
+                                    <p className="font-semibold text-slate-900">{user?.email}</p>
                                 </FormField>
 
                                 <FormField label="Телефон" id="phone">
@@ -216,7 +253,8 @@ export default function DriverProfilePage() {
                                         <Input
                                             id="phone"
                                             type="tel"
-                                            defaultValue={user?.phone || ''}
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
                                         />
                                     ) : (
                                         <p className="font-semibold text-slate-900">{user?.phone || '—'}</p>
@@ -224,7 +262,16 @@ export default function DriverProfilePage() {
                                 </FormField>
 
                                 <FormField label="Посвідчення водія" id="license">
-                                    <p className="font-semibold text-slate-900">{user?.licenseNumber || '—'}</p>
+                                    {isEditing ? (
+                                        <Input
+                                            id="license"
+                                            type="text"
+                                            value={licenseNumber}
+                                            onChange={(e) => setLicenseNumber(e.target.value)}
+                                        />
+                                    ) : (
+                                        <p className="font-semibold text-slate-900">{user?.licenseNumber || '—'}</p>
+                                    )}
                                 </FormField>
 
                                 <FormField label="Дата прийняття" id="hiredAt">

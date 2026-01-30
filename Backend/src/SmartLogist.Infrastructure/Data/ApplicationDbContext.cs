@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<AdminRequest> AdminRequests { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Trip> Trips { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

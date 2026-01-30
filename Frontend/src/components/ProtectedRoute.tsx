@@ -16,9 +16,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     useEffect(() => {
         if (!isLoading) {
             if (!isAuthenticated) {
-                // Redirect to login if not authenticated
-                const loginPath = requiredRole === 'driver' ? '/auth/driver' : '/auth/manager';
-                router.push(loginPath);
+                // Redirect to home if not authenticated
+                router.push('/');
             } else if (requiredRole && user?.role !== requiredRole) {
                 // Redirect to home if user doesn't have required role
                 router.push('/');

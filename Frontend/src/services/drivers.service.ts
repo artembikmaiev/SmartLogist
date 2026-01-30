@@ -48,6 +48,10 @@ class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriv
     updateStatusFromDriver = async (status: DriverStatus): Promise<void> => {
         return apiClient.put(`${this.endpoint}/status`, { status });
     };
+
+    updateProfileFromDriver = async (data: { fullName: string; phone?: string; licenseNumber?: string }): Promise<Driver> => {
+        return apiClient.put<Driver>(`${this.endpoint}/profile`, data);
+    };
 }
 
 export const driversService = new DriversService();
