@@ -13,19 +13,22 @@ public class DriverService : IDriverService
     private readonly IActivityService _activityService;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IAdminRequestService _adminRequestService;
+    private readonly ITripRepository _tripRepository;
 
     public DriverService(
         IUserRepository userRepository, 
         IPermissionRepository permissionRepository,
         IActivityService activityService,
         IVehicleRepository vehicleRepository,
-        IAdminRequestService adminRequestService)
+        IAdminRequestService adminRequestService,
+        ITripRepository tripRepository)
     {
         _userRepository = userRepository;
         _permissionRepository = permissionRepository;
         _activityService = activityService;
         _vehicleRepository = vehicleRepository;
         _adminRequestService = adminRequestService;
+        _tripRepository = tripRepository;
     }
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
@@ -37,7 +40,7 @@ public class DriverService : IDriverService
             throw new UnauthorizedAccessException("Недостатньо прав для перегляду водіїв");
         }
 
-        var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
+        var drivers = (await _userRepository.GetDriversByManagerIdAsync(managerId)).ToList();
         var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
         
         var pendingDeletionTargetIds = pendingRequests
@@ -50,7 +53,16 @@ public class DriverService : IDriverService
             .Select(r => r.TargetId!.Value)
             .ToList();
 
-        return drivers.Select(d => MapToDto(d, pendingDeletionTargetIds, pendingUpdateTargetIds));
+        var results = new List<DriverDto>();
+        foreach (var driver in drivers)
+        {
+            var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+            dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
+            dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
+            results.Add(dto);
+        }
+
+        return results;
     }
 
     public async Task<DriverDto?> GetDriverByIdAsync(int driverId, int managerId)
@@ -77,7 +89,10 @@ public class DriverService : IDriverService
             .Select(r => r.TargetId!.Value)
             .ToList();
 
-        return MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+        var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+        dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driverId);
+        dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driverId);
+        return dto;
     }
 
     public async Task<DriverDto> CreateDriverAsync(CreateDriverDto dto, int managerId)
@@ -276,7 +291,17 @@ public class DriverService : IDriverService
             .Select(r => r.TargetId!.Value)
             .ToList();
 
-        return drivers.Select(d => MapToDto(d, pendingDeletionTargetIds, pendingUpdateTargetIds));
+        var driverList = drivers.ToList();
+        var results = new List<DriverDto>();
+        foreach (var driver in driverList)
+        {
+            var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+            dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
+            dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
+            results.Add(dto);
+        }
+
+        return results;
     }
 
     public async Task<DriverDto?> GetDriverByIdAdminAsync(int driverId)
@@ -296,7 +321,10 @@ public class DriverService : IDriverService
             .Select(r => r.TargetId!.Value)
             .ToList();
 
-        return MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+        var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
+        dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driverId);
+        dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driverId);
+        return dto;
     }
 
     public async Task<DriverDto> CreateDriverAdminAsync(CreateDriverDto dto)
@@ -320,7 +348,9 @@ public class DriverService : IDriverService
         };
 
         var createdDriver = await _userRepository.AddAsync(driver);
-        return MapToDto(createdDriver);
+        var resultDto = MapToDto(createdDriver);
+        resultDto.TotalTrips = 0; // Новий водій
+        return resultDto;
     }
 
     public async Task<DriverDto> UpdateDriverAdminAsync(int driverId, UpdateDriverDto dto)

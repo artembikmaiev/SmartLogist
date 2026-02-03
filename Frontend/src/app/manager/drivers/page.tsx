@@ -9,6 +9,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import DriverForm from '@/components/drivers/DriverForm';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 import Badge from '@/components/ui/Badge';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import type { Driver } from '@/types/drivers.types';
 
 export default function DriversPage() {
@@ -263,21 +264,21 @@ export default function DriversPage() {
                 <DriverForm driver={selectedDriver!} onSubmit={(data) => actions.update(selectedDriver!.id, data)} onCancel={modals.edit.close} />
             </Modal>
 
-            <Modal isOpen={modals.delete.isOpen} onClose={modals.delete.close} title="Видалити водія?" maxWidth="sm">
-                <div className="flex flex-col items-center text-center p-4">
-                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
-                        <Users className="w-8 h-8 text-red-600" />
-                    </div>
-                    <p className="text-slate-600 mb-8">
+            <ConfirmModal
+                isOpen={modals.delete.isOpen}
+                onClose={modals.delete.close}
+                onConfirm={actions.delete}
+                title="Видалити водія?"
+                message={
+                    <>
                         Ви впевнені, що хочете видалити водія <span className="font-semibold text-slate-900">{selectedDriver?.fullName}</span>?
-                    </p>
-
-                    <div className="flex flex-col w-full gap-3">
-                        <Button variant="danger" onClick={actions.delete} className="w-full">Видалити</Button>
-                        <Button variant="secondary" onClick={modals.delete.close} className="w-full">Скасувати</Button>
-                    </div>
-                </div>
-            </Modal>
+                        <br />
+                        Це створить запит до адміністратора на розгляд.
+                    </>
+                }
+                confirmText="Надіслати запит"
+                variant="danger"
+            />
         </div>
     );
 }

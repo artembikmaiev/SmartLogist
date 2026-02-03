@@ -22,4 +22,20 @@ export class BaseApiService<T, TCreate = any, TUpdate = any> {
     delete = async (id: number | string): Promise<void> => {
         return apiClient.delete<void>(`${this.endpoint}/${id}`);
     };
+
+    protected get = async <R = any>(url: string): Promise<R> => {
+        return apiClient.get<R>(url);
+    };
+
+    protected post = async <R = any>(url: string, data: any): Promise<R> => {
+        return apiClient.post<R>(url, data);
+    };
+
+    protected put = async <R = any>(url: string, data: any): Promise<R> => {
+        return apiClient.put<R>(url, data);
+    };
+
+    protected patch = async <R = any>(url: string, data: any): Promise<R> => {
+        return apiClient.patch<R>(url, data);
+    };
 }

@@ -8,21 +8,41 @@ class TripsService extends BaseApiService<Trip, CreateTripDto, UpdateTripDto> {
         super(API_ENDPOINTS.TRIPS.BASE);
     }
 
-    async getMyTrips(): Promise<Trip[]> {
-        return apiClient.get(API_ENDPOINTS.TRIPS.MY);
-    }
+    getMyTrips = async (): Promise<Trip[]> => {
+        return this.get(API_ENDPOINTS.TRIPS.MY);
+    };
 
-    async getDriverStats(): Promise<DriverStatsSummary> {
-        return apiClient.get(API_ENDPOINTS.TRIPS.DRIVER_STATS);
-    }
+    getDriverStats = async (): Promise<DriverStatsSummary> => {
+        return this.get(API_ENDPOINTS.TRIPS.DRIVER_STATS);
+    };
 
-    async acceptTrip(id: number): Promise<void> {
-        return apiClient.post(API_ENDPOINTS.TRIPS.ACCEPT(id));
-    }
+    acceptTrip = async (id: number): Promise<void> => {
+        return this.post(API_ENDPOINTS.TRIPS.ACCEPT(id), {});
+    };
 
-    async declineTrip(id: number): Promise<void> {
-        return apiClient.post(API_ENDPOINTS.TRIPS.DECLINE(id));
-    }
+    declineTrip = async (id: number): Promise<void> => {
+        return this.post(API_ENDPOINTS.TRIPS.DECLINE(id), {});
+    };
+
+    createTrip = async (dto: CreateTripDto): Promise<Trip> => {
+        return this.post(API_ENDPOINTS.TRIPS.BASE, dto);
+    };
+
+    updateTrip = async (id: number, dto: UpdateTripDto): Promise<Trip> => {
+        return this.put(`${API_ENDPOINTS.TRIPS.BASE}/${id}`, dto);
+    };
+
+    getManagerTrips = async (): Promise<Trip[]> => {
+        return this.get(API_ENDPOINTS.TRIPS.MANAGER);
+    };
+
+    getManagerStats = async (): Promise<any> => {
+        return this.get(API_ENDPOINTS.TRIPS.MANAGER_STATS);
+    };
+
+    deleteTrip = async (id: number): Promise<void> => {
+        return this.post(`${this.endpoint}/${id}/delete`, {});
+    };
 }
 
 import type { DriverStatsSummary } from '@/types/trip.types';

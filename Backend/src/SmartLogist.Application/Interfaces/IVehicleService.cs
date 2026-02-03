@@ -16,4 +16,5 @@ public interface IVehicleService
     Task<VehicleDto> CreateVehicleAdminAsync(CreateVehicleDto dto);
     Task<VehicleDto> UpdateVehicleAdminAsync(int id, UpdateVehicleDto dto);
     Task DeleteVehicleAdminAsync(int id);
+    Task PerformMaintenanceAsync(int id, int managerId);
 }

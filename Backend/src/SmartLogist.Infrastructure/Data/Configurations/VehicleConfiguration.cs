@@ -39,6 +39,26 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .HasColumnName("fuel_consumption")
             .IsRequired();
 
+        builder.Property(v => v.Height)
+            .HasColumnName("height")
+            .IsRequired();
+
+        builder.Property(v => v.Width)
+            .HasColumnName("width")
+            .IsRequired();
+
+        builder.Property(v => v.Length)
+            .HasColumnName("length")
+            .IsRequired();
+
+        builder.Property(v => v.Weight)
+            .HasColumnName("weight")
+            .IsRequired();
+
+        builder.Property(v => v.IsHazardous)
+            .HasColumnName("is_hazardous")
+            .IsRequired();
+
         builder.Property(v => v.Status)
             .HasColumnName("status")
             .HasConversion<string>()
@@ -49,6 +69,16 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .HasColumnName("created_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAdd();
+
+        builder.Property(v => v.TotalMileage)
+            .HasColumnName("total_mileage")
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(v => v.MileageAtLastMaintenance)
+            .HasColumnName("mileage_at_last_maintenance")
+            .HasDefaultValue(0)
+            .IsRequired();
 
         // Relationships
         builder.HasMany(v => v.AssignedDrivers)

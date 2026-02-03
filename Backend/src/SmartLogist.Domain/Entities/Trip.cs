@@ -24,8 +24,22 @@ public class Trip
     
     // System info
     public decimal DistanceKm { get; set; }
+    public string RouteGeometry { get; set; } = string.Empty; // JSON string of coordinates
     public TripStatus Status { get; set; } = TripStatus.Pending;
     public string? Notes { get; set; }
+    public int? Rating { get; set; }
+    public string? ManagerReview { get; set; }
+    
+    // ETS/Economic info
+    public string? CargoName { get; set; }
+    public CargoType CargoType { get; set; } = CargoType.Standard;
+    public double CargoWeight { get; set; }
+    public decimal ExpectedProfit { get; set; }
+    public decimal EstimatedFuelCost { get; set; }
+    public double? ActualFuelConsumption { get; set; }
+    public decimal FuelPrice { get; set; } = 60m;
+    
+    public bool IsMileageAccounted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Relations

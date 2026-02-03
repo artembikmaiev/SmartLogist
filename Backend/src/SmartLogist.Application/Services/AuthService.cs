@@ -91,7 +91,10 @@ public class AuthService : IAuthService
             {
                 VehicleId = primaryVehicle.VehicleId,
                 Model = primaryVehicle.Vehicle?.Model ?? string.Empty,
-                LicensePlate = primaryVehicle.Vehicle?.LicensePlate ?? string.Empty
+                LicensePlate = primaryVehicle.Vehicle?.LicensePlate ?? string.Empty,
+                KmUntilMaintenance = primaryVehicle.Vehicle != null 
+                    ? Math.Max(0, 10000 - (primaryVehicle.Vehicle.TotalMileage - primaryVehicle.Vehicle.MileageAtLastMaintenance))
+                    : 0
             } : null,
             CreatedAt = user.CreatedAt,
             Permissions = permissions

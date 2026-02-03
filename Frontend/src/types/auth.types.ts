@@ -21,6 +21,7 @@ export interface AuthResponse {
             vehicleId: number;
             model: string;
             licensePlate: string;
+            kmUntilMaintenance: number;
         };
         createdAt: string;
         permissions?: Permission[];

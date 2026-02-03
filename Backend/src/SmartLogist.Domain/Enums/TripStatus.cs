@@ -6,6 +6,7 @@ public enum TripStatus
     Accepted,
     Declined,
     InTransit,
+    Arrived,
     Completed,
     Cancelled
 }

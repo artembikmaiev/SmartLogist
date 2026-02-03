@@ -84,4 +84,25 @@ public class TripRepository : ITripRepository
                         t.ActualArrival.Value.Year == year)
             .SumAsync(t => t.DistanceKm);
     }
+
+    public async Task<double?> GetAverageRatingByDriverIdAsync(int driverId)
+    {
+        var ratings = await _context.Trips
+            .Where(t => t.DriverId == driverId && t.Status == TripStatus.Completed && t.Rating.HasValue)
+            .Select(t => t.Rating!.Value)
+            .ToListAsync();
+
+        if (ratings.Count == 0) return null;
+        return ratings.Average();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var trip = await _context.Trips.FindAsync(id);
+        if (trip != null)
+        {
+            _context.Trips.Remove(trip);
+            await _context.SaveChangesAsync();
+        }
+    }
 }

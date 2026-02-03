@@ -13,4 +13,6 @@ public interface ITripRepository
     Task<int> GetCompletedCountByDriverIdAsync(int driverId);
     Task<decimal> GetTotalEarningsByDriverIdAsync(int driverId, int month, int year);
     Task<decimal> GetTotalDistanceByDriverIdAsync(int driverId, int month, int year);
+    Task<double?> GetAverageRatingByDriverIdAsync(int driverId);
+    Task DeleteAsync(int id);
 }

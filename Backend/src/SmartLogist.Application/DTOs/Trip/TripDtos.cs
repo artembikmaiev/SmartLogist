@@ -18,6 +18,18 @@ public class TripDto
     public decimal DistanceKm { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
+    public int? Rating { get; set; }
+    public string? ManagerReview { get; set; }
+    
+    // ETS/Economic info
+    public string? CargoName { get; set; }
+    public string CargoType { get; set; } = string.Empty;
+    public double CargoWeight { get; set; }
+    public decimal ExpectedProfit { get; set; }
+    public decimal EstimatedFuelCost { get; set; }
+    public decimal DriverEarnings { get; set; }
+    public double? ActualFuelConsumption { get; set; }
+    public string RouteGeometry { get; set; } = string.Empty;
     
     public int ManagerId { get; set; }
     public string ManagerName { get; set; } = string.Empty;
@@ -25,6 +37,7 @@ public class TripDto
     public int? VehicleId { get; set; }
     public string? VehicleModel { get; set; }
     public string? VehicleLicensePlate { get; set; }
+    public bool HasPendingDeletion { get; set; }
 }
 
 public class DriverStatsSummaryDto
@@ -34,4 +47,12 @@ public class DriverStatsSummaryDto
     public decimal TotalDistance { get; set; }
     public decimal TotalEarnings { get; set; }
     public string EarningsSubtitle { get; set; } = string.Empty; // e.g. "грн цього місяця"
+}
+
+public class ManagerStatsSummaryDto
+{
+    public int ActiveTripsCount { get; set; }
+    public int PendingTripsCount { get; set; }
+    public int CompletedTripsTodayCount { get; set; }
+    public decimal TotalFuelForecast { get; set; }
 }

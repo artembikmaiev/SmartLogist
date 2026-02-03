@@ -20,6 +20,10 @@ class VehiclesService extends BaseApiService<Vehicle, CreateVehicleDto, UpdateVe
         return apiClient.get<VehicleStats>(API_ENDPOINTS.VEHICLES.STATS);
     };
 
+    performMaintenance = async (id: number | string): Promise<void> => {
+        return apiClient.post<void>(`${API_ENDPOINTS.VEHICLES.LIST}/${id}/maintenance`, {});
+    };
+
     async getAllAdmin(): Promise<Vehicle[]> {
         return apiClient.get<Vehicle[]>('/admin/drivers/vehicles');
     }

@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-    BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5094/api',
+    BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5094/api',
     TIMEOUT: 30000,
     HEADERS: {
         'Content-Type': 'application/json',
@@ -22,8 +22,10 @@ export const API_ENDPOINTS = {
         BY_ID: (id: string | number) => `/trips/${id}`,
         MY: '/trips/my',
         DRIVER_STATS: '/trips/driver-stats',
-        ACCEPT: (id: string | number) => `/trips/${id}/accept`,
-        DECLINE: (id: string | number) => `/trips/${id}/decline`,
+        MANAGER: '/trips/manager',
+        MANAGER_STATS: '/trips/manager-stats',
+        ACCEPT: (id: number) => `/trips/${id}/accept`,
+        DECLINE: (id: number) => `/trips/${id}/decline`,
     },
     DRIVERS: {
         LIST: '/drivers',
@@ -40,14 +42,19 @@ export const API_ENDPOINTS = {
         UNASSIGN: (id: string | number, driverId: string | number) => `/vehicles/${id}/unassign/${driverId}`,
     },
     ANALYTICS: {
-        STATS: '/analytics/stats',
-        FUEL: '/analytics/fuel',
-        COSTS: '/analytics/costs',
+        SUMMARY: '/analytics/summary',
+        TRENDS: '/analytics/trends',
+        DRIVERS: '/analytics/drivers',
+        CARGO: '/analytics/cargo',
     },
     ACTIVITIES: {
-        RECENT: '/activities/recent',
+        RECENT: '/activity-logs/recent',
     },
     EXTERNAL: {
         CURRENCY: '/external/currency',
+    },
+    ROADS: {
+        ROUTE: '/roads/route',
+        CONDITIONS: '/roads/conditions',
     },
 };

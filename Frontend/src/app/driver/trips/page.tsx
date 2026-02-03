@@ -9,6 +9,7 @@ import { tripsService } from '@/services/trips.service';
 import { DriverStatus, DriverStatusLabels } from '@/types/drivers.types';
 import type { Trip, DriverStatsSummary } from '@/types/trip.types';
 import { formatDate } from '@/lib/utils/date.utils';
+import TripDetailsModal from '@/components/trips/TripDetailsModal';
 
 export default function DriverTripsPage() {
     const { user, refreshUser } = useAuth();
@@ -18,6 +19,8 @@ export default function DriverTripsPage() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [statsSummary, setStatsSummary] = useState<DriverStatsSummary | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -39,7 +42,7 @@ export default function DriverTripsPage() {
     }, []);
 
     const newTrips = trips.filter(t => t.status === 'Pending');
-    const currentTrip = trips.find(t => t.status === 'Accepted' || t.status === 'InTransit');
+    const currentTrip = trips.find(t => t.status === 'Accepted' || t.status === 'InTransit' || t.status === 'Arrived');
 
     const handleStatusUpdate = async (newStatus: DriverStatus) => {
         setIsUpdating(true);
@@ -59,6 +62,7 @@ export default function DriverTripsPage() {
         try {
             await tripsService.acceptTrip(id);
             await fetchData();
+            await refreshUser();
         } catch (err: any) {
             alert(`Не вдалося прийняти рейс: ${err.message || 'Невідома помилка'}`);
         }
@@ -71,6 +75,28 @@ export default function DriverTripsPage() {
         } catch (err: any) {
             alert(`Не вдалося відхилити рейс: ${err.message || 'Невідома помилка'}`);
         }
+    };
+
+    const handleUpdateTripStatus = async (id: number, status: string, additionalData?: any) => {
+        try {
+            const updatedTrip = await tripsService.updateTrip(id, { status, ...additionalData });
+            await fetchData();
+            await refreshUser();
+
+            // Update selected trip if it's the one we just changed
+            if (selectedTrip?.id === id) {
+                // Find it in the newly fetched trips or just use the local merged data
+                // Since fetchData() is async and updates state, better to just update it here
+                setSelectedTrip(prev => prev ? { ...prev, status, ...additionalData } : null);
+            }
+        } catch (err: any) {
+            alert(`Не вдалося оновити статус рейсу: ${err.message || 'Невідома помилка'}`);
+        }
+    };
+
+    const handleViewDetails = (trip: Trip) => {
+        setSelectedTrip(trip);
+        setIsDetailsOpen(true);
     };
 
     const statsCols = [
@@ -157,7 +183,7 @@ export default function DriverTripsPage() {
                                             </div>
                                             <div>
                                                 <p className="text-xs text-slate-500">Оплата</p>
-                                                <p className="font-semibold text-green-600">{trip.paymentAmount} {trip.currency}</p>
+                                                <p className="font-semibold text-green-600">{(trip.driverEarnings || 0).toLocaleString()} {trip.currency}</p>
                                             </div>
                                         </div>
 
@@ -179,6 +205,13 @@ export default function DriverTripsPage() {
                                                 className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                                             >
                                                 Відхилити
+                                            </button>
+                                            <button
+                                                onClick={() => handleViewDetails(trip)}
+                                                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+                                                title="Переглянути деталі та маршрут"
+                                            >
+                                                Деталі
                                             </button>
                                         </div>
                                     </div>
@@ -223,7 +256,10 @@ export default function DriverTripsPage() {
                                         </div>
                                     </div>
 
-                                    <button className="w-full mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors">
+                                    <button
+                                        onClick={() => handleViewDetails(currentTrip)}
+                                        className="w-full mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+                                    >
                                         Переглянути деталі
                                     </button>
                                 </div>
@@ -254,7 +290,9 @@ export default function DriverTripsPage() {
                                     </div>
                                     <div className="pt-3 border-t border-slate-200">
                                         <p className="text-xs text-slate-500 mb-1">Наступне ТО</p>
-                                        <p className="text-sm font-semibold text-orange-600 italic">Дані про ТО недоступні</p>
+                                        <p className={`text-sm font-semibold ${user.assignedVehicle.kmUntilMaintenance < 1000 ? 'text-red-600' : 'text-orange-600'}`}>
+                                            До ТО: {Math.round(user.assignedVehicle.kmUntilMaintenance).toLocaleString()} км
+                                        </p>
                                     </div>
                                 </div>
                             ) : (
@@ -327,6 +365,17 @@ export default function DriverTripsPage() {
                         </div>
                     </div>
                 </div>
+
+                <TripDetailsModal
+                    isOpen={isDetailsOpen}
+                    onClose={() => {
+                        setIsDetailsOpen(false);
+                        setSelectedTrip(null);
+                    }}
+                    trip={selectedTrip}
+                    onStatusUpdate={handleUpdateTripStatus}
+                    isDriverView={true}
+                />
             </div>
         </ProtectedRoute>
     );

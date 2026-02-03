@@ -8,6 +8,7 @@ public enum RequestType
     VehicleUpdate = 4,
     DriverCreation = 5,
     VehicleCreation = 6,
+    TripDeletion = 7,
     Other = 99
 }
 

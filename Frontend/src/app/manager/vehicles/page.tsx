@@ -91,6 +91,32 @@ export default function VehiclesPage() {
             )
         },
         {
+            header: 'Тех. обслуговування',
+            key: 'kmUntilMaintenance',
+            render: (v) => {
+                const isUrgent = v.kmUntilMaintenance < 500;
+                const isWarning = v.kmUntilMaintenance < 1500;
+
+                return (
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                            <Clock className={`w-3.5 h-3.5 ${isUrgent ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-slate-400'}`} />
+                            <span className={`text-sm font-bold ${isUrgent ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-700'}`}>
+                                {v.kmUntilMaintenance.toLocaleString()} км
+                            </span>
+                        </div>
+                        <div className="w-24 h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full transition-all ${isUrgent ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-blue-500'}`}
+                                style={{ width: `${Math.min(100, (v.kmUntilMaintenance / 10000) * 100)}%` }}
+                            />
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">До наступного ТО</p>
+                    </div>
+                );
+            }
+        },
+        {
             header: 'Статус',
             key: 'status',
             render: (v) => (
@@ -121,6 +147,19 @@ export default function VehiclesPage() {
                             title="Редагувати"
                         >
                             <Edit className="w-5 h-5" />
+                        </button>
+                    )}
+                    {permissions.edit && (
+                        <button
+                            onClick={() => actions.performMaintenance(v.id)}
+                            disabled={v.hasPendingDeletion}
+                            className={`transition-colors ${v.hasPendingDeletion
+                                ? 'text-slate-200 cursor-not-allowed'
+                                : 'text-slate-400 hover:text-emerald-600'
+                                }`}
+                            title="Виконати ТО сьогодні"
+                        >
+                            <Settings className="w-5 h-5" />
                         </button>
                     )}
                     {permissions.delete && (

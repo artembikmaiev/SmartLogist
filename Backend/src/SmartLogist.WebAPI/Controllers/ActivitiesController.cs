@@ -7,7 +7,7 @@ namespace SmartLogist.WebAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/activity-logs")]
 public class ActivitiesController : ControllerBase
 {
     private readonly IActivityService _activityService;
@@ -17,23 +17,31 @@ public class ActivitiesController : ControllerBase
         _activityService = activityService;
     }
 
+    // GET: api/activities
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var activities = await _activityService.GetRecentActivitiesAsync(userId, 50);
+        return Ok(activities);
+    }
+
+    // GET: api/activities/recent?count=10
     [HttpGet("recent")]
     public async Task<IActionResult> GetRecentActivities([FromQuery] int count = 10)
     {
-        try
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return Unauthorized(new { Message = "Невалідний токен" });
-            }
+            return Unauthorized();
+        }
 
-            var activities = await _activityService.GetRecentActivitiesAsync(userId, count);
-            return Ok(activities);
-        }
-        catch (Exception ex)
+        if (!int.TryParse(userIdClaim.Value, out int userId))
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { Message = "Невірний ідентифікатор користувача" });
         }
+
+        var activities = await _activityService.GetRecentActivitiesAsync(userId, count);
+        return Ok(activities);
     }
 }

@@ -25,6 +25,7 @@ public class DriverVehicleInfoDto
     public int VehicleId { get; set; }
     public string Model { get; set; } = string.Empty;
     public string LicensePlate { get; set; } = string.Empty;
+    public double KmUntilMaintenance { get; set; }
 }
 
 public class PermissionDto

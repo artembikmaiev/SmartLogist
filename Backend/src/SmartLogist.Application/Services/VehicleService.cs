@@ -162,7 +162,14 @@ public class VehicleService : IVehicleService
         vehicle.Type = dto.Type;
         vehicle.FuelType = dto.FuelType;
         vehicle.FuelConsumption = dto.FuelConsumption;
+        vehicle.Height = dto.Height;
+        vehicle.Width = dto.Width;
+        vehicle.Length = dto.Length;
+        vehicle.Weight = dto.Weight;
+        vehicle.IsHazardous = dto.IsHazardous;
         vehicle.Status = dto.Status;
+        vehicle.TotalMileage = dto.TotalMileage;
+        vehicle.MileageAtLastMaintenance = dto.MileageAtLastMaintenance;
 
         await _vehicleRepository.UpdateAsync(vehicle);
 
@@ -351,7 +358,14 @@ public class VehicleService : IVehicleService
             Type = dto.Type,
             FuelType = dto.FuelType,
             FuelConsumption = dto.FuelConsumption,
-            Status = dto.Status
+            Height = dto.Height,
+            Width = dto.Width,
+            Length = dto.Length,
+            Weight = dto.Weight,
+            IsHazardous = dto.IsHazardous,
+            Status = dto.Status,
+            TotalMileage = dto.TotalMileage,
+            MileageAtLastMaintenance = dto.MileageAtLastMaintenance
         };
 
         var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
@@ -379,6 +393,33 @@ public class VehicleService : IVehicleService
         await _vehicleRepository.DeleteAsync(id);
     }
 
+    public async Task PerformMaintenanceAsync(int id, int managerId)
+    {
+        var vehicle = await _vehicleRepository.GetByIdAsync(id);
+        if (vehicle == null)
+            throw new KeyNotFoundException("Автомобіль не знайдено");
+
+        // Перевірка видимості/прав (спрощено)
+        bool canManage = !vehicle.AssignedDrivers.Any() || 
+                        vehicle.AssignedDrivers.Any(ad => ad.Driver.ManagerId == managerId);
+                        
+        if (!canManage)
+        {
+            throw new UnauthorizedAccessException("Ви не маєте доступу до цього автомобіля");
+        }
+
+        vehicle.MileageAtLastMaintenance = vehicle.TotalMileage;
+        await _vehicleRepository.UpdateAsync(vehicle);
+
+        await _activityService.LogAsync(
+            managerId, 
+            "Проведено ТО", 
+            $"{vehicle.Model} ({vehicle.LicensePlate})", 
+            "Vehicle", 
+            id.ToString()
+        );
+    }
+
     private VehicleDto MapToDto(Vehicle vehicle, IEnumerable<int>? pendingDeletionIds = null, IEnumerable<int>? pendingUpdateIds = null)
     {
         var primaryAssignment = vehicle.AssignedDrivers.FirstOrDefault(dv => dv.IsPrimary) 
@@ -392,12 +433,20 @@ public class VehicleService : IVehicleService
             Type = vehicle.Type,
             FuelType = vehicle.FuelType,
             FuelConsumption = vehicle.FuelConsumption,
+            Height = vehicle.Height,
+            Width = vehicle.Width,
+            Length = vehicle.Length,
+            Weight = vehicle.Weight,
+            IsHazardous = vehicle.IsHazardous,
             Status = vehicle.Status.ToString(),
             CreatedAt = vehicle.CreatedAt,
             AssignedDriverId = primaryAssignment?.DriverId,
             AssignedDriverName = primaryAssignment?.Driver?.FullName,
             HasPendingDeletion = pendingDeletionIds?.Contains(vehicle.Id) ?? false,
-            HasPendingUpdate = pendingUpdateIds?.Contains(vehicle.Id) ?? false
+            HasPendingUpdate = pendingUpdateIds?.Contains(vehicle.Id) ?? false,
+            TotalMileage = vehicle.TotalMileage,
+            MileageAtLastMaintenance = vehicle.MileageAtLastMaintenance,
+            KmUntilMaintenance = Math.Max(0, 10000 - (vehicle.TotalMileage - vehicle.MileageAtLastMaintenance))
         };
     }
 }

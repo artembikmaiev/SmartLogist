@@ -128,6 +128,21 @@ export function useVehicles() {
         }
     };
 
+    const handlePerformMaintenance = async (id: number | string) => {
+        try {
+            resource.setIsSubmitting(true);
+            await vehiclesService.performMaintenance(id);
+            await resource.loadData(false);
+            success('ТО успішно проведено');
+            return true;
+        } catch (err: any) {
+            notifyError(err.message || 'Помилка проведення ТО');
+            return false;
+        } finally {
+            resource.setIsSubmitting(false);
+        }
+    };
+
     return {
         ...resource,
         vehicles: resource.paginatedData,
@@ -172,6 +187,7 @@ export function useVehicles() {
             delete: resource.handleDelete,
             assignDriver: handleAssignDriver,
             unassignDriver: handleUnassignDriver,
+            performMaintenance: handlePerformMaintenance,
             refresh: resource.loadData
         }
     };

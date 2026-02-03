@@ -1,46 +1,33 @@
-export interface AnalyticsStats {
-    activeTrips: {
-        value: number;
-        change: number;
-        total: number;
-    };
-    activeDrivers: {
-        value: number;
-        change: number;
-        total: number;
-    };
-    activeVehicles: {
-        value: number;
-        utilizationRate: number;
-    };
-    totalDistance: {
-        value: number;
-        change: number;
-        period: string;
-    };
-    averageTripCost: {
-        value: number;
-        change: number;
-    };
-    fleetEfficiency: {
-        value: number;
-        status: 'excellent' | 'good' | 'average' | 'poor';
-    };
-    onTimeDelivery: {
-        value: number;
-        completed: number;
-        total: number;
-    };
+export interface AnalyticsSummary {
+    totalRevenue: number;
+    totalProfit: number;
+    totalDistance: number;
+    totalTrips: number;
+    averageRating: number;
+    fuelSpend: number;
+    avgFuelEfficiency: number;
+    profitMargin: number;
 }
 
-export interface FuelConsumptionData {
+export interface MonthlyTrend {
     month: string;
-    consumption: number;
-    cost: number;
+    revenue: number;
+    profit: number;
+    tripCount: number;
 }
 
-export interface CostAnalysisData {
-    category: string;
-    amount: number;
-    percentage: number;
+export interface DriverPerformance {
+    driverId: number;
+    fullName: string;
+    efficiencyScore: number;
+    avgRating: number;
+    completedTrips: number;
+    totalProfitGenerated: number;
+}
+
+export interface CargoTypeAnalytics {
+    cargoType: string;
+    count: number;
+    totalProfit: number;
+    averageWeight: number;
 }

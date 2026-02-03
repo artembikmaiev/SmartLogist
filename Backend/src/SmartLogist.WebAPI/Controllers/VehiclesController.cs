@@ -191,4 +191,27 @@ public class VehiclesController : ControllerBase
             return BadRequest(new { message = $"Помилка скасування: {message}" });
         }
     }
+
+    [HttpPost("{id}/maintenance")]
+    public async Task<IActionResult> PerformMaintenance(int id)
+    {
+        try
+        {
+            var managerId = GetCurrentManagerId();
+            await _vehicleService.PerformMaintenanceAsync(id, managerId);
+            return Ok(new { message = "ТО проведено успішно" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

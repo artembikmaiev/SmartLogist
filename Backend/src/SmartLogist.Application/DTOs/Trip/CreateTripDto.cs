@@ -16,4 +16,12 @@ public class CreateTripDto
     public int DriverId { get; set; }
     public int? VehicleId { get; set; }
     public string? Notes { get; set; }
+    
+    // ETS/Economic info
+    public string? CargoName { get; set; }
+    public CargoType CargoType { get; set; }
+    public double CargoWeight { get; set; }
+    public decimal ExpectedProfit { get; set; }
+    public decimal EstimatedFuelCost { get; set; }
+    public string RouteGeometry { get; set; } = string.Empty;
 }

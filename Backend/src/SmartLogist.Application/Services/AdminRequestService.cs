@@ -15,19 +15,22 @@ public class AdminRequestService : IAdminRequestService
     private readonly IActivityService _activityService;
     private readonly INotificationService _notificationService;
     private readonly IVehicleRepository _vehicleRepository;
+    private readonly ITripRepository _tripRepository;
 
     public AdminRequestService(
         IAdminRequestRepository requestRepository, 
         IUserRepository userRepository,
         IActivityService activityService,
         INotificationService notificationService,
-        IVehicleRepository vehicleRepository)
+        IVehicleRepository vehicleRepository,
+        ITripRepository tripRepository)
     {
         _requestRepository = requestRepository;
         _userRepository = userRepository;
         _activityService = activityService;
         _notificationService = notificationService;
         _vehicleRepository = vehicleRepository;
+        _tripRepository = tripRepository;
     }
 
     public async Task<IEnumerable<AdminRequestDto>> GetAllRequestsAsync()
@@ -95,6 +98,11 @@ public class AdminRequestService : IAdminRequestService
                         await _vehicleRepository.DeleteAsync(request.TargetId.Value);
                     break;
 
+                case RequestType.TripDeletion:
+                    if (request.TargetId.HasValue)
+                        await _tripRepository.DeleteAsync(request.TargetId.Value);
+                    break;
+
                 case RequestType.DriverCreation:
                     if (!string.IsNullOrEmpty(request.Comment))
                     {
@@ -141,11 +149,14 @@ public class AdminRequestService : IAdminRequestService
                     break;
             }
             
+            string entityType = request.Type.ToString().Contains("Driver") ? "User" : 
+                               (request.Type.ToString().Contains("Vehicle") ? "Vehicle" : "Trip");
+
             await _activityService.LogAsync(
                 adminId,
                 $"Запит схвалено: {request.Type}",
                 request.TargetName,
-                request.Type.ToString().Contains("Driver") ? "User" : "Vehicle",
+                entityType,
                 request.TargetId?.ToString() ?? "0"
             );
 

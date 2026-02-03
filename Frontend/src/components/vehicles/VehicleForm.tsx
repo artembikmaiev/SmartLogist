@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, AlertCircle } from 'lucide-react';
+import { Truck, AlertCircle, Clock } from 'lucide-react';
 import { Vehicle, VehicleStatus } from '@/types/vehicle.types';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
@@ -26,7 +26,14 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel, error }: Vehi
             type: formData.get('type') as string,
             fuelType: formData.get('fuelType') as string,
             fuelConsumption: Number(formData.get('fuelConsumption')),
+            height: Number(formData.get('height')),
+            width: Number(formData.get('width')),
+            length: Number(formData.get('length')),
+            weight: Number(formData.get('weight')),
+            isHazardous: formData.get('isHazardous') === 'on',
             status: isEdit ? (formData.get('status') as VehicleStatus) : VehicleStatus.Available,
+            totalMileage: Number(formData.get('totalMileage')),
+            mileageAtLastMaintenance: Number(formData.get('mileageAtLastMaintenance')),
         };
 
         await onSubmit(data);
@@ -101,6 +108,67 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel, error }: Vehi
                     />
                 </FormField>
 
+                <div className="col-span-2 border-t pt-4 mt-2">
+                    <h3 className="text-sm font-medium text-slate-800 mb-3 flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-slate-500" />
+                        Фізичні параметри (для маршрутизації)
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Висота (м)" id="height">
+                            <Input
+                                id="height"
+                                type="number"
+                                name="height"
+                                step="0.01"
+                                defaultValue={vehicle?.height}
+                                placeholder="3.5"
+                            />
+                        </FormField>
+                        <FormField label="Ширина (м)" id="width">
+                            <Input
+                                id="width"
+                                type="number"
+                                name="width"
+                                step="0.01"
+                                defaultValue={vehicle?.width}
+                                placeholder="2.5"
+                            />
+                        </FormField>
+                        <FormField label="Довжина (м)" id="length">
+                            <Input
+                                id="length"
+                                type="number"
+                                name="length"
+                                step="0.01"
+                                defaultValue={vehicle?.length}
+                                placeholder="8.0"
+                            />
+                        </FormField>
+                        <FormField label="Вага (т)" id="weight">
+                            <Input
+                                id="weight"
+                                type="number"
+                                name="weight"
+                                step="0.1"
+                                defaultValue={vehicle?.weight}
+                                placeholder="12.0"
+                            />
+                        </FormField>
+                        <div className="col-span-2 flex items-center gap-2 py-2">
+                            <input
+                                type="checkbox"
+                                id="isHazardous"
+                                name="isHazardous"
+                                defaultChecked={vehicle?.isHazardous}
+                                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                            />
+                            <label htmlFor="isHazardous" className="text-sm text-slate-700 select-none">
+                                Небезпечний вантаж (ADR)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 {isEdit && (
                     <FormField label="Статус" id="status" className="col-span-2">
                         <Select
@@ -116,6 +184,33 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel, error }: Vehi
                         />
                     </FormField>
                 )}
+            </div>
+
+            <div className="border-t pt-4 mt-2">
+                <h3 className="text-sm font-medium text-slate-800 mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-500" />
+                    Інформація про пробіг (км)
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField label="Загальний пробіг" id="totalMileage">
+                        <Input
+                            id="totalMileage"
+                            type="number"
+                            name="totalMileage"
+                            defaultValue={vehicle?.totalMileage || 0}
+                            placeholder="50000"
+                        />
+                    </FormField>
+                    <FormField label="Пробіг при останньому ТО" id="mileageAtLastMaintenance">
+                        <Input
+                            id="mileageAtLastMaintenance"
+                            type="number"
+                            name="mileageAtLastMaintenance"
+                            defaultValue={vehicle?.mileageAtLastMaintenance || 0}
+                            placeholder="45000"
+                        />
+                    </FormField>
+                </div>
             </div>
 
             <div className="flex gap-3 mt-6">

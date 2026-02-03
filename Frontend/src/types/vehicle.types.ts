@@ -12,12 +12,20 @@ export interface Vehicle {
     type: string;
     fuelType: string;
     fuelConsumption: number;
+    height: number;
+    width: number;
+    length: number;
+    weight: number;
+    isHazardous: boolean;
     status: VehicleStatus;
     createdAt: string;
     assignedDriverName?: string;
     assignedDriverId?: number;
     hasPendingDeletion: boolean;
     hasPendingUpdate: boolean;
+    totalMileage: number;
+    mileageAtLastMaintenance: number;
+    kmUntilMaintenance: number;
 }
 
 export interface CreateVehicleDto {
@@ -26,7 +34,14 @@ export interface CreateVehicleDto {
     type: string;
     fuelType: string;
     fuelConsumption: number;
+    height: number;
+    width: number;
+    length: number;
+    weight: number;
+    isHazardous: boolean;
     status: VehicleStatus;
+    totalMileage: number;
+    mileageAtLastMaintenance: number;
 }
 
 export interface UpdateVehicleDto {
@@ -35,7 +50,14 @@ export interface UpdateVehicleDto {
     type: string;
     fuelType: string;
     fuelConsumption: number;
+    height: number;
+    width: number;
+    length: number;
+    weight: number;
+    isHazardous: boolean;
     status: VehicleStatus;
+    totalMileage: number;
+    mileageAtLastMaintenance: number;
 }
 
 export interface AssignVehicleDto {

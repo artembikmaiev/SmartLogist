@@ -15,9 +15,24 @@ export interface Trip {
     notes?: string;
     managerId: number;
     managerName: string;
+    driverId: number;
+    driverName?: string;
     vehicleId?: number;
     vehicleModel?: string;
     vehicleLicensePlate?: string;
+
+    // ETS info
+    cargoName?: string;
+    cargoType?: string;
+    cargoWeight?: number;
+    expectedProfit?: number;
+    estimatedFuelCost?: number;
+    routeGeometry?: string;
+    hasPendingDeletion?: boolean;
+    driverEarnings?: number;
+    actualFuelConsumption?: number;
+    rating?: number;
+    managerReview?: string;
 }
 
 export interface DriverStatsSummary {
@@ -41,8 +56,19 @@ export interface CreateTripDto {
     driverId: number;
     vehicleId?: number;
     notes?: string;
+
+    // ETS info
+    cargoName: string;
+    cargoType: number;
+    cargoWeight: number;
+    expectedProfit: number;
+    estimatedFuelCost: number;
+    routeGeometry: string;
 }
 
 export interface UpdateTripDto extends Partial<CreateTripDto> {
     status?: string;
+    actualFuelConsumption?: number;
+    rating?: number;
+    managerReview?: string;
 }
