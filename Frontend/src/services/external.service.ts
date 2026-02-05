@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api/client';
+import { FuelPrice } from '@/types/fuel.types';
 
 export interface RoadCondition {
     route: string;
@@ -14,6 +15,10 @@ class ExternalService {
 
     getRoadConditions = async (): Promise<RoadCondition[]> => {
         return apiClient.get<RoadCondition[]>(`${this.endpoint}/road-conditions`);
+    };
+
+    getFuelPrices = async (): Promise<FuelPrice[]> => {
+        return apiClient.get<FuelPrice[]>(`${this.endpoint}/fuel`);
     };
 }
 

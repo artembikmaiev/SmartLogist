@@ -300,7 +300,7 @@ function MetricCard({
     title: string,
     value: string,
     icon: any,
-    color: 'blue' | 'emerald' | 'amber' | 'slate',
+    color: 'blue' | 'emerald' | 'amber' | 'slate' | 'orange' | 'purple',
     trend?: string,
     trendDown?: boolean
 }) {
@@ -308,7 +308,9 @@ function MetricCard({
         blue: 'bg-blue-50 text-blue-600',
         emerald: 'bg-emerald-50 text-emerald-600',
         amber: 'bg-amber-50 text-amber-600',
-        slate: 'bg-slate-200 text-slate-700'
+        slate: 'bg-slate-200 text-slate-700',
+        orange: 'bg-orange-50 text-orange-600',
+        purple: 'bg-purple-50 text-purple-600'
     };
 
     return (

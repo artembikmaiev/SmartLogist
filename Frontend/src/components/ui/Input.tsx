@@ -2,7 +2,7 @@ import React from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     error?: string;
-    icon?: React.ReactNode;
+    icon?: any;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(({
@@ -16,12 +16,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
         ? "border-red-300 text-red-900 placeholder:text-red-300 focus:ring-red-200"
         : "border-slate-300 text-slate-900 placeholder:text-slate-400 focus:ring-blue-600/20 focus:border-blue-600";
     const iconPadding = icon ? 'pl-11' : 'pl-4';
+    const Icon = icon;
 
     return (
         <div className="relative w-full">
             {icon && (
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
-                    {icon}
+                    {React.isValidElement(icon) ? (
+                        icon
+                    ) : (
+                        <Icon className="w-5 h-5 text-slate-400" />
+                    )}
                 </div>
             )}
             <input

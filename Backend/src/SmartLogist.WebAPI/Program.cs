@@ -67,6 +67,7 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IRoadConditionService, RoadConditionService>();
 builder.Services.AddScoped<IRoutingService, RoutingService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IFuelService, FuelService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient("TomTom", client =>
 {

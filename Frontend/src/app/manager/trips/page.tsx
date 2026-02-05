@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Clock, CheckCircle, Fuel, Truck, MapPin, Search, AlertCircle, Trash, Navigation } from 'lucide-react';
-import { tripsService } from '@/services/trips.service';
+import { useState } from 'react';
+import { Clock, CheckCircle, Truck, Search, Trash } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
-import { useNotifications } from '@/contexts/NotificationContext';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import DataTable, { Column } from '@/components/ui/DataTable';
@@ -13,92 +11,35 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { CreateTripModal } from '@/components/trips';
 import TripDetailsModal from '@/components/trips/TripDetailsModal';
 import { formatDate } from '@/lib/utils/date.utils';
+import { TRIP_STATUS_LABELS, TRIP_STATUS_VARIANTS } from '@/lib/constants/trip.constants';
+import { useTrips } from '@/hooks/useTrips';
 import type { Trip } from '@/types/trip.types';
 
 export default function ManagerTripsPage() {
-  const { success: notifySuccess, error: notifyError } = useNotifications();
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [stats, setStats] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    paginatedData,
+    isLoading,
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+    stats,
+    handleDelete,
+    showDeleteModal,
+    setShowDeleteModal,
+    selectedItem,
+    setSelectedItem,
+    loadData,
+    updateTripStatus,
+    isSubmitting
+  } = useTrips('manager');
 
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  // Delete modal state
-  const [tripToDelete, setTripToDelete] = useState<number | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const [tripsData, statsData] = await Promise.all([
-        tripsService.getManagerTrips(),
-        tripsService.getManagerStats()
-      ]);
-      setTrips(tripsData);
-      setStats(statsData);
-    } catch (err) {
-      console.error('Failed to fetch data', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleDeleteTrip = (id: number) => {
-    setTripToDelete(id);
-    setIsDeleteModalOpen(true);
-  };
-
-  const confirmDeleteTrip = async () => {
-    if (!tripToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      await tripsService.deleteTrip(tripToDelete);
-      setIsDeleteModalOpen(false);
-      setTripToDelete(null);
-      notifySuccess('Запит на видалення відправлено адміністратору');
-      await fetchData();
-    } catch (err: any) {
-      notifyError(err.message || 'Не вдалося видалити рейс');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const getStatusVariant = (status: string): any => {
-    switch (status) {
-      case 'Accepted':
-      case 'InTransit': return 'info';
-      case 'Arrived': return 'purple';
-      case 'Completed': return 'success';
-      case 'Pending': return 'warning';
-      case 'Cancelled':
-      case 'Declined': return 'danger';
-      default: return 'neutral';
-    }
-  };
-
-  const statusLabels: Record<string, string> = {
-    Pending: 'Очікує',
-    Accepted: 'Прийнято',
-    InTransit: 'В дорозі',
-    Arrived: 'Прибув',
-    Completed: 'Завершено',
-    Declined: 'Відхилено',
-    Cancelled: 'Скасовано'
-  };
 
   const columns: Column<Trip>[] = [
     {
@@ -159,8 +100,8 @@ export default function ManagerTripsPage() {
       key: 'status',
       render: (trip) => (
         <div className="flex flex-col gap-1 py-1">
-          <Badge variant={getStatusVariant(trip.status)}>
-            {statusLabels[trip.status] || trip.status}
+          <Badge variant={TRIP_STATUS_VARIANTS[trip.status] || 'neutral'}>
+            {TRIP_STATUS_LABELS[trip.status] || trip.status}
           </Badge>
           {trip.hasPendingDeletion && (
             <Badge variant="warning" pulse>
@@ -195,7 +136,8 @@ export default function ManagerTripsPage() {
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              handleDeleteTrip(trip.id);
+              setSelectedItem(trip);
+              setShowDeleteModal(true);
             }}
             disabled={trip.hasPendingDeletion}
             className={`${trip.hasPendingDeletion ? 'text-slate-300' : 'text-red-500 hover:bg-red-50'}`}
@@ -208,139 +150,78 @@ export default function ManagerTripsPage() {
     }
   ];
 
-  const filteredTrips = trips.filter(t =>
-    t.originCity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.destinationCity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (t.driverName && t.driverName.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  const totalPages = Math.ceil(filteredTrips.length / pageSize);
-  const paginatedTrips = filteredTrips.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-slate-900">Управління рейсами</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)} icon={<span className="text-lg">+</span>}>
-            Створити рейс
-          </Button>
-        </div>
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-slate-900">Управління рейсами</h1>
+        <Button onClick={() => setIsCreateOpen(true)} icon={<span className="text-lg">+</span>}>
+          Створити рейс
+        </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          title="Активні рейси"
-          value={stats?.activeTripsCount || '0'}
-          icon={Truck}
-          color="blue"
-        />
-        <StatCard
-          title="В очікуванні"
-          value={stats?.pendingTripsCount || '0'}
-          icon={Clock}
-          color="amber"
-        />
-        <StatCard
-          title="Завершено сьогодні"
-          value={stats?.completedTripsTodayCount || '0'}
-          icon={CheckCircle}
-          color="green"
-        />
+        <StatCard title="Активні рейси" value={stats?.activeTripsCount || '0'} icon={Truck} color="blue" />
+        <StatCard title="В очікуванні" value={stats?.pendingTripsCount || '0'} icon={Clock} color="amber" />
+        <StatCard title="Завершено сьогодні" value={stats?.completedTripsTodayCount || '0'} icon={CheckCircle} color="green" />
       </div>
 
-
-      {/* Trips Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-8 pb-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Список рейсів</h2>
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-              <input
-                type="text"
-                placeholder="Пошук рейсів..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[300px] pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all placeholder:text-slate-400"
-              />
-            </div>
+        <div className="p-8 pb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Список рейсів</h2>
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <input
+              type="text"
+              placeholder="Пошук рейсів..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-[300px] pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all"
+            />
           </div>
         </div>
 
         <DataTable
-          data={paginatedTrips}
+          data={paginatedData}
           columns={columns}
           isLoading={isLoading}
-          emptyMessage="Рейсів не знайдено"
           onRowClick={(trip) => {
-            setSelectedTrip(trip);
+            setSelectedItem(trip);
             setIsDetailsOpen(true);
           }}
-          className="border-none shadow-none rounded-none"
           pagination={{
             currentPage,
             totalPages,
-            totalItems: filteredTrips.length,
+            totalItems,
             pageSize,
             onPageChange: setCurrentPage,
             onPageSizeChange: setPageSize,
             label: 'рейсів'
           }}
+          className="border-none shadow-none rounded-none"
         />
       </div>
 
-      {/* Details Modal */}
       <TripDetailsModal
         isOpen={isDetailsOpen}
-        onClose={() => {
-          setIsDetailsOpen(false);
-          setSelectedTrip(null);
-        }}
-        trip={selectedTrip}
-        onStatusUpdate={async (id, status, additionalData) => {
-          try {
-            await tripsService.updateTrip(id, { status, ...additionalData });
-            await fetchData();
-          } catch (err: any) {
-            notifyError(`Не вдалося оновити статус: ${err.message}`);
-          }
-        }}
+        onClose={() => setIsDetailsOpen(false)}
+        trip={selectedItem}
+        onStatusUpdate={updateTripStatus}
         showActions={true}
       />
 
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Створити новий рейс"
-        maxWidth="7xl"
-      >
-        <CreateTripModal
-          onSuccess={() => {
-            setIsCreateModalOpen(false);
-            fetchData();
-          }}
-          onCancel={() => setIsCreateModalOpen(false)}
-        />
+      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Створити новий рейс" maxWidth="7xl">
+        <CreateTripModal onSuccess={() => { setIsCreateOpen(false); loadData(); }} onCancel={() => setIsCreateOpen(false)} />
       </Modal>
 
       <ConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={confirmDeleteTrip}
-        isLoading={isDeleting}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        isLoading={isSubmitting}
         title="Видалити рейс?"
-        message={
-          <>
-            Ви впевнені, що хочете видалити рейс <span className="font-bold text-slate-900">#{tripToDelete}</span>?
-            <br />
-            Це створить запит до адміністратора на розгляд.
-          </>
-        }
-        confirmText="Надіслати запит"
+        message={<>Ви впевнені, що хочете видалити рейс <span className="font-bold">#{selectedItem?.id}</span>?</>}
         variant="danger"
+        confirmText="Надіслати запит"
       />
     </div>
   );

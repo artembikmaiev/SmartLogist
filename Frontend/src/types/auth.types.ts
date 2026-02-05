@@ -29,13 +29,7 @@ export interface AuthResponse {
     token: string;
 }
 
-export interface Permission {
-    id: number;
-    code: string;
-    name: string;
-    description?: string;
-    category?: string;
-}
+import { Permission } from './common.types';
 
 export interface AuthState {
     user: AuthResponse['user'] | null;

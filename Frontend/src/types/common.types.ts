@@ -30,3 +30,11 @@ export interface Coordinates {
     lat: number;
     lng: number;
 }
+
+export interface Permission {
+    id: number;
+    code: string;
+    name: string;
+    description: string | null;
+    category: string;
+}

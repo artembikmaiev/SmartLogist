@@ -11,11 +11,13 @@ public class ExternalDataController : ControllerBase
 {
     private readonly ICurrencyService _currencyService;
     private readonly IRoadConditionService _roadConditionService;
+    private readonly IFuelService _fuelService;
 
-    public ExternalDataController(ICurrencyService currencyService, IRoadConditionService roadConditionService)
+    public ExternalDataController(ICurrencyService currencyService, IRoadConditionService roadConditionService, IFuelService fuelService)
     {
         _currencyService = currencyService;
         _roadConditionService = roadConditionService;
+        _fuelService = fuelService;
     }
 
     [HttpGet("currency")]
@@ -30,5 +32,12 @@ public class ExternalDataController : ControllerBase
     {
         var conditions = await _roadConditionService.GetRoadConditionsAsync();
         return Ok(conditions);
+    }
+
+    [HttpGet("fuel")]
+    public async Task<IActionResult> GetFuelPrices()
+    {
+        var prices = await _fuelService.GetFuelPricesAsync();
+        return Ok(prices);
     }
 }

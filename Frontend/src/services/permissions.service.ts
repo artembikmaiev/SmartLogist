@@ -1,12 +1,5 @@
 import { apiClient } from '@/lib/api/client';
-
-export interface Permission {
-    id: number;
-    code: string;
-    name: string;
-    description: string | null;
-    category: string;
-}
+import { Permission } from '@/types/common.types';
 
 export const permissionsService = {
     // Get all available permissions

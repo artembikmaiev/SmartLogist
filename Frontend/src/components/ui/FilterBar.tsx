@@ -22,7 +22,7 @@ export default function FilterBar({
             <div className="flex-1">
                 <Input
                     type="text"
-                    icon={<Search className="w-5 h-5 text-slate-400" />}
+                    icon={Search}
                     placeholder={searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
