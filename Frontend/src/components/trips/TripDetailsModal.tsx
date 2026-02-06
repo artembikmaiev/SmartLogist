@@ -40,27 +40,114 @@ export default function TripDetailsModal({
     showActions = true,
     isDriverView = false
 }: TripDetailsModalProps) {
-    if (!trip) return null;
 
-    let mapOrigin = { lat: 0, lng: 0, label: trip.originCity };
-    let mapDestination = { lat: 0, lng: 0, label: trip.destinationCity };
+    const [mapOrigin, setMapOrigin] = React.useState({
+        lat: trip?.originLatitude || 0,
+        lng: trip?.originLongitude || 0,
+        label: trip?.originCity || ''
+    });
+    const [mapDestination, setMapDestination] = React.useState({
+        lat: trip?.destinationLatitude || 0,
+        lng: trip?.destinationLongitude || 0,
+        label: trip?.destinationCity || ''
+    });
 
-    if (trip.routeGeometry) {
-        try {
-            const coords = JSON.parse(trip.routeGeometry);
-            if (Array.isArray(coords) && coords.length >= 2) {
-                mapOrigin = { lat: coords[0][0], lng: coords[0][1], label: trip.originCity };
-                mapDestination = { lat: coords[coords.length - 1][0], lng: coords[coords.length - 1][1], label: trip.destinationCity };
+    React.useEffect(() => {
+        if (!trip) return;
+
+        // Immediately sync from trip properties when it changes
+        const currentOrigin = {
+            lat: trip.originLatitude || 0,
+            lng: trip.originLongitude || 0,
+            label: trip.originCity
+        };
+        const currentDestination = {
+            lat: trip.destinationLatitude || 0,
+            lng: trip.destinationLongitude || 0,
+            label: trip.destinationCity
+        };
+
+        let newOrigin = { ...currentOrigin };
+        let newDestination = { ...currentDestination };
+        let changed = false;
+
+        // Try to recover from geometry if DB fields are empty
+        if (trip.routeGeometry && (newOrigin.lat === 0 || newDestination.lat === 0)) {
+            try {
+                const coords = JSON.parse(trip.routeGeometry);
+                if (Array.isArray(coords) && coords.length >= 2) {
+                    if (newOrigin.lat === 0) {
+                        newOrigin = { lat: coords[0][0], lng: coords[0][1], label: trip.originCity };
+                        changed = true;
+                    }
+                    if (newDestination.lat === 0) {
+                        newDestination = { lat: coords[coords.length - 1][0], lng: coords[coords.length - 1][1], label: trip.destinationCity };
+                        changed = true;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to parse geometry for markers', e);
             }
-        } catch (e) {
-            console.error('Failed to parse geometry for markers', e);
         }
-    }
+
+        if (changed) {
+            setMapOrigin(newOrigin);
+            setMapDestination(newDestination);
+        } else {
+            // Even if not recovered from geometry, ensure state matches current trip
+            setMapOrigin(newOrigin);
+            setMapDestination(newDestination);
+
+            if (newOrigin.lat === 0 || newDestination.lat === 0) {
+                // geocoding fallback
+                const geocodeCity = async (city: string, address: string, type: 'origin' | 'destination') => {
+                    const tryGeocode = async (q: string) => {
+                        try {
+                            console.log(`Geocoding ${type}: ${q}`);
+                            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+                            const data = await resp.json();
+                            if (data && data.length > 0) {
+                                return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+                            }
+                        } catch (e) {
+                            console.error(`Geocode error for ${q}`, e);
+                        }
+                        return null;
+                    };
+
+                    // Strategy 1: City + Address + Ukraine
+                    let point = await tryGeocode(`${city}, ${address}, Ukraine`);
+
+                    // Strategy 2: City + Ukraine (if address fails or is empty)
+                    if (!point) {
+                        point = await tryGeocode(`${city}, Ukraine`);
+                    }
+
+                    // Strategy 3: Just the original query if others failed (though unlikely to help)
+                    if (!point && address) {
+                        point = await tryGeocode(`${city}, ${address}`);
+                    }
+
+                    if (point) {
+                        const finalPoint = { ...point, label: city };
+                        if (type === 'origin') setMapOrigin(finalPoint);
+                        else setMapDestination(finalPoint);
+                    } else {
+                        console.warn(`All geocoding attempts failed for ${type}: ${city}`);
+                    }
+                };
+                if (newOrigin.lat === 0) geocodeCity(trip.originCity, trip.originAddress, 'origin');
+                if (newDestination.lat === 0) geocodeCity(trip.destinationCity, trip.destinationAddress, 'destination');
+            }
+        }
+    }, [trip?.id, trip?.routeGeometry, trip?.originLatitude, trip?.destinationLatitude]);
 
     const [actualConsumption, setActualConsumption] = React.useState<string>('');
     const [rating, setRating] = React.useState<number>(5);
     const [managerReview, setManagerReview] = React.useState<string>('');
     const [isUpdating, setIsUpdating] = React.useState(false);
+
+    if (!trip) return null;
 
     const handleAction = async (status: string) => {
         setIsUpdating(true);
@@ -151,9 +238,20 @@ export default function TripDetailsModal({
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-700">
-                                <span>Відстань:</span>
-                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">{trip.distanceKm} км</span>
+                            <div className="pt-4 border-t border-slate-200 flex flex-col gap-2">
+                                <div className="flex justify-between items-center text-sm font-bold text-slate-700">
+                                    <span>Відстань:</span>
+                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">{trip.distanceKm} км</span>
+                                </div>
+                                {(mapOrigin.lat === 0 || mapDestination.lat === 0) && (
+                                    <div className="text-[9px] text-amber-600 bg-amber-50 p-2 rounded border border-amber-200 italic">
+                                        Мережеві координати відсутні. Виконується пошук точок на мапі...
+                                    </div>
+                                )}
+                                <div className="text-[10px] text-slate-400 font-mono">
+                                    Debug: O({mapOrigin.lat.toFixed(4)}, {mapOrigin.lng.toFixed(4)})
+                                    D({mapDestination.lat.toFixed(4)}, {mapDestination.lng.toFixed(4)})
+                                </div>
                             </div>
                         </div>
                     </div>

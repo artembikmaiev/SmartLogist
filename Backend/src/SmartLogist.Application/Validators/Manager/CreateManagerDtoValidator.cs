@@ -25,7 +25,7 @@ public class CreateManagerDtoValidator : AbstractValidator<CreateManagerDto>
             .Matches(@"^[а-яА-ЯіІїЇєЄґҐa-zA-Z\s'-]+$").WithMessage("Повне ім'я містить недопустимі символи");
 
         RuleFor(x => x.Phone)
-            .Matches(@"^\+380\d{9}$").WithMessage("Телефон має бути у форматі +380XXXXXXXXX")
+            .Matches(@"^\+?[1-9]\d{1,14}$").WithMessage("Невірний формат телефону")
             .When(x => !string.IsNullOrEmpty(x.Phone));
     }
 }

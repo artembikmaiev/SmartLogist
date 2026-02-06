@@ -7,6 +7,7 @@ interface FormFieldProps {
     children: React.ReactNode;
     className?: string;
     id?: string;
+    hint?: string;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -15,7 +16,8 @@ const FormField: React.FC<FormFieldProps> = ({
     required,
     children,
     className = '',
-    id
+    id,
+    hint
 }) => {
     return (
         <div className={`space-y-1.5 ${className}`}>
@@ -28,6 +30,11 @@ const FormField: React.FC<FormFieldProps> = ({
             <div className="relative">
                 {children}
             </div>
+            {hint && !error && (
+                <p className="text-xs text-slate-500 font-medium">
+                    {hint}
+                </p>
+            )}
             {error && (
                 <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
                     {error}

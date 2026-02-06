@@ -100,7 +100,13 @@ public class AdminRequestService : IAdminRequestService
 
                 case RequestType.TripDeletion:
                     if (request.TargetId.HasValue)
-                        await _tripRepository.DeleteAsync(request.TargetId.Value);
+                    {
+                        var tripToDelete = await _tripRepository.GetByOnlyIdAsync(request.TargetId.Value);
+                        if (tripToDelete != null)
+                        {
+                            await _tripRepository.DeleteAsync(tripToDelete.Id, tripToDelete.ScheduledDeparture);
+                        }
+                    }
                     break;
 
                 case RequestType.DriverCreation:
@@ -140,6 +146,13 @@ public class AdminRequestService : IAdminRequestService
                                 Type = createDto.Type,
                                 FuelType = createDto.FuelType,
                                 FuelConsumption = createDto.FuelConsumption,
+                                Height = createDto.Height,
+                                Width = createDto.Width,
+                                Length = createDto.Length,
+                                Weight = createDto.Weight,
+                                IsHazardous = createDto.IsHazardous,
+                                TotalMileage = createDto.TotalMileage,
+                                MileageAtLastMaintenance = createDto.MileageAtLastMaintenance,
                                 Status = createDto.Status,
                                 CreatedAt = DateTime.UtcNow
                             };

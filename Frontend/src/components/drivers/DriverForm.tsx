@@ -78,7 +78,7 @@ export default function DriverForm({ driver, onSubmit, onCancel, error, isAdmin 
             )}
 
             <div className="grid grid-cols-2 gap-4">
-                <FormField label="Телефон" id="phone">
+                <FormField label="Телефон" id="phone" hint="Формат: +380XXXXXXXXX">
                     <Input
                         id="phone"
                         type="tel"

@@ -20,10 +20,30 @@ public class ApplicationDbContext : DbContext
     public DbSet<AdminRequest> AdminRequests { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Trip> Trips { get; set; }
+    public DbSet<Location> Locations { get; set; }
+    public DbSet<Cargo> Cargos { get; set; }
+    public DbSet<TripRoute> TripRoutes { get; set; }
+    public DbSet<TripFeedback> TripFeedbacks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Global UTC DateTime Converter to prevent partition key mismatches in Postgres
+        var dateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(dateTimeConverter);
+                }
+            }
+        }
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }

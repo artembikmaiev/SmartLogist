@@ -11,15 +11,15 @@ public class Vehicle
     public string LicensePlate { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty; // e.g., Вантажівка
     public string FuelType { get; set; } = string.Empty; // e.g., Дизель
-    public double FuelConsumption { get; set; } // L/100km
-    public double Height { get; set; } // meters
-    public double Width { get; set; } // meters
-    public double Length { get; set; } // meters
-    public double Weight { get; set; } // tons
+    public float FuelConsumption { get; set; } // REAL (L/100km)
+    public float Height { get; set; } // REAL (meters)
+    public float Width { get; set; } // REAL (meters)
+    public float Length { get; set; } // REAL (meters)
+    public float Weight { get; set; } // REAL (tons)
     public bool IsHazardous { get; set; } = false;
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
-    public double TotalMileage { get; set; } = 0;
-    public double MileageAtLastMaintenance { get; set; } = 0;
+    public float TotalMileage { get; set; } = 0;
+    public float MileageAtLastMaintenance { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public virtual ICollection<DriverVehicle> AssignedDrivers { get; set; } = new List<DriverVehicle>();
 }

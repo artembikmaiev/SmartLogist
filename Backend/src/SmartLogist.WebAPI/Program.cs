@@ -14,8 +14,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure legacy timestamp behavior for Npgsql
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// Cors
+// AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // CORS
 builder.Services.AddCors(options =>
@@ -53,6 +53,8 @@ builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IAdminRequestRepository, AdminRequestRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<ICargoRepository, CargoRepository>();
 
 // Services
 builder.Services.AddScoped<IManagerService, ManagerService>();

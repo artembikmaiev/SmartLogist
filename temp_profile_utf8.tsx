@@ -1,0 +1,437 @@
+﻿'use client';
+
+import { User, Mail, Phone, Calendar, Award, Edit, Save, X, Truck, MapPin, Clock, DollarSign, CheckCircle, Info, RefreshCcw, Trash2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Button from '@/components/ui/Button';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { activitiesService } from '@/services/activities.service';
+import type { ActivityLog } from '@/types/activity.types';
+import { formatDate } from '@/lib/utils/date.utils';
+import { driversService } from '@/services/drivers.service';
+import { DriverStatus, DriverStatusLabels } from '@/types/drivers.types';
+import { CheckCircle2, ChevronDown } from 'lucide-react';
+import { externalService, RoadCondition } from '@/services/external.service';
+
+export default function DriverProfilePage() {
+    const { user, refreshUser } = useAuth();
+    const [isEditing, setIsEditing] = useState(false);
+    const [activities, setActivities] = useState<ActivityLog[]>([]);
+    const [isLoadingActivities, setIsLoadingActivities] = useState(true);
+    const [isChangingStatus, setIsChangingStatus] = useState(false);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [roadConditions, setRoadConditions] = useState<RoadCondition[]>([]);
+    const [isLoadingRoads, setIsLoadingRoads] = useState(true);
+    const [roadsUpdatedAt, setRoadsUpdatedAt] = useState<Date>(new Date());
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+    // Form states
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [licenseNumber, setLicenseNumber] = useState('');
+
+    // Initialize form states when user data is available
+    useEffect(() => {
+        if (user) {
+            setFullName(user.fullName || '');
+            setPhone(user.phone || '');
+            setLicenseNumber(user.licenseNumber || '');
+        }
+    }, [user]);
+
+    // Fetch activities
+    useEffect(() => {
+        const fetchActivities = async () => {
+            try {
+                const data = await activitiesService.getRecent(3);
+                setActivities(data);
+            } catch (err) {
+                console.error('Failed to fetch activities:', err);
+            } finally {
+                setIsLoadingActivities(false);
+            }
+        };
+
+        const fetchRoadConditions = async () => {
+            try {
+                const data = await externalService.getRoadConditions();
+                setRoadConditions(data);
+                setRoadsUpdatedAt(new Date());
+            } catch (err) {
+                console.error('Failed to fetch road conditions:', err);
+            } finally {
+                setIsLoadingRoads(false);
+            }
+        };
+
+        fetchActivities();
+        fetchRoadConditions();
+    }, []);
+
+    const handleStatusUpdate = async (newStatus: DriverStatus) => {
+        setIsUpdatingStatus(true);
+        try {
+            await driversService.updateStatusFromDriver(newStatus);
+            await refreshUser();
+            setIsChangingStatus(false);
+            // Refresh activities too
+            const data = await activitiesService.getRecent(3);
+            setActivities(data);
+        } catch (err: any) {
+            console.error('Failed to update status:', err);
+            alert(`╨Э╨╡ ╨▓╨┤╨░╨╗╨╛╤Б╤П ╨╛╨╜╨╛╨▓╨╕╤В╨╕ ╤Б╤В╨░╤В╤Г╤Б: ${err.message || '╨Э╨╡╨▓╤Ц╨┤╨╛╨╝╨░ ╨┐╨╛╨╝╨╕╨╗╨║╨░'}`);
+        } finally {
+            setIsUpdatingStatus(false);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setIsSavingProfile(true);
+        try {
+            await driversService.updateProfileFromDriver({
+                fullName,
+                phone,
+                licenseNumber
+            });
+            await refreshUser();
+            setIsEditing(false);
+            // Refresh activities too
+            const data = await activitiesService.getRecent(3);
+            setActivities(data);
+        } catch (err: any) {
+            console.error('Failed to save profile:', err);
+            alert(`╨Э╨╡ ╨▓╨┤╨░╨╗╨╛╤Б╤П ╨╖╨▒╨╡╤А╨╡╨│╤В╨╕ ╨┐╤А╨╛╤Д╤Ц╨╗╤М: ${err.message || '╨Э╨╡╨▓╤Ц╨┤╨╛╨╝╨░ ╨┐╨╛╨╝╨╕╨╗╨║╨░'}`);
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase();
+    };
+
+    const getActivityIcon = (action: string) => {
+        if (action.includes('╨Ч╨░╨▓╨╡╤А╤И╨╡╨╜╨╛') || action.includes('╨г╤Б╨┐╤Ц╤И╨╜╨╛')) return <CheckCircle className="w-5 h-5 text-green-500" />;
+        if (action.includes('╨б╤В╨▓╨╛╤А╨╡╨╜╨╛') || action.includes('╨Ф╨╛╨┤╨░╨╜╨╛')) return <RefreshCcw className="w-5 h-5 text-blue-500" />;
+        if (action.includes('╨Ю╨╜╨╛╨▓╨╗╨╡╨╜╨╛') || action.includes('╨Ч╨╝╤Ц╨╜╨╡╨╜╨╛')) return <Info className="w-5 h-5 text-blue-400" />;
+        if (action.includes('╨Т╨╕╨┤╨░╨╗╨╡╨╜╨╛') || action.includes('╨Т╤Ц╨┤╤Е╨╕╨╗╨╡╨╜╨╛')) return <Trash2 className="w-5 h-5 text-red-500" />;
+        if (action.includes('╨Я╤А╨╕╨╖╨╜╨░╤З╨╡╨╜╨╛') || action.includes('╨в╤А╨░╨╜╤Б╨┐╨╛╤А╤В')) return <Truck className="w-5 h-5 text-purple-500" />;
+        return <AlertCircle className="w-5 h-5 text-slate-400" />;
+    };
+
+    return (
+        <ProtectedRoute requiredRole="driver">
+            <div className="p-8 bg-slate-50 min-h-screen">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900">╨Ь╤Ц╨╣ ╨┐╤А╨╛╤Д╤Ц╨╗╤М</h1>
+                            <p className="text-slate-500 text-sm mt-1">╨Я╨╡╤А╤Б╨╛╨╜╨░╨╗╤М╨╜╨░ ╤Ц╨╜╤Д╨╛╤А╨╝╨░╤Ж╤Ц╤П ╤В╨░ ╨╜╨░╨╗╨░╤И╤В╤Г╨▓╨░╨╜╨╜╤П ╨╛╨▒╨╗╤Ц╨║╨╛╨▓╨╛╨│╨╛ ╨╖╨░╨┐╨╕╤Б╤Г</p>
+                        </div>
+                        {!isEditing ? (
+                            <Button
+                                onClick={() => setIsEditing(true)}
+                                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 h-12 gap-2"
+                            >
+                                <Edit className="w-5 h-5" />
+                                ╨а╨╡╨┤╨░╨│╤Г╨▓╨░╤В╨╕ ╨┐╤А╨╛╤Д╤Ц╨╗╤М
+                            </Button>
+                        ) : (
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={handleSaveProfile}
+                                    isLoading={isSavingProfile}
+                                    className="bg-green-600 hover:bg-green-700 px-6 py-3 h-12 gap-2"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    ╨Ч╨▒╨╡╤А╨╡╨│╤В╨╕
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        // Reset to original values
+                                        setFullName(user?.fullName || '');
+                                        setPhone(user?.phone || '');
+                                        setLicenseNumber(user?.licenseNumber || '');
+                                    }}
+                                    disabled={isSavingProfile}
+                                    className="px-6 py-3 h-12 gap-2"
+                                >
+                                    <X className="w-5 h-5" />
+                                    ╨б╨║╨░╤Б╤Г╨▓╨░╤В╨╕
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Profile Information */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Personal Info */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <h2 className="text-xl font-bold text-slate-900 mb-6">╨Ю╤Б╨╛╨▒╨╕╤Б╤В╨░ ╤Ц╨╜╤Д╨╛╤А╨╝╨░╤Ж╤Ц╤П</h2>
+
+                            <div className="flex items-center gap-6 mb-6 pb-6 border-b border-slate-200">
+                                <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-white font-bold text-3xl">
+                                        {user?.fullName ? getInitials(user.fullName) : '??'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-slate-900">{user?.fullName}</h3>
+                                    <p className="text-slate-600">╨Т╨╛╨┤╤Ц╨╣-╨┤╨░╨╗╨╡╨║╨╛╨▒╤Ц╨╣╨╜╨╕╨║</p>
+                                    <div className="flex items-center gap-2 mt-2 relative">
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setIsChangingStatus(!isChangingStatus)}
+                                                disabled={isUpdatingStatus}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all shadow-sm border ${user?.status === 'Available'
+                                                    ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
+                                                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                                                    }`}
+                                            >
+                                                {isUpdatingStatus ? (
+                                                    <RefreshCcw className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    DriverStatusLabels[user?.status as DriverStatus] || user?.status || 'Offline'
+                                                )}
+                                                <ChevronDown className={`w-3 h-3 transition-transform ${isChangingStatus ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            {isChangingStatus && (
+                                                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+                                                    {(Object.keys(DriverStatusLabels) as DriverStatus[]).map((status) => (
+                                                        <button
+                                                            key={status}
+                                                            onClick={() => handleStatusUpdate(status)}
+                                                            className={`w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${user?.status === status ? 'text-blue-600 font-semibold bg-blue-50/50' : 'text-slate-700'
+                                                                }`}
+                                                        >
+                                                            {DriverStatusLabels[status]}
+                                                            {user?.status === status && <CheckCircle2 className="w-4 h-4" />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold border border-blue-200">
+                                            ╨Т╨╛╨┤╤Ц╨╣
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField label="╨Я╨╛╨▓╨╜╨╡ ╤Ц╨╝'╤П" id="fullName">
+                                    {isEditing ? (
+                                        <Input
+                                            id="fullName"
+                                            type="text"
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                        />
+                                    ) : (
+                                        <p className="font-semibold text-slate-900">{user?.fullName}</p>
+                                    )}
+                                </FormField>
+
+                                <FormField label="Email" id="email">
+                                    <p className="font-semibold text-slate-900">{user?.email}</p>
+                                </FormField>
+
+                                <FormField label="╨в╨╡╨╗╨╡╤Д╨╛╨╜" id="phone">
+                                    {isEditing ? (
+                                        <Input
+                                            id="phone"
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                        />
+                                    ) : (
+                                        <p className="font-semibold text-slate-900">{user?.phone || 'тАФ'}</p>
+                                    )}
+                                </FormField>
+
+                                <FormField label="╨Я╨╛╤Б╨▓╤Ц╨┤╤З╨╡╨╜╨╜╤П ╨▓╨╛╨┤╤Ц╤П" id="license">
+                                    {isEditing ? (
+                                        <Input
+                                            id="license"
+                                            type="text"
+                                            value={licenseNumber}
+                                            onChange={(e) => setLicenseNumber(e.target.value)}
+                                        />
+                                    ) : (
+                                        <p className="font-semibold text-slate-900">{user?.licenseNumber || 'тАФ'}</p>
+                                    )}
+                                </FormField>
+
+                                <FormField label="╨Ф╨░╤В╨░ ╨┐╤А╨╕╨╣╨╜╤П╤В╤В╤П" id="hiredAt">
+                                    <p className="font-semibold text-slate-900">{formatDate(user?.createdAt)}</p>
+                                </FormField>
+
+                                <FormField label="╨Ч╨░╨║╤А╤Ц╨┐╨╗╨╡╨╜╨╕╨╣ ╤В╤А╨░╨╜╤Б╨┐╨╛╤А╤В" id="vehicle">
+                                    {user?.assignedVehicle ? (
+                                        <p className="font-semibold text-slate-900">
+                                            {user.assignedVehicle.model} ({user.assignedVehicle.licensePlate})
+                                        </p>
+                                    ) : (
+                                        <p className="font-semibold text-slate-500 italic">╨Э╨╡ ╨╖╨░╨║╤А╤Ц╨┐╨╗╨╡╨╜╨╛</p>
+                                    )}
+                                </FormField>
+                            </div>
+                        </div>
+
+                        {/* Security Settings */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <h2 className="text-xl font-bold text-slate-900 mb-6">╨С╨╡╨╖╨┐╨╡╨║╨░</h2>
+
+                            <div className="space-y-5">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p className="font-semibold text-slate-900">╨Я╨░╤А╨╛╨╗╤М</p>
+                                        <p className="text-sm text-slate-500 mt-1">╨Ю╤Б╤В╨░╨╜╨╜╤Ф ╨╛╨╜╨╛╨▓╨╗╨╡╨╜╨╜╤П: 2 ╨╝╤Ц╤Б╤П╤Ж╤Ц ╤В╨╛╨╝╤Г</p>
+                                    </div>
+                                    <button className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-white transition-colors">
+                                        ╨Ч╨╝╤Ц╨╜╨╕╤В╨╕ ╨┐╨░╤А╨╛╨╗╤М
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p className="font-semibold text-slate-900">╨Ф╨▓╨╛╤Д╨░╨║╤В╨╛╤А╨╜╨░ ╨░╨▓╤В╨╡╨╜╤В╨╕╤Д╤Ц╨║╨░╤Ж╤Ц╤П</p>
+                                        <p className="text-sm text-slate-500 mt-1">╨Ф╨╛╨┤╨░╤В╨║╨╛╨▓╨╕╨╣ ╨╖╨░╤Е╨╕╤Б╤В ╨╛╨▒╨╗╤Ц╨║╨╛╨▓╨╛╨│╨╛ ╨╖╨░╨┐╨╕╤Б╤Г</p>
+                                    </div>
+                                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                        ╨г╨▓╤Ц╨╝╨║╨╜╤Г╤В╨╕
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p className="font-semibold text-slate-900">╨Р╨║╤В╨╕╨▓╨╜╤Ц ╤Б╨╡╤Б╤Ц╤Ч</p>
+                                        <p className="text-sm text-slate-500 mt-1">1 ╨┐╤А╨╕╤Б╤В╤А╤Ц╨╣ ╨┐╤Ц╨┤╨║╨╗╤О╤З╨╡╨╜╨╕╨╣</p>
+                                    </div>
+                                    <button className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-white transition-colors">
+                                        ╨Я╨╡╤А╨╡╨│╨╗╤П╨╜╤Г╤В╨╕
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p className="font-semibold text-slate-900">Email ╨┤╨╗╤П ╨▓╤Ц╨┤╨╜╨╛╨▓╨╗╨╡╨╜╨╜╤П</p>
+                                        <p className="text-sm text-slate-500 mt-1">ivan.petrenko@smartlogist.ua</p>
+                                    </div>
+                                    <button className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-white transition-colors">
+                                        ╨Ч╨╝╤Ц╨╜╨╕╤В╨╕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Recent Activity */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <h2 className="text-xl font-bold text-slate-900 mb-6">╨Ю╤Б╤В╨░╨╜╨╜╤П ╨░╨║╤В╨╕╨▓╨╜╤Ц╤Б╤В╤М</h2>
+                            <div className="space-y-4">
+                                {isLoadingActivities ? (
+                                    <div className="flex justify-center p-4">
+                                        <RefreshCcw className="w-5 h-5 text-slate-400 animate-spin" />
+                                    </div>
+                                ) : activities.length > 0 ? (
+                                    activities.map((activity) => (
+                                        <div key={activity.id} className="flex gap-3">
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                {getActivityIcon(activity.action)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-slate-900 text-sm">{activity.action}</p>
+                                                <p className="text-xs text-slate-600 truncate">{activity.details}</p>
+                                                <p className="text-xs text-slate-400 mt-1">{formatDate(activity.createdAt)}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-500 text-center py-4">╨Р╨║╤В╨╕╨▓╨╜╨╛╤Б╤В╤Ц ╨▓╤Ц╨┤╤Б╤Г╤В╨╜╤Ц</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Road Conditions */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-slate-900">╨Я╨╛╨│╨╛╨┤╨░ ╨▓ ╤Е╨░╨▒╨░╤Е</h2>
+                                <span className="text-xs text-slate-400">╨Ю╨╜╨╛╨▓╨╗╨╡╨╜╨╛ {roadsUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <div className="space-y-3">
+                                {isLoadingRoads ? (
+                                    <div className="flex justify-center p-4">
+                                        <RefreshCcw className="w-5 h-5 text-slate-400 animate-spin" />
+                                    </div>
+                                ) : roadConditions.length > 0 ? (
+                                    roadConditions.map((road, idx) => (
+                                        <div key={idx} className={`flex items-center justify-between p-3 border rounded-lg ${road.statusColor === 'green' ? 'bg-green-50 border-green-200' :
+                                            road.statusColor === 'orange' ? 'bg-orange-50 border-orange-200' :
+                                                'bg-blue-50 border-blue-200'
+                                            }`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${road.statusColor === 'green' ? 'from-green-500 to-green-600' :
+                                                    road.statusColor === 'orange' ? 'from-orange-500 to-orange-600' :
+                                                        'from-blue-500 to-blue-600'
+                                                    }`}>
+                                                    <span className="text-white font-bold text-lg">{road.icon}</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-slate-900">{road.route}</p>
+                                                    <p className="text-xs text-slate-600">{road.roadName}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`font-bold ${road.statusColor === 'green' ? 'text-green-700' :
+                                                    road.statusColor === 'orange' ? 'text-orange-700' :
+                                                        'text-blue-700'
+                                                    }`}>{road.condition}</p>
+                                                <p className="text-xs text-slate-600">{road.description}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-500 text-center py-4">╨Ф╨░╨╜╤Ц ╨┐╤А╨╛ ╨┤╨╛╤А╨╛╨│╨╕ ╨▓╤Ц╨┤╤Б╤Г╤В╨╜╤Ц</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Notifications Settings */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <h2 className="text-xl font-bold text-slate-900 mb-6">╨б╨┐╨╛╨▓╤Ц╤Й╨╡╨╜╨╜╤П</h2>
+                            <div className="space-y-3">
+                                <label className="flex items-center justify-between cursor-pointer">
+                                    <span className="text-sm text-slate-700">Email ╤Б╨┐╨╛╨▓╤Ц╤Й╨╡╨╜╨╜╤П</span>
+                                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                                </label>
+                                <label className="flex items-center justify-between cursor-pointer">
+                                    <span className="text-sm text-slate-700">SMS ╤Б╨┐╨╛╨▓╤Ц╤Й╨╡╨╜╨╜╤П</span>
+                                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                                </label>
+                                <label className="flex items-center justify-between cursor-pointer">
+                                    <span className="text-sm text-slate-700">Push ╤Б╨┐╨╛╨▓╤Ц╤Й╨╡╨╜╨╜╤П</span>
+                                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-600" />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ProtectedRoute>
+    );
+}

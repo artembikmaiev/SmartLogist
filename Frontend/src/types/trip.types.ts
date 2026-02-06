@@ -2,8 +2,12 @@ export interface Trip {
     id: number;
     originCity: string;
     originAddress: string;
+    originLatitude?: number;
+    originLongitude?: number;
     destinationCity: string;
     destinationAddress: string;
+    destinationLatitude?: number;
+    destinationLongitude?: number;
     scheduledDeparture: string;
     scheduledArrival: string;
     actualDeparture?: string;
@@ -46,8 +50,12 @@ export interface DriverStatsSummary {
 export interface CreateTripDto {
     originCity: string;
     originAddress: string;
+    originLatitude?: number;
+    originLongitude?: number;
     destinationCity: string;
     destinationAddress: string;
+    destinationLatitude?: number;
+    destinationLongitude?: number;
     scheduledDeparture: string;
     scheduledArrival: string;
     paymentAmount: number;

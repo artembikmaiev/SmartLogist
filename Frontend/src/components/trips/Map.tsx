@@ -47,26 +47,16 @@ function AutoBounds({ origin, destination, isInteracting }: { origin?: { lat: nu
     const map = useMap();
 
     useEffect(() => {
-        if (isInteracting) return; // Don't snap if user is touching the map
+        if (isInteracting) return;
 
         const points: [number, number][] = [];
-        if (origin) points.push([origin.lat, origin.lng]);
-        if (destination) points.push([destination.lat, destination.lng]);
+        // Only include non-zero points
+        if (origin && (origin.lat !== 0 || origin.lng !== 0)) points.push([origin.lat, origin.lng]);
+        if (destination && (destination.lat !== 0 || destination.lng !== 0)) points.push([destination.lat, destination.lng]);
 
         if (points.length > 0) {
             const bounds = L.latLngBounds(points);
-
-            // Only fit if points are not already in view or if it's the first render
-            const currentBounds = map.getBounds();
-            const containsPoints = points.every(p => currentBounds.contains(L.latLng(p[0], p[1])));
-
-            if (!containsPoints || points.length === 1) {
-                if (points.length === 1) {
-                    map.setView(points[0], 13, { animate: true });
-                } else {
-                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, animate: true });
-                }
-            }
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, animate: true });
         }
     }, [origin?.lat, origin?.lng, destination?.lat, destination?.lng, map, isInteracting]);
     return null;
@@ -106,7 +96,27 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
         return [];
     });
     const [isInteracting, setIsInteracting] = useState(false);
-    const center: [number, number] = origin ? [origin.lat, origin.lng] : [50.4501, 30.5234];
+
+    // Synchronize route with initialRouteGeometry when it changes (e.g., trip selection changes)
+    useEffect(() => {
+        if (initialRouteGeometry) {
+            try {
+                const parsed = JSON.parse(initialRouteGeometry);
+                if (Array.isArray(parsed)) {
+                    setRoute(parsed);
+                }
+            } catch (e) {
+                console.error('Failed to parse updated initialRouteGeometry', e);
+            }
+        } else if (!origin || !destination) {
+            setRoute([]);
+        }
+    }, [initialRouteGeometry, origin?.lat, destination?.lat]);
+
+    // Default to Kyiv if no origin or origin is [0,0]
+    const center: [number, number] = origin && (origin.lat !== 0 || origin.lng !== 0)
+        ? [origin.lat, origin.lng]
+        : [50.4501, 30.5234];
 
     const [lastParams, setLastParams] = useState<string>("");
 
@@ -114,6 +124,13 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
         if (initialRouteGeometry && route.length > 0) return;
 
         if (origin && destination) {
+            // Prevent routing if coordinates are [0,0]
+            if ((origin.lat === 0 && origin.lng === 0) || (destination.lat === 0 && destination.lng === 0)) {
+                console.warn('Skipping route fetch: Origin or destination has [0,0] coordinates');
+                setRoute([]);
+                return;
+            }
+
             const params = JSON.stringify({
                 origin: { lat: origin.lat, lng: origin.lng },
                 destination: { lat: destination.lat, lng: destination.lng },
@@ -175,6 +192,7 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
+                <ChangeView center={center} />
                 <MapEvents
                     onClick={onMapClick}
                     onInteraction={setIsInteracting}
@@ -186,13 +204,13 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
                     isInteracting={isInteracting}
                 />
 
-                {origin && (
+                {origin && (origin.lat !== 0 || origin.lng !== 0) && (
                     <Marker position={[origin.lat, origin.lng]}>
                         <Popup>{origin.label}</Popup>
                     </Marker>
                 )}
 
-                {destination && (
+                {destination && (destination.lat !== 0 || destination.lng !== 0) && (
                     <Marker position={[destination.lat, destination.lng]}>
                         <Popup>{destination.label}</Popup>
                     </Marker>

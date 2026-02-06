@@ -8,7 +8,7 @@ public class UpdateTripDto
     public DateTime? ActualDeparture { get; set; }
     public DateTime? ActualArrival { get; set; }
     public string? Notes { get; set; }
-    public double? ActualFuelConsumption { get; set; }
+    public float? ActualFuelConsumption { get; set; }
     public int? Rating { get; set; }
     public string? ManagerReview { get; set; }
 }

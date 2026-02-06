@@ -28,7 +28,7 @@ public class AnalyticsService : IAnalyticsService
         var totalProfit = trips.Sum(t => t.ExpectedProfit);
         var totalDistance = trips.Sum(t => t.DistanceKm);
         var totalTrips = trips.Count;
-        var avgRating = trips.Where(t => t.Rating.HasValue).Select(t => t.Rating!.Value).DefaultIfEmpty(0).Average();
+        var avgRating = trips.Where(t => t.Feedback?.Rating.HasValue == true).Select(t => (double)t.Feedback!.Rating!.Value).DefaultIfEmpty(0).Average();
         var fuelSpend = trips.Sum(t => t.EstimatedFuelCost);
         
         var completedWithFuel = trips.Where(t => t.ActualFuelConsumption.HasValue).ToList();
@@ -93,7 +93,7 @@ public class AnalyticsService : IAnalyticsService
             if (tripsWithConsumption.Any())
             {
                 // Ratio of (Baseline / Actual). Higher is better. 1.0 means perfect matching.
-                var efficiencyRatio = tripsWithConsumption.Average(t => t.Vehicle!.FuelConsumption / t.ActualFuelConsumption!.Value);
+                var efficiencyRatio = tripsWithConsumption.Average(t => (double)t.Vehicle!.FuelConsumption / t.ActualFuelConsumption!.Value);
                 fuelEfficiencyScore = Math.Min(100, efficiencyRatio * 100);
             }
             else
@@ -101,7 +101,7 @@ public class AnalyticsService : IAnalyticsService
                 fuelEfficiencyScore = 70; // Neutral score if no fuel data
             }
 
-            var avgRating = driverTrips.Where(t => t.Rating.HasValue).Select(t => t.Rating!.Value).DefaultIfEmpty(3).Average();
+            var avgRating = driverTrips.Where(t => t.Feedback?.Rating.HasValue == true).Select(t => (double)t.Feedback!.Rating!.Value).DefaultIfEmpty(3).Average();
             var ratingScore = (avgRating / 5.0) * 100;
 
             var finalScore = (fuelEfficiencyScore * 0.6) + (ratingScore * 0.4);
@@ -127,10 +127,10 @@ public class AnalyticsService : IAnalyticsService
             .ToList();
 
         return trips
-            .GroupBy(t => t.CargoType)
+            .GroupBy(t => t.Cargo?.TypeId ?? 0)
             .Select(g => new CargoTypeAnalyticsDto
             {
-                CargoType = g.Key.ToString(),
+                CargoType = ((CargoType)g.Key).ToString(),
                 Count = g.Count(),
                 TotalProfit = g.Sum(t => t.ExpectedProfit),
                 AverageWeight = g.Average(t => t.CargoWeight)

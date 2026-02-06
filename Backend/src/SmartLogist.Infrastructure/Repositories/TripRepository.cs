@@ -15,20 +15,42 @@ public class TripRepository : ITripRepository
         _context = context;
     }
 
-    public async Task<Trip?> GetByIdAsync(int id)
+    public async Task<Trip?> GetByIdAsync(int id, DateTime scheduledDeparture)
     {
         return await _context.Trips
+            .Include(t => t.Origin)
+            .Include(t => t.Destination)
+            .Include(t => t.Cargo)
             .Include(t => t.Driver)
             .Include(t => t.Vehicle)
             .Include(t => t.Manager)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t => t.Id == id && t.ScheduledDeparture == scheduledDeparture);
+    }
+
+    public async Task<Trip?> GetWithDetailsAsync(int id, DateTime scheduledDeparture)
+    {
+        return await _context.Trips
+            .Include(t => t.Origin)
+            .Include(t => t.Destination)
+            .Include(t => t.Cargo)
+            .Include(t => t.Driver)
+            .Include(t => t.Vehicle)
+            .Include(t => t.Manager)
+            .Include(t => t.Route)
+            .Include(t => t.Feedback)
+            .FirstOrDefaultAsync(t => t.Id == id && t.ScheduledDeparture == scheduledDeparture);
     }
 
     public async Task<IEnumerable<Trip>> GetByDriverIdAsync(int driverId)
     {
         return await _context.Trips
+            .Include(t => t.Origin)
+            .Include(t => t.Destination)
+            .Include(t => t.Cargo)
             .Include(t => t.Vehicle)
             .Include(t => t.Manager)
+            .Include(t => t.Feedback)
+            .Include(t => t.Route)
             .Where(t => t.DriverId == driverId)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -37,8 +59,13 @@ public class TripRepository : ITripRepository
     public async Task<IEnumerable<Trip>> GetByManagerIdAsync(int managerId)
     {
         return await _context.Trips
+            .Include(t => t.Origin)
+            .Include(t => t.Destination)
+            .Include(t => t.Cargo)
             .Include(t => t.Driver)
             .Include(t => t.Vehicle)
+            .Include(t => t.Feedback)
+            .Include(t => t.Route)
             .Where(t => t.ManagerId == managerId)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -53,8 +80,21 @@ public class TripRepository : ITripRepository
 
     public async Task UpdateAsync(Trip trip)
     {
-        _context.Trips.Update(trip);
+        var entry = _context.Entry(trip);
+        if (entry.State == EntityState.Detached)
+        {
+            _context.Trips.Update(trip);
+        }
         await _context.SaveChangesAsync();
+    }
+
+    public async Task ChangeStatusAsync(int id, TripStatus status)
+    {
+        // ExecuteUpdateAsync allows us to bypass the composite key (Id, ScheduledDeparture) tracking issues
+        // and target the row by ID alone for status changes.
+        await _context.Trips
+            .Where(t => t.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, status));
     }
 
     public async Task<int> GetCompletedCountByDriverIdAsync(int driverId)
@@ -87,18 +127,32 @@ public class TripRepository : ITripRepository
 
     public async Task<double?> GetAverageRatingByDriverIdAsync(int driverId)
     {
-        var ratings = await _context.Trips
-            .Where(t => t.DriverId == driverId && t.Status == TripStatus.Completed && t.Rating.HasValue)
-            .Select(t => t.Rating!.Value)
+        var ratings = await _context.TripFeedbacks
+            .Include(f => f.Trip)
+            .Where(f => f.Trip.DriverId == driverId && f.Trip.Status == TripStatus.Completed && f.Rating.HasValue)
+            .Select(f => (double)f.Rating!.Value)
             .ToListAsync();
 
         if (ratings.Count == 0) return null;
         return ratings.Average();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<Trip?> GetByOnlyIdAsync(int id)
     {
-        var trip = await _context.Trips.FindAsync(id);
+        return await _context.Trips
+            .Include(t => t.Origin)
+            .Include(t => t.Destination)
+            .Include(t => t.Cargo)
+            .Include(t => t.Driver)
+            .Include(t => t.Vehicle)
+            .Include(t => t.Manager)
+            .Include(t => t.Route)
+            .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+    public async Task DeleteAsync(int id, DateTime scheduledDeparture)
+    {
+        var trip = await _context.Trips.FindAsync(id, scheduledDeparture);
         if (trip != null)
         {
             _context.Trips.Remove(trip);

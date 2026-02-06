@@ -382,7 +382,14 @@ public class VehicleService : IVehicleService
         vehicle.Type = dto.Type;
         vehicle.FuelType = dto.FuelType;
         vehicle.FuelConsumption = dto.FuelConsumption;
+        vehicle.Height = dto.Height;
+        vehicle.Width = dto.Width;
+        vehicle.Length = dto.Length;
+        vehicle.Weight = dto.Weight;
+        vehicle.IsHazardous = dto.IsHazardous;
         vehicle.Status = dto.Status;
+        vehicle.TotalMileage = dto.TotalMileage;
+        vehicle.MileageAtLastMaintenance = dto.MileageAtLastMaintenance;
 
         await _vehicleRepository.UpdateAsync(vehicle);
         return MapToDto(vehicle);

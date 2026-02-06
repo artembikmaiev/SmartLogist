@@ -6,8 +6,12 @@ public class CreateTripDto
 {
     public string OriginCity { get; set; } = string.Empty;
     public string OriginAddress { get; set; } = string.Empty;
+    public double? OriginLatitude { get; set; }
+    public double? OriginLongitude { get; set; }
     public string DestinationCity { get; set; } = string.Empty;
     public string DestinationAddress { get; set; } = string.Empty;
+    public double? DestinationLatitude { get; set; }
+    public double? DestinationLongitude { get; set; }
     public DateTime ScheduledDeparture { get; set; }
     public DateTime ScheduledArrival { get; set; }
     public decimal PaymentAmount { get; set; }
@@ -20,7 +24,7 @@ public class CreateTripDto
     // ETS/Economic info
     public string? CargoName { get; set; }
     public CargoType CargoType { get; set; }
-    public double CargoWeight { get; set; }
+    public float CargoWeight { get; set; }
     public decimal ExpectedProfit { get; set; }
     public decimal EstimatedFuelCost { get; set; }
     public string RouteGeometry { get; set; } = string.Empty;

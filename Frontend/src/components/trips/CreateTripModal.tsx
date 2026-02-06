@@ -56,8 +56,12 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
     const [formData, setFormData] = useState({
         originCity: '',
         originAddress: '',
+        originLatitude: undefined as number | undefined,
+        originLongitude: undefined as number | undefined,
         destinationCity: '',
         destinationAddress: '',
+        destinationLatitude: undefined as number | undefined,
+        destinationLongitude: undefined as number | undefined,
         scheduledDeparture: '',
         scheduledArrival: '',
         paymentAmount: 0,
@@ -170,11 +174,23 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
             const address = data.display_name?.split(',').slice(0, 2).join(',').trim() || '';
 
             if (type === 'origin') {
-                setFormData(prev => ({ ...prev, originCity: city, originAddress: address }));
+                setFormData(prev => ({
+                    ...prev,
+                    originCity: city,
+                    originAddress: address,
+                    originLatitude: lat,
+                    originLongitude: lng
+                }));
                 setMapPoints(prev => ({ ...prev, origin: { lat, lng, label: address } }));
                 setSelectingType('destination');
             } else {
-                setFormData(prev => ({ ...prev, destinationCity: city, destinationAddress: address }));
+                setFormData(prev => ({
+                    ...prev,
+                    destinationCity: city,
+                    destinationAddress: address,
+                    destinationLatitude: lat,
+                    destinationLongitude: lng
+                }));
                 setMapPoints(prev => ({ ...prev, destination: { lat, lng, label: address } }));
             }
         } catch (err) {
@@ -216,7 +232,11 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                 scheduledDeparture: new Date(formData.scheduledDeparture).toISOString(),
                 scheduledArrival: new Date(formData.scheduledArrival).toISOString(),
                 expectedProfit,
-                estimatedFuelCost: fuelCost
+                estimatedFuelCost: fuelCost,
+                originLatitude: mapPoints.origin?.lat,
+                originLongitude: mapPoints.origin?.lng,
+                destinationLatitude: mapPoints.destination?.lat,
+                destinationLongitude: mapPoints.destination?.lng
             });
             success('Рейс успішно створено');
             onSuccess();

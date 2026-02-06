@@ -6,13 +6,14 @@ public class Trip
 {
     public int Id { get; set; }
     
-    // Route info
-    public string OriginCity { get; set; } = string.Empty;
-    public string OriginAddress { get; set; } = string.Empty;
-    public string DestinationCity { get; set; } = string.Empty;
-    public string DestinationAddress { get; set; } = string.Empty;
+    // Route info (Normalized)
+    public int OriginId { get; set; }
+    public virtual Location Origin { get; set; } = null!;
     
-    // Schedule
+    public int DestinationId { get; set; }
+    public virtual Location Destination { get; set; } = null!;
+    
+    // Schedule (DepartureTime is part of the Primary Key in SQL due to partitioning)
     public DateTime ScheduledDeparture { get; set; }
     public DateTime ScheduledArrival { get; set; }
     public DateTime? ActualDeparture { get; set; }
@@ -24,19 +25,16 @@ public class Trip
     
     // System info
     public decimal DistanceKm { get; set; }
-    public string RouteGeometry { get; set; } = string.Empty; // JSON string of coordinates
     public TripStatus Status { get; set; } = TripStatus.Pending;
     public string? Notes { get; set; }
-    public int? Rating { get; set; }
-    public string? ManagerReview { get; set; }
     
-    // ETS/Economic info
-    public string? CargoName { get; set; }
-    public CargoType CargoType { get; set; } = CargoType.Standard;
-    public double CargoWeight { get; set; }
+    // Economic info
+    public int? CargoId { get; set; }
+    public virtual Cargo? Cargo { get; set; }
+    public float CargoWeight { get; set; }
     public decimal ExpectedProfit { get; set; }
     public decimal EstimatedFuelCost { get; set; }
-    public double? ActualFuelConsumption { get; set; }
+    public float? ActualFuelConsumption { get; set; }
     public decimal FuelPrice { get; set; } = 60m;
     
     public bool IsMileageAccounted { get; set; } = false;
@@ -51,4 +49,8 @@ public class Trip
     
     public int ManagerId { get; set; }
     public virtual User Manager { get; set; } = null!;
+
+    // Vertical Partitioning Relations
+    public virtual TripRoute? Route { get; set; }
+    public virtual TripFeedback? Feedback { get; set; }
 }

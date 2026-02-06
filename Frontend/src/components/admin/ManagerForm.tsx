@@ -69,7 +69,7 @@ export default function ManagerForm({ manager, onSubmit, onCancel }: ManagerForm
                 </>
             )}
 
-            <FormField label="Телефон" id="phone">
+            <FormField label="Телефон" id="phone" hint="Формат: +380XXXXXXXXX">
                 <Input
                     id="phone"
                     name="phone"
