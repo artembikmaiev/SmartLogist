@@ -6,6 +6,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(int id);
     Task<User?> GetByEmailAsync(string email);
+    Task<IEnumerable<User>> GetAllAdminsAsync();
     Task<IEnumerable<User>> GetAllManagersAsync();
     Task<User> AddAsync(User user);
     Task UpdateAsync(User user);
@@ -18,7 +19,7 @@ public interface IUserRepository
     Task RevokePermissionAsync(int managerId, int permissionId);
     Task<bool> HasPermissionAsync(int managerId, int permissionId);
 
-    // Управління водіями
+    // РњРµС‚РѕРґРё РІРѕРґС–С—РІ
     Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId);
     Task<IEnumerable<User>> GetAllDriversAsync();
     Task<User?> GetDriverByIdAsync(int driverId);

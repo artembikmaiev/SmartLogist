@@ -12,7 +12,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
     children,
     ...props
 }, ref) => {
-    const baseStyles = "w-full px-4 py-2 border rounded-lg transition-all focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em_1em] disabled:bg-slate-50 disabled:text-slate-400";
+    const baseStyles = "w-full pl-4 pr-10 py-2 border rounded-lg transition-all focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em_1em] disabled:bg-slate-50 disabled:text-slate-400";
     const stateStyles = error
         ? "border-red-300 text-red-900 focus:ring-2 focus:ring-red-200"
         : "border-slate-300 text-slate-900 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600";

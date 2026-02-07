@@ -46,6 +46,14 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<User>> GetAllAdminsAsync()
+    {
+        return await _context.Users
+            .Where(u => u.Role == UserRole.Admin)
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+    }
+
     public async Task<User> AddAsync(User user)
     {
         await _context.Users.AddAsync(user);

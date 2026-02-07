@@ -36,9 +36,14 @@ export default function AdminRequestsPage() {
         return !!(matchesSearch && matchesStatus);
     }, [statusFilter]);
 
-    const initialSort = useMemo(() => (a: AdminRequest, b: AdminRequest) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        , []);
+    const initialSort = useMemo(() => (a: AdminRequest, b: AdminRequest) => {
+        // Prioritize Pending requests
+        if (a.status === RequestStatus.Pending && b.status !== RequestStatus.Pending) return -1;
+        if (a.status !== RequestStatus.Pending && b.status === RequestStatus.Pending) return 1;
+
+        // Then sort by date (newest first)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }, []);
 
     const {
         paginatedData: requests,

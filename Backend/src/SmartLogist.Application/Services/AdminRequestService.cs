@@ -68,7 +68,38 @@ public class AdminRequestService : IAdminRequestService
             request.Id.ToString()
         );
 
+        // Notify all admins about the new request
+        var admins = await _userRepository.GetAllAdminsAsync();
+        var typeName = GetRequestTypeName(dto.Type);
+        
+        foreach (var admin in admins)
+        {
+            await _notificationService.CreateNotificationAsync(
+                admin.Id,
+                "Новий запит",
+                $"Отримано новий запит: {typeName} щодо {dto.TargetName}",
+                "Info",
+                "AdminRequest",
+                request.Id.ToString()
+            );
+        }
+
         return MapToDto(request);
+    }
+
+    private string GetRequestTypeName(RequestType type)
+    {
+        return type switch
+        {
+            RequestType.DriverDeletion => "Видалення водія",
+            RequestType.DriverUpdate => "Оновлення водія",
+            RequestType.VehicleDeletion => "Видалення транспорту",
+            RequestType.VehicleUpdate => "Оновлення транспорту",
+            RequestType.DriverCreation => "Створення водія",
+            RequestType.VehicleCreation => "Створення транспорту",
+            RequestType.TripDeletion => "Видалення рейсу",
+            _ => "Запит"
+        };
     }
 
     public async Task ProcessRequestAsync(int id, ProcessRequestDto dto, int adminId)
