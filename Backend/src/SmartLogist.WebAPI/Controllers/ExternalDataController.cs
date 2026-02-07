@@ -5,9 +5,7 @@ using SmartLogist.Application.Interfaces;
 namespace SmartLogist.WebAPI.Controllers;
 
 [Authorize]
-[ApiController]
-[Route("api/external")]
-public class ExternalDataController : ControllerBase
+public class ExternalDataController : BaseApiController
 {
     private readonly ICurrencyService _currencyService;
     private readonly IRoadConditionService _roadConditionService;

@@ -18,6 +18,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> GetByIdAsync(int id, DateTime scheduledDeparture)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)
@@ -30,6 +31,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> GetWithDetailsAsync(int id, DateTime scheduledDeparture)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)
@@ -44,6 +46,7 @@ public class TripRepository : ITripRepository
     public async Task<IEnumerable<Trip>> GetByDriverIdAsync(int driverId)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)
@@ -59,6 +62,7 @@ public class TripRepository : ITripRepository
     public async Task<IEnumerable<Trip>> GetByManagerIdAsync(int managerId)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)
@@ -140,6 +144,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> GetByOnlyIdAsync(int id)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)

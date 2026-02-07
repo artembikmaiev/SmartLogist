@@ -1,13 +1,22 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import useResource from './useResource';
 import { tripsService } from '@/services/trips.service';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Trip, DriverStatsSummary } from '@/types/trip.types';
 
 export function useTrips(mode: 'manager' | 'driver' = 'manager') {
     const { success, error } = useNotifications();
+    const { user } = useAuth();
     const [stats, setStats] = useState<any>(null);
     const [driverStats, setDriverStats] = useState<DriverStatsSummary | null>(null);
+
+    const permissions = useMemo(() => ({
+        view: user?.permissions?.some(p => p.code === 'trips.view') ?? false,
+        create: user?.permissions?.some(p => p.code === 'trips.create') ?? false,
+        edit: user?.permissions?.some(p => p.code === 'trips.edit') ?? false,
+        delete: user?.permissions?.some(p => p.code === 'trips.delete') ?? false,
+    }), [user]);
 
     const fetchFn = useCallback(() => {
         return mode === 'manager'
@@ -74,6 +83,7 @@ export function useTrips(mode: 'manager' | 'driver' = 'manager') {
         ...resource,
         stats,
         driverStats,
+        permissions,
         updateTripStatus,
         acceptTrip,
         declineTrip

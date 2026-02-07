@@ -5,19 +5,22 @@ using SmartLogist.Domain.Interfaces;
 
 namespace SmartLogist.Application.Services;
 
-public class AnalyticsService : IAnalyticsService
+public class AnalyticsService : BaseService, IAnalyticsService
 {
     private readonly ITripRepository _tripRepository;
-    private readonly IUserRepository _userRepository;
 
-    public AnalyticsService(ITripRepository tripRepository, IUserRepository userRepository)
+    public AnalyticsService(
+        ITripRepository tripRepository, 
+        IUserRepository userRepository,
+        IPermissionRepository permissionRepository) : base(userRepository, permissionRepository)
     {
         _tripRepository = tripRepository;
-        _userRepository = userRepository;
     }
 
     public async Task<AnalyticsSummaryDto> GetSummaryAsync(int managerId)
     {
+        await EnsurePermissionAsync(managerId, "analytics.view", "Недостатньо прав для перегляду аналітики");
+
         var trips = (await _tripRepository.GetByManagerIdAsync(managerId))
             .Where(t => t.Status == TripStatus.Completed)
             .ToList();
@@ -51,6 +54,8 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<IEnumerable<MonthlyTrendDto>> GetMonthlyTrendsAsync(int managerId, int months = 6)
     {
+        await EnsurePermissionAsync(managerId, "analytics.view", "Недостатньо прав для перегляду аналітики");
+
         var trips = (await _tripRepository.GetByManagerIdAsync(managerId))
             .Where(t => t.Status == TripStatus.Completed && t.ActualArrival.HasValue)
             .ToList();
@@ -72,6 +77,8 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<IEnumerable<DriverPerformanceSummaryDto>> GetDriverRankingsAsync(int managerId)
     {
+        await EnsurePermissionAsync(managerId, "analytics.view", "Недостатньо прав для перегляду аналітики");
+
         var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
         var result = new List<DriverPerformanceSummaryDto>();
 
@@ -122,6 +129,8 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<IEnumerable<CargoTypeAnalyticsDto>> GetCargoAnalysisAsync(int managerId)
     {
+        await EnsurePermissionAsync(managerId, "analytics.view", "Недостатньо прав для перегляду аналітики");
+
         var trips = (await _tripRepository.GetByManagerIdAsync(managerId))
             .Where(t => t.Status == TripStatus.Completed)
             .ToList();

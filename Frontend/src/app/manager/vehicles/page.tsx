@@ -10,6 +10,7 @@ import VehicleForm from '@/components/vehicles/VehicleForm';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 import Badge from '@/components/ui/Badge';
 import type { Vehicle } from '@/types/vehicle.types';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function VehiclesPage() {
     const {
@@ -181,15 +182,7 @@ export default function VehiclesPage() {
     ];
 
     if (!permissions.view && !isLoading) {
-        return (
-            <div className="p-8 bg-slate-50 min-h-screen flex items-center justify-center">
-                <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center max-w-md">
-                    <Truck className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Доступ заборонено</h2>
-                    <p className="text-slate-600">У вас немає дозволу на перегляд списку транспорту.</p>
-                </div>
-            </div>
-        );
+        return <AccessDenied resourceName="перегляд списку транспорту" />;
     }
 
     return (

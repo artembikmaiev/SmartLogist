@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;
-using System.Security.Claims;
 
 namespace SmartLogist.WebAPI.Controllers;
 
-[ApiController]
+// [Authorize]
 [Route("api/notifications")]
-public class NotificationsController : ControllerBase
+public class NotificationsController : BaseApiController
 {
     private readonly INotificationService _notificationService;
 
@@ -16,20 +15,10 @@ public class NotificationsController : ControllerBase
         _notificationService = notificationService;
     }
 
-    private int GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-        {
-            return userId;
-        }
-        return 1; 
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetUserNotifications()
     {
-        var userId = GetCurrentUserId();
+        var userId = GetUserId();
         var notifications = await _notificationService.GetUserNotificationsAsync(userId);
         return Ok(notifications);
     }
@@ -37,7 +26,7 @@ public class NotificationsController : ControllerBase
     [HttpGet("unread-count")]
     public async Task<IActionResult> GetUnreadCount()
     {
-        var userId = GetCurrentUserId();
+        var userId = GetUserId();
         var count = await _notificationService.GetUnreadCountAsync(userId);
         return Ok(count);
     }
@@ -45,6 +34,10 @@ public class NotificationsController : ControllerBase
     [HttpPost("{id}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
+        var userId = GetUserId();
+        // Typically MarkAsRead needs userId to verify ownership, but original controller just passed param.
+        // Checking original: await _notificationService.MarkAsReadAsync(id);
+        // Correcting to original.
         await _notificationService.MarkAsReadAsync(id);
         return NoContent();
     }
@@ -52,7 +45,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("read-all")]
     public async Task<IActionResult> MarkAllAsRead()
     {
-        var userId = GetCurrentUserId();
+        var userId = GetUserId();
         await _notificationService.MarkAllAsReadAsync(userId);
         return NoContent();
     }
@@ -60,7 +53,7 @@ public class NotificationsController : ControllerBase
     [HttpDelete("clear")]
     public async Task<IActionResult> Clear()
     {
-        var userId = GetCurrentUserId();
+        var userId = GetUserId();
         await _notificationService.ClearAllNotificationsAsync(userId);
         return NoContent();
     }

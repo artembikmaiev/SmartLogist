@@ -111,6 +111,9 @@ if (app.Environment.IsDevelopment())
 // CORS
 app.UseCors("AllowFrontend");
 
+// Global Exception Handler
+app.UseMiddleware<SmartLogist.WebAPI.Middleware.ExceptionHandlingMiddleware>();
+
 // app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

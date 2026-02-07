@@ -18,6 +18,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(int id)
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.Manager)
             .Include(u => u.ManagedDrivers)
             .Include(u => u.AssignedVehicles)
@@ -30,6 +31,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
             .FirstOrDefaultAsync(u => u.Email == email);
@@ -38,6 +40,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetAllManagersAsync()
     {
         return await _context.Users
+            .AsNoTracking()
             .Where(u => u.Role == UserRole.Manager)
             .Include(u => u.ManagedDrivers)
             .Include(u => u.ManagerPermissions)
@@ -49,6 +52,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetAllAdminsAsync()
     {
         return await _context.Users
+            .AsNoTracking()
             .Where(u => u.Role == UserRole.Admin)
             .OrderBy(u => u.FullName)
             .ToListAsync();
@@ -100,6 +104,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<ManagerPermission>> GetManagerPermissionsAsync(int managerId)
     {
         return await _context.ManagerPermissions
+            .AsNoTracking()
             .Include(mp => mp.Permission)
             .Where(mp => mp.ManagerId == managerId)
             .OrderBy(mp => mp.Permission.Category)
@@ -143,6 +148,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetDriversByManagerIdAsync(int managerId)
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
             .Where(u => u.Role == UserRole.Driver && u.ManagerId == managerId)
@@ -153,6 +159,7 @@ public class UserRepository : IUserRepository
     public async Task<IEnumerable<User>> GetAllDriversAsync()
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.Manager)
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
@@ -164,6 +171,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetDriverByIdAsync(int driverId)
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.Manager)
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)

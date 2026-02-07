@@ -6,10 +6,8 @@ using SmartLogist.Domain.Interfaces;
 
 namespace SmartLogist.Application.Services;
 
-public class DriverService : IDriverService
+public class DriverService : BaseService, IDriverService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IPermissionRepository _permissionRepository;
     private readonly IActivityService _activityService;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IAdminRequestService _adminRequestService;
@@ -21,10 +19,8 @@ public class DriverService : IDriverService
         IActivityService activityService,
         IVehicleRepository vehicleRepository,
         IAdminRequestService adminRequestService,
-        ITripRepository tripRepository)
+        ITripRepository tripRepository) : base(userRepository, permissionRepository)
     {
-        _userRepository = userRepository;
-        _permissionRepository = permissionRepository;
         _activityService = activityService;
         _vehicleRepository = vehicleRepository;
         _adminRequestService = adminRequestService;
@@ -33,12 +29,7 @@ public class DriverService : IDriverService
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
     {
-        // Перевірка, чи має менеджер дозвіл на перегляд водіїв
-        var permission = await _permissionRepository.GetByCodeAsync("drivers.view");
-        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
-        {
-            throw new UnauthorizedAccessException("Недостатньо прав для перегляду водіїв");
-        }
+        await EnsurePermissionAsync(managerId, "drivers.view", "Недостатньо прав для перегляду водіїв");
 
         var drivers = (await _userRepository.GetDriversByManagerIdAsync(managerId)).ToList();
         var pendingRequests = (await _adminRequestService.GetPendingRequestsAsync()).ToList();
@@ -56,9 +47,9 @@ public class DriverService : IDriverService
         var results = new List<DriverDto>();
         foreach (var driver in drivers)
         {
-            var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
-            dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
-            dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
+            var totalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
+            var rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
+            var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds, totalTrips, rating);
             results.Add(dto);
         }
 
@@ -67,12 +58,7 @@ public class DriverService : IDriverService
 
     public async Task<DriverDto?> GetDriverByIdAsync(int driverId, int managerId)
     {
-        // Перевірити, чи водій належить до менеджера
-        var isAssigned = await _userRepository.IsDriverAssignedToManagerAsync(driverId, managerId);
-        if (!isAssigned)
-        {
-            throw new UnauthorizedAccessException("Водій не належить цьому менеджеру");
-        }
+        await EnsureDriverAssignedToManagerAsync(driverId, managerId, "Водій не належить цьому менеджеру");
 
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
         if (driver == null) return null;
@@ -97,20 +83,13 @@ public class DriverService : IDriverService
 
     public async Task<DriverDto> CreateDriverAsync(CreateDriverDto dto, int managerId)
     {
-        // Перевірити, чи має менеджер дозвіл
-        var permission = await _permissionRepository.GetByCodeAsync("drivers.create");
-        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
-        {
-            throw new UnauthorizedAccessException("Недостатньо прав для створення водія");
-        }
+        await EnsurePermissionAsync(managerId, "drivers.create", "Недостатньо прав для створення водія");
 
-        // Перевірити, чи існує електронна адреса
         if (await _userRepository.EmailExistsAsync(dto.Email))
         {
             throw new InvalidOperationException("Користувач з таким email вже існує");
         }
 
-        // Створити запит замість водія
         await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
         {
             Type = RequestType.DriverCreation,
@@ -127,25 +106,13 @@ public class DriverService : IDriverService
             "0"
         );
 
-        // Повернути порожній об'єкт або спеціальний статус, оскільки водія ще немає
         return new DriverDto { FullName = dto.FullName, Email = dto.Email, Status = "Pending" };
     }
 
     public async Task<DriverDto> UpdateDriverAsync(int driverId, UpdateDriverDto dto, int managerId)
     {
-        // Перевірити, чи має менеджер дозвіл
-        var permission = await _permissionRepository.GetByCodeAsync("drivers.edit");
-        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
-        {
-            throw new UnauthorizedAccessException("Недостатньо прав для редагування водія");
-        }
-
-        // Перевірити, чи водій належить до менеджера
-        var isAssigned = await _userRepository.IsDriverAssignedToManagerAsync(driverId, managerId);
-        if (!isAssigned)
-        {
-            throw new UnauthorizedAccessException("Водій не належить цьому менеджеру");
-        }
+        await EnsurePermissionAsync(managerId, "drivers.edit", "Недостатньо прав для редагування водія");
+        await EnsureDriverAssignedToManagerAsync(driverId, managerId, "Водій не належить цьому менеджеру");
 
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
         if (driver == null)
@@ -153,7 +120,6 @@ public class DriverService : IDriverService
             throw new KeyNotFoundException("Водія не знайдено");
         }
 
-        // Оновити водія безпосередньо
         driver.FullName = dto.FullName;
         driver.Phone = dto.Phone;
         driver.LicenseNumber = dto.LicenseNumber;
@@ -175,24 +141,12 @@ public class DriverService : IDriverService
 
     public async Task DeleteDriverAsync(int driverId, int managerId)
     {
-        // Перевірити, чи має менеджер дозвіл
-        var permission = await _permissionRepository.GetByCodeAsync("drivers.delete");
-        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
-        {
-            throw new UnauthorizedAccessException("Недостатньо прав для видалення водія");
-        }
-
-        // Перевірити, чи водій належить до менеджера
-        var isAssigned = await _userRepository.IsDriverAssignedToManagerAsync(driverId, managerId);
-        if (!isAssigned)
-        {
-            throw new UnauthorizedAccessException("Водій не належить цьому менеджеру");
-        }
+        await EnsurePermissionAsync(managerId, "drivers.delete", "Недостатньо прав для видалення водія");
+        await EnsureDriverAssignedToManagerAsync(driverId, managerId, "Водій не належить цьому менеджеру");
 
         var driver = await _userRepository.GetDriverByIdAsync(driverId);
         if (driver == null) return;
 
-        // Створити запит замість видалення
         await _adminRequestService.CreateRequestAsync(new SmartLogist.Application.DTOs.AdminRequest.CreateRequestDto
         {
             Type = RequestType.DriverDeletion,
@@ -257,12 +211,7 @@ public class DriverService : IDriverService
 
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
     {
-        // Перевірте, чи має менеджер дозвіл на перегляд водіїв
-        var permission = await _permissionRepository.GetByCodeAsync("drivers.view");
-        if (permission == null || !await _userRepository.HasPermissionAsync(managerId, permission.Id))
-        {
-            throw new UnauthorizedAccessException("Недостатньо прав для перегляду водіїв");
-        }
+        await EnsurePermissionAsync(managerId, "drivers.view", "Недостатньо прав для перегляду водіїв");
 
         var drivers = await _userRepository.GetDriversByManagerIdAsync(managerId);
         var driversList = drivers.ToList();
@@ -295,10 +244,9 @@ public class DriverService : IDriverService
         var results = new List<DriverDto>();
         foreach (var driver in driverList)
         {
-            var dto = MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds);
-            dto.TotalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
-            dto.Rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
-            results.Add(dto);
+            var totalTrips = await _tripRepository.GetCompletedCountByDriverIdAsync(driver.Id);
+            var rating = await _tripRepository.GetAverageRatingByDriverIdAsync(driver.Id);
+            results.Add(MapToDto(driver, pendingDeletionTargetIds, pendingUpdateTargetIds, totalTrips, rating));
         }
 
         return results;
@@ -467,7 +415,7 @@ public class DriverService : IDriverService
         );
     }
 
-    private DriverDto MapToDto(User driver, IEnumerable<int>? pendingDeletionTargetIds = null, IEnumerable<int>? pendingUpdateTargetIds = null)
+    private DriverDto MapToDto(User driver, IEnumerable<int>? pendingDeletionTargetIds = null, IEnumerable<int>? pendingUpdateTargetIds = null, int totalTrips = 0, double? rating = null)
     {
         var primaryVehicle = driver.AssignedVehicles?.FirstOrDefault(dv => dv.IsPrimary);
         
@@ -492,8 +440,8 @@ public class DriverService : IDriverService
                 IsPrimary = primaryVehicle.IsPrimary
             } : null,
             CreatedAt = driver.CreatedAt,
-            TotalTrips = 0, // TODO: Розрахувати на основі таблиці поїздок після впровадження
-            Rating = null // TODO: Розрахувати на основі рейтингів після впровадження
+            TotalTrips = totalTrips,
+            Rating = rating
         };
     }
 }

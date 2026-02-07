@@ -22,8 +22,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
     const addToast = useCallback((message: string, type: ToastType) => {
-        const id = Math.random().toString(36).substring(2, 9);
-        setToasts((prev) => [...prev, { id, message, type }]);
+        setToasts((prev) => {
+            // Prevent duplicate messages
+            if (prev.some(t => t.message === message)) {
+                return prev;
+            }
+            const id = Math.random().toString(36).substring(2, 9);
+            return [...prev, { id, message, type }];
+        });
     }, []);
 
     const removeToast = useCallback((id: string) => {
@@ -36,6 +42,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         warning: (msg: string) => addToast(msg, 'warning'),
         info: (msg: string) => addToast(msg, 'info'),
     };
+
+    // Listen for global events
+    React.useEffect(() => {
+        const handleNotification = (event: CustomEvent<{ message: string; type: ToastType }>) => {
+            const { message, type } = event.detail;
+            addToast(message, type || 'info');
+        };
+
+        window.addEventListener('notification:show', handleNotification as EventListener);
+        return () => window.removeEventListener('notification:show', handleNotification as EventListener);
+    }, [addToast]);
 
     return (
         <NotificationContext.Provider value={notificationApi}>

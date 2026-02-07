@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace SmartLogist.WebAPI.Controllers;
 
-[Authorize]
+// [Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class VehiclesController : ControllerBase

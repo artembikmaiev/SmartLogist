@@ -8,14 +8,14 @@ export const TRIP_STATUS_LABELS: Record<string, string> = {
     Cancelled: 'Скасовано'
 };
 
-export const TRIP_STATUS_VARIANTS: Record<string, 'info' | 'purple' | 'success' | 'warning' | 'danger' | 'neutral'> = {
+export const TRIP_STATUS_VARIANTS: Record<string, 'info' | 'purple' | 'success' | 'warning' | 'error' | 'neutral'> = {
     Accepted: 'info',
     InTransit: 'info',
     Arrived: 'purple',
     Completed: 'success',
     Pending: 'warning',
-    Cancelled: 'danger',
-    Declined: 'danger'
+    Cancelled: 'error',
+    Declined: 'error'
 };
 
 export const CARGO_TYPE_LABELS: Record<number, string> = {

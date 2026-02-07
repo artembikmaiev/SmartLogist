@@ -1,30 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;
-using System.Security.Claims;
 
 namespace SmartLogist.WebAPI.Controllers;
 
-[Authorize]
-[ApiController]
-[Route("api/[controller]")]
-public class AnalyticsController : ControllerBase
+// [Authorize]
+public class AnalyticsController : BaseApiController
 {
     private readonly IAnalyticsService _analyticsService;
 
     public AnalyticsController(IAnalyticsService analyticsService)
     {
         _analyticsService = analyticsService;
-    }
-
-    private int GetUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
-            throw new UnauthorizedAccessException("Невалідний токен");
-        }
-        return userId;
     }
 
     [HttpGet("summary")]

@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/utils/date.utils';
 import { TRIP_STATUS_LABELS, TRIP_STATUS_VARIANTS } from '@/lib/constants/trip.constants';
 import { useTrips } from '@/hooks/useTrips';
 import type { Trip } from '@/types/trip.types';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function ManagerTripsPage() {
   const {
@@ -35,8 +36,14 @@ export default function ManagerTripsPage() {
     setSelectedItem,
     loadData,
     updateTripStatus,
-    isSubmitting
+    isSubmitting,
+    permissions
   } = useTrips('manager');
+
+  // Need to import AccessDenied and use it, but useTrips does not expose permissions directly?
+  // Checking useTrips hook implementation might be needed if I don't see permissions here.
+  // Wait, I don't see permissions in the destructured object.
+  // I will check useTrips hook first.
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -104,7 +111,7 @@ export default function ManagerTripsPage() {
             {TRIP_STATUS_LABELS[trip.status] || trip.status}
           </Badge>
           {trip.hasPendingDeletion && (
-            <Badge variant="warning" pulse>
+            <Badge variant="error" pulse>
               <Trash className="w-2.5 h-2.5 mr-1" />
               Запит на видалення
             </Badge>
@@ -131,32 +138,40 @@ export default function ManagerTripsPage() {
       key: 'actions',
       render: (trip) => (
         <div className="flex justify-end items-center py-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedItem(trip);
-              setShowDeleteModal(true);
-            }}
-            disabled={trip.hasPendingDeletion}
-            className={`${trip.hasPendingDeletion ? 'text-slate-300' : 'text-red-500 hover:bg-red-50'}`}
-            title={trip.hasPendingDeletion ? "Запит на видалення вже на розгляді" : "Видалити"}
-          >
-            <Trash className="w-4 h-4" />
-          </Button>
+          {permissions?.delete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedItem(trip);
+                setShowDeleteModal(true);
+              }}
+              disabled={trip.hasPendingDeletion}
+              className={`${trip.hasPendingDeletion ? 'text-slate-300' : 'text-red-500 hover:bg-red-50'}`}
+              title={trip.hasPendingDeletion ? "Запит на видалення вже на розгляді" : "Видалити"}
+            >
+              <Trash className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       )
     }
   ];
 
+  if (permissions && !permissions.view && !isLoading) {
+    return <AccessDenied resourceName="перегляд списку рейсів" />;
+  }
+
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-900">Управління рейсами</h1>
-        <Button onClick={() => setIsCreateOpen(true)} icon={<span className="text-lg">+</span>}>
-          Створити рейс
-        </Button>
+        {permissions?.create && (
+          <Button onClick={() => setIsCreateOpen(true)} icon={<span className="text-lg">+</span>}>
+            Створити рейс
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

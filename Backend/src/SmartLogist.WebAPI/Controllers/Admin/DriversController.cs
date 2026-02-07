@@ -3,13 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Driver;
 using SmartLogist.Application.DTOs.Vehicle;
 using SmartLogist.Application.Interfaces;
-using System.Threading.Tasks;
 
 namespace SmartLogist.WebAPI.Controllers.Admin;
 
-[ApiController]
+// [Authorize(Roles = "Manager,Admin")]
 [Route("api/admin/drivers")]
-public class DriversController : ControllerBase
+public class DriversController : BaseApiController
 {
     private readonly IDriverService _driverService;
     private readonly IVehicleService _vehicleService;
@@ -38,51 +37,22 @@ public class DriversController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDriverDto dto)
     {
-        try
-        {
-            var driver = await _driverService.CreateDriverAdminAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = driver.Id }, driver);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var driver = await _driverService.CreateDriverAdminAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = driver.Id }, driver);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateDriverDto dto)
     {
-        try
-        {
-            var driver = await _driverService.UpdateDriverAdminAsync(id, dto);
-            return Ok(driver);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var driver = await _driverService.UpdateDriverAdminAsync(id, dto);
+        return Ok(driver);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            await _driverService.DeleteDriverAdminAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        await _driverService.DeleteDriverAdminAsync(id);
+        return NoContent();
     }
 
     [HttpGet("stats")]
@@ -95,23 +65,8 @@ public class DriversController : ControllerBase
     [HttpPost("{id}/assign-manager")]
     public async Task<IActionResult> AssignManager(int id, [FromBody] int? managerId)
     {
-        try
-        {
-            await _driverService.AssignManagerAsync(id, managerId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        await _driverService.AssignManagerAsync(id, managerId);
+        return NoContent();
     }
 
     [HttpGet("vehicles")]
@@ -124,78 +79,35 @@ public class DriversController : ControllerBase
     [HttpPost("vehicles")]
     public async Task<IActionResult> CreateVehicle([FromBody] CreateVehicleDto dto)
     {
-        try
-        {
-            var vehicle = await _vehicleService.CreateVehicleAdminAsync(dto);
-            return Ok(vehicle);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var vehicle = await _vehicleService.CreateVehicleAdminAsync(dto);
+        return Ok(vehicle);
     }
 
     [HttpPut("vehicles/{id}")]
     public async Task<IActionResult> UpdateVehicle(int id, [FromBody] UpdateVehicleDto dto)
     {
-        try
-        {
-            var vehicle = await _vehicleService.UpdateVehicleAdminAsync(id, dto);
-            return Ok(vehicle);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var vehicle = await _vehicleService.UpdateVehicleAdminAsync(id, dto);
+        return Ok(vehicle);
     }
 
     [HttpDelete("vehicles/{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        try
-        {
-            await _vehicleService.DeleteVehicleAdminAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        await _vehicleService.DeleteVehicleAdminAsync(id);
+        return NoContent();
     }
 
     [HttpPost("{id}/assign-vehicle")]
     public async Task<IActionResult> AssignVehicle(int id, [FromBody] int vehicleId)
     {
-        try
-        {
-            await _driverService.AssignVehicleAsync(id, vehicleId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        await _driverService.AssignVehicleAsync(id, vehicleId);
+        return NoContent();
     }
 
     [HttpPost("{id}/unassign-vehicle")]
     public async Task<IActionResult> UnassignVehicle(int id, [FromBody] int vehicleId)
     {
-        try
-        {
-            await _driverService.UnassignVehicleAsync(id, vehicleId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        await _driverService.UnassignVehicleAsync(id, vehicleId);
+        return NoContent();
     }
 }

@@ -24,6 +24,7 @@ import type {
     CargoTypeAnalytics
 } from '@/types/analytics.types';
 import { formatCurrency } from '@/lib/utils/formatters';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function AnalyticsPage() {
     const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -55,6 +56,31 @@ export default function AnalyticsPage() {
         fetchData();
     }, []);
 
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [s, t, d, c] = await Promise.all([
+                    analyticsService.getSummary(),
+                    analyticsService.getMonthlyTrends(12),
+                    analyticsService.getDriverRankings(),
+                    analyticsService.getCargoAnalysis()
+                ]);
+                setSummary(s);
+                setTrends(t);
+                setDrivers(d);
+                setCargo(c);
+            } catch (err: any) {
+                console.error('Failed to fetch analytics:', err);
+                setError(err.message || 'Помилка завантаження даних');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
     if (loading) {
         return (
             <div className="p-12 flex justify-center items-center h-[60vh]">
@@ -64,6 +90,10 @@ export default function AnalyticsPage() {
                 </div>
             </div>
         );
+    }
+
+    if (error) {
+        return <AccessDenied resourceName="перегляд аналітики" />;
     }
 
     return (

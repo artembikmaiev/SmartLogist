@@ -11,6 +11,7 @@ import StatusIndicator from '@/components/ui/StatusIndicator';
 import Badge from '@/components/ui/Badge';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import type { Driver } from '@/types/drivers.types';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function DriversPage() {
     const {
@@ -139,19 +140,7 @@ export default function DriversPage() {
     ];
 
     if (!permissions.view && !isLoading) {
-        return (
-            <div className="p-8 bg-slate-50 min-h-screen flex items-center justify-center">
-                <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md text-center shadow-sm">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-8 h-8 text-red-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Доступ заборонено</h2>
-                    <p className="text-slate-600">
-                        У вас немає дозволу на перегляд списку водіїв. Зверніться до адміністратора для отримання доступу.
-                    </p>
-                </div>
-            </div>
-        );
+        return <AccessDenied resourceName="перегляд списку водіїв" />;
     }
 
     return (

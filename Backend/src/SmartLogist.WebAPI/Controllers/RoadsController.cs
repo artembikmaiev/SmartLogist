@@ -1,12 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
+using System.Globalization;
 
 namespace SmartLogist.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class RoadsController : ControllerBase
+// [Authorize]
+public class RoadsController : BaseApiController
 {
     private readonly IRoutingService _routingService;
     private readonly IRoadConditionService _roadConditionService;
@@ -29,41 +30,26 @@ public class RoadsController : ControllerBase
         [FromQuery] double? weight = null,
         [FromQuery] bool? isHazardous = null)
     {
-        try
-        {
-            var culture = System.Globalization.CultureInfo.InvariantCulture;
-            var origin = new RoutePoint 
-            { 
-                Latitude = double.Parse(startLat.Replace(',', '.'), culture), 
-                Longitude = double.Parse(startLng.Replace(',', '.'), culture) 
-            };
-            var destination = new RoutePoint 
-            { 
-                Latitude = double.Parse(endLat.Replace(',', '.'), culture), 
-                Longitude = double.Parse(endLng.Replace(',', '.'), culture) 
-            };
-            
-            var result = await _routingService.GetRouteAsync(origin, destination, height, width, length, weight, isHazardous);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"RoadsController Error: {ex.Message}");
-            return BadRequest(new { Message = ex.Message });
-        }
+        var culture = CultureInfo.InvariantCulture;
+        var origin = new RoutePoint 
+        { 
+            Latitude = double.Parse(startLat.Replace(',', '.'), culture), 
+            Longitude = double.Parse(startLng.Replace(',', '.'), culture) 
+        };
+        var destination = new RoutePoint 
+        { 
+            Latitude = double.Parse(endLat.Replace(',', '.'), culture), 
+            Longitude = double.Parse(endLng.Replace(',', '.'), culture) 
+        };
+        
+        var result = await _routingService.GetRouteAsync(origin, destination, height, width, length, weight, isHazardous);
+        return Ok(result);
     }
 
     [HttpGet("conditions")]
     public async Task<IActionResult> GetConditions()
     {
-        try
-        {
-            var conditions = await _roadConditionService.GetRoadConditionsAsync();
-            return Ok(conditions);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var conditions = await _roadConditionService.GetRoadConditionsAsync();
+        return Ok(conditions);
     }
 }

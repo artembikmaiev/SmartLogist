@@ -8,7 +8,7 @@ namespace SmartLogist.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController : BaseApiController
 {
     private readonly IAuthService _authService;
 
@@ -21,15 +21,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
-        try
-        {
-            var response = await _authService.LoginAsync(loginDto);
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { Message = ex.Message });
-        }
+        var response = await _authService.LoginAsync(loginDto);
+        return Ok(response);
     }
 
     // POST: api/auth/logout
@@ -41,57 +34,28 @@ public class AuthController : ControllerBase
     }
 
     // GET: api/auth/me
-    [Authorize]
+    // [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
-        try
+        var userId = GetUserId();
+        var user = await _authService.GetUserByIdAsync(userId);
+        
+        if (user == null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return Unauthorized(new { Message = "Невалідний токен" });
-            }
-
-            var user = await _authService.GetUserByIdAsync(userId);
-            
-            if (user == null)
-            {
-                return NotFound(new { Message = "Користувача не знайдено" });
-            }
-
-            return Ok(user);
+            return NotFound(new { Message = "Користувача не знайдено" });
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+
+        return Ok(user);
     }
 
     // PUT: api/auth/profile
-    [Authorize]
+    // [Authorize]
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return Unauthorized(new { Message = "Невалідний токен" });
-            }
-
-            await _authService.UpdateProfileAsync(userId, dto);
-            return Ok(new { Message = "Профіль оновлено успішно" });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var userId = GetUserId();
+        await _authService.UpdateProfileAsync(userId, dto);
+        return Ok(new { Message = "Профіль оновлено успішно" });
     }
 }
