@@ -50,6 +50,7 @@ public class TripRepository : ITripRepository
             .Include(t => t.Origin)
             .Include(t => t.Destination)
             .Include(t => t.Cargo)
+            .Include(t => t.Driver)
             .Include(t => t.Vehicle)
             .Include(t => t.Manager)
             .Include(t => t.Feedback)
@@ -87,7 +88,9 @@ public class TripRepository : ITripRepository
         var entry = _context.Entry(trip);
         if (entry.State == EntityState.Detached)
         {
-            _context.Trips.Update(trip);
+            // Use Attach instead of Update to avoid marking the entire graph (Driver, Manager, etc.) as modified
+            _context.Trips.Attach(trip);
+            entry.State = EntityState.Modified;
         }
         await _context.SaveChangesAsync();
     }
@@ -153,6 +156,81 @@ public class TripRepository : ITripRepository
             .Include(t => t.Manager)
             .Include(t => t.Route)
             .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+    public async Task UpdateTripFieldsAsync(Trip trip)
+    {
+        // First, get the exact scheduled_departure from DB (it's part of the PK and cannot be modified)
+        var rawDeparture = await _context.Trips
+            .Where(t => t.Id == trip.Id)
+            .Select(t => t.ScheduledDeparture)
+            .FirstOrDefaultAsync();
+
+        if (rawDeparture == default)
+        {
+            throw new KeyNotFoundException($"Trip with ID {trip.Id} not found");
+        }
+
+        // CRITICAL: Ensure we use the exact UTC Kind for the partition key match
+        var exactDeparture = DateTime.SpecifyKind(rawDeparture, DateTimeKind.Utc);
+
+        // Use explicit transaction to ensure ExecuteUpdate and SaveChanges/FK check are atomic
+        // and visible to each other within the same transaction scope.
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Update Trip fields atomically using ExecuteUpdateAsync (no tracking issues)
+            // Target by composite PK: (id, scheduled_departure)
+            await _context.Trips
+                .Where(t => t.Id == trip.Id && t.ScheduledDeparture == exactDeparture)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, trip.Status)
+                    .SetProperty(t => t.ActualDeparture, trip.ActualDeparture)
+                    .SetProperty(t => t.ActualArrival, trip.ActualArrival)
+                    .SetProperty(t => t.Notes, trip.Notes)
+                    .SetProperty(t => t.ActualFuelConsumption, trip.ActualFuelConsumption)
+                    .SetProperty(t => t.ExpectedProfit, trip.ExpectedProfit)
+                    .SetProperty(t => t.EstimatedFuelCost, trip.EstimatedFuelCost)
+                    .SetProperty(t => t.IsMileageAccounted, trip.IsMileageAccounted)
+                    .SetProperty(t => t.DistanceKm, trip.DistanceKm)
+                    .SetProperty(t => t.PaymentAmount, trip.PaymentAmount)
+                );
+
+            // Handle Feedback in the same transaction
+            if (trip.Feedback != null)
+            {
+                var existingFeedback = await _context.TripFeedbacks
+                    .FirstOrDefaultAsync(f => f.TripId == trip.Id && f.DepartureTime == exactDeparture);
+
+                if (existingFeedback == null)
+                {
+                    // Create new feedback with EXACT departure time
+                    var newFeedback = new TripFeedback
+                    {
+                        TripId = trip.Id,
+                        DepartureTime = exactDeparture,
+                        Rating = trip.Feedback.Rating,
+                        ManagerReview = trip.Feedback.ManagerReview
+                    };
+                    await _context.TripFeedbacks.AddAsync(newFeedback);
+                }
+                else
+                {
+                    existingFeedback.Rating = trip.Feedback.Rating;
+                    existingFeedback.ManagerReview = trip.Feedback.ManagerReview;
+                }
+
+                // Save feedback within transaction
+                await _context.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task DeleteAsync(int id, DateTime scheduledDeparture)

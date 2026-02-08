@@ -41,12 +41,12 @@ public class AdminRequestConfiguration : IEntityTypeConfiguration<AdminRequest>
 
         builder.Property(r => r.CreatedAt)
             .HasColumnName("created_at")
-            .HasColumnType("timestamp without time zone")
+            .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(r => r.ProcessedAt)
             .HasColumnName("processed_at")
-            .HasColumnType("timestamp without time zone");
+            .HasColumnType("timestamp with time zone");
 
         builder.Property(r => r.ProcessedById)
             .HasColumnName("processed_by_id");

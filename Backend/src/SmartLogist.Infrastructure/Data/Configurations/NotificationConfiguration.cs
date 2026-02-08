@@ -18,7 +18,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(n => n.Message).HasColumnName("message").IsRequired();
         builder.Property(n => n.Type).HasColumnName("type").HasMaxLength(50);
         builder.Property(n => n.IsRead).HasColumnName("is_read").HasDefaultValue(false);
-        builder.Property(n => n.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp without time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(n => n.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone").HasDefaultValueSql("CURRENT_TIMESTAMP");
         
         builder.Property(n => n.RelatedEntityType).HasColumnName("related_entity_type");
         builder.Property(n => n.RelatedEntityId).HasColumnName("related_entity_id");

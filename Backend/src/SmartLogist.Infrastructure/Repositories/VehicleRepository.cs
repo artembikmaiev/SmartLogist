@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+ï»¿using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;
 using SmartLogist.Infrastructure.Data;
@@ -46,6 +46,13 @@ public class VehicleRepository : IVehicleRepository
 
     public async Task DeleteAsync(int id)
     {
+        // 1. Manually nullify VehicleId in trips to avoid FK constraint violations
+        // as the DB schema might not have ON DELETE SET NULL correctly set for all partitions
+        await _context.Trips
+            .Where(t => t.VehicleId == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.VehicleId, (int?)null));
+
+        // 2. Delete the vehicle
         var vehicle = await _context.Vehicles.FindAsync(id);
         if (vehicle != null)
         {
@@ -69,8 +76,8 @@ public class VehicleRepository : IVehicleRepository
 
     public async Task AssignVehicleToDriverAsync(int vehicleId, int driverId, bool isPrimary)
     {
-        // 1. ßêùî âñòàíîâëþºòüñÿ íîâèé îñíîâíèé òðàíñïîðòíèé çàñ³á äëÿ âîä³ÿ, 
-        // ñêàñîâóþòüñÿ ³íø³ îñíîâí³ òðàíñïîðòí³ çàñîáè.
+        // 1. Ð¯ÐºÑ‰Ð¾ Ð²ÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÑŽÑ”Ñ‚ÑŒÑÑ Ð½Ð¾Ð²Ð¸Ð¹ Ð¾ÑÐ½Ð¾Ð²Ð½Ð¸Ð¹ Ñ‚Ñ€Ð°Ð½ÑÐ¿Ð¾Ñ€Ñ‚Ð½Ð¸Ð¹ Ð·Ð°ÑÑ–Ð± Ð´Ð»Ñ Ð²Ð¾Ð´Ñ–Ñ, 
+        // ÑÐºÐ°ÑÐ¾Ð²ÑƒÑŽÑ‚ÑŒÑÑ Ñ–Ð½ÑˆÑ– Ð¾ÑÐ½Ð¾Ð²Ð½Ñ– Ñ‚Ñ€Ð°Ð½ÑÐ¿Ð¾Ñ€Ñ‚Ð½Ñ– Ð·Ð°ÑÐ¾Ð±Ð¸.
         if (isPrimary)
         {
             var otherPrimaryForDriver = await _context.DriverVehicles
@@ -82,10 +89,10 @@ public class VehicleRepository : IVehicleRepository
                 dv.IsPrimary = false;
             }
 
-            // 2. Êð³ì òîãî, ÿêùî öåé òðàíñïîðòíèé çàñ³á ñòàº îñíîâíèì äëÿ âîä³ÿ,
-            // â³í íå ïîâèíåí áóòè îñíîâíèì (àáî íàâ³òü ïðèçíà÷åíèì) äëÿ áóäü-êîãî ³íøîãî
-            // Íàðàç³ òðåáà ïåðåêîíàòèñÿ, ùî öåé òðàíñïîðòíèé çàñ³á
-            // íå º îñíîâíèì äëÿ æîäíîãî ³íøîãî âîä³ÿ.
+            // 2. ÐšÑ€Ñ–Ð¼ Ñ‚Ð¾Ð³Ð¾, ÑÐºÑ‰Ð¾ Ñ†ÐµÐ¹ Ñ‚Ñ€Ð°Ð½ÑÐ¿Ð¾Ñ€Ñ‚Ð½Ð¸Ð¹ Ð·Ð°ÑÑ–Ð± ÑÑ‚Ð°Ñ” Ð¾ÑÐ½Ð¾Ð²Ð½Ð¸Ð¼ Ð´Ð»Ñ Ð²Ð¾Ð´Ñ–Ñ,
+            // Ð²Ñ–Ð½ Ð½Ðµ Ð¿Ð¾Ð²Ð¸Ð½ÐµÐ½ Ð±ÑƒÑ‚Ð¸ Ð¾ÑÐ½Ð¾Ð²Ð½Ð¸Ð¼ (Ð°Ð±Ð¾ Ð½Ð°Ð²Ñ–Ñ‚ÑŒ Ð¿Ñ€Ð¸Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ð¼) Ð´Ð»Ñ Ð±ÑƒÐ´ÑŒ-ÐºÐ¾Ð³Ð¾ Ñ–Ð½ÑˆÐ¾Ð³Ð¾
+            // ÐÐ°Ñ€Ð°Ð·Ñ– Ñ‚Ñ€ÐµÐ±Ð° Ð¿ÐµÑ€ÐµÐºÐ¾Ð½Ð°Ñ‚Ð¸ÑÑ, Ñ‰Ð¾ Ñ†ÐµÐ¹ Ñ‚Ñ€Ð°Ð½ÑÐ¿Ð¾Ñ€Ñ‚Ð½Ð¸Ð¹ Ð·Ð°ÑÑ–Ð±
+            // Ð½Ðµ Ñ” Ð¾ÑÐ½Ð¾Ð²Ð½Ð¸Ð¼ Ð´Ð»Ñ Ð¶Ð¾Ð´Ð½Ð¾Ð³Ð¾ Ñ–Ð½ÑˆÐ¾Ð³Ð¾ Ð²Ð¾Ð´Ñ–Ñ.
             var otherPrimaryForVehicle = await _context.DriverVehicles
                 .Where(dv => dv.VehicleId == vehicleId && dv.IsPrimary && dv.DriverId != driverId)
                 .ToListAsync();
@@ -96,20 +103,20 @@ public class VehicleRepository : IVehicleRepository
             }
         }
 
-        // 3. Ïåðåâ³ðêà, ÷è âæå ³ñíóº öå êîíêðåòíå çàâäàííÿ
+        // 3. ÐŸÐµÑ€ÐµÐ²Ñ–Ñ€ÐºÐ°, Ñ‡Ð¸ Ð²Ð¶Ðµ Ñ–ÑÐ½ÑƒÑ” Ñ†Ðµ ÐºÐ¾Ð½ÐºÑ€ÐµÑ‚Ð½Ðµ Ð·Ð°Ð²Ð´Ð°Ð½Ð½Ñ
         var existingAssignment = await _context.DriverVehicles
             .FirstOrDefaultAsync(dv => dv.VehicleId == vehicleId && dv.DriverId == driverId);
 
         if (existingAssignment != null)
         {
-            // Îíîâèòè ³ñíóþ÷å
+            // ÐžÐ½Ð¾Ð²Ð¸Ñ‚Ð¸ Ñ–ÑÐ½ÑƒÑŽÑ‡Ðµ
             existingAssignment.IsPrimary = isPrimary;
             existingAssignment.AssignedAt = DateTime.UtcNow;
             _context.DriverVehicles.Update(existingAssignment);
         }
         else
         {
-            // Ñòâîðèòè íîâèé
+            // Ð¡Ñ‚Ð²Ð¾Ñ€Ð¸Ñ‚Ð¸ Ð½Ð¾Ð²Ð¸Ð¹
             var driverVehicle = new DriverVehicle
             {
                 VehicleId = vehicleId,
@@ -133,5 +140,12 @@ public class VehicleRepository : IVehicleRepository
             _context.DriverVehicles.Remove(driverVehicle);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task UpdateMileageAsync(int vehicleId, float additionalMileage)
+    {
+        await _context.Vehicles
+            .Where(v => v.Id == vehicleId)
+            .ExecuteUpdateAsync(s => s.SetProperty(v => v.TotalMileage, v => v.TotalMileage + additionalMileage));
     }
 }

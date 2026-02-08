@@ -350,11 +350,14 @@ export default function AdminDriversPage() {
                 <div className="mb-6">
                     <p className="text-sm text-slate-600 mb-4">Виберіть менеджера для водія <span className="font-bold">{selectedDriver?.fullName}</span></p>
                     <select
-                        value={selectedManagerId || ''}
-                        onChange={(e) => setSelectedManagerId(e.target.value ? Number(e.target.value) : null)}
+                        value={selectedManagerId === null ? "0" : selectedManagerId}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedManagerId(val === "0" ? null : Number(val));
+                        }}
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900"
                     >
-                        <option value="">-- Без менеджера --</option>
+                        <option value="0">-- Без менеджера --</option>
                         {managers.map((m) => <option key={m.id} value={m.id}>{m.fullName}</option>)}
                     </select>
                 </div>

@@ -11,7 +11,7 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import { CreateTripModal } from '@/components/trips';
 import TripDetailsModal from '@/components/trips/TripDetailsModal';
 import { formatDate } from '@/lib/utils/date.utils';
-import { TRIP_STATUS_LABELS, TRIP_STATUS_VARIANTS } from '@/lib/constants/trip.constants';
+import { TRIP_STATUS_LABELS, TRIP_STATUS_VARIANTS, CARGO_TYPE_LABELS } from '@/lib/constants/trip.constants';
 import { useTrips } from '@/hooks/useTrips';
 import type { Trip } from '@/types/trip.types';
 import { AccessDenied } from '@/components/ui/AccessDenied';
@@ -83,7 +83,7 @@ export default function ManagerTripsPage() {
           <p className="text-sm font-bold text-slate-900">{trip.cargoName || '—'}</p>
           <div className="flex items-center gap-1.5 mt-1">
             <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase tracking-widest border border-blue-100">
-              {trip.cargoType}
+              {CARGO_TYPE_LABELS[parseInt(trip.cargoType as unknown as string)] || trip.cargoType}
             </span>
             <span className="text-[10px] text-slate-400 font-bold">
               {trip.cargoWeight} т

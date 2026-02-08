@@ -13,4 +13,5 @@ public interface IVehicleRepository
     Task<IEnumerable<Vehicle>> GetVehiclesWithDriversAsync();
     Task AssignVehicleToDriverAsync(int vehicleId, int driverId, bool isPrimary);
     Task UnassignVehicleFromDriverAsync(int vehicleId, int driverId);
+    Task UpdateMileageAsync(int vehicleId, float additionalMileage);
 }

@@ -14,7 +14,7 @@ public class TripFeedbackConfiguration : IEntityTypeConfiguration<TripFeedback>
         builder.HasKey(tf => new { tf.TripId, tf.DepartureTime });
         
         builder.Property(tf => tf.TripId).HasColumnName("trip_id");
-        builder.Property(tf => tf.DepartureTime).HasColumnName("departure_time");
+        builder.Property(tf => tf.DepartureTime).HasColumnName("departure_time").HasPrecision(6);
         builder.Property(tf => tf.Rating).HasColumnName("rating");
         builder.Property(tf => tf.ManagerReview).HasColumnName("manager_review");
         

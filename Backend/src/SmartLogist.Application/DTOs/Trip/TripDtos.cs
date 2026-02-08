@@ -38,6 +38,9 @@ public class TripDto
     public int ManagerId { get; set; }
     public string ManagerName { get; set; } = string.Empty;
     
+    public int DriverId { get; set; }
+    public string DriverName { get; set; } = string.Empty;
+    
     public int? VehicleId { get; set; }
     public string? VehicleModel { get; set; }
     public string? VehicleLicensePlate { get; set; }

@@ -63,9 +63,9 @@ public class DriversController : BaseApiController
     }
 
     [HttpPost("{id}/assign-manager")]
-    public async Task<IActionResult> AssignManager(int id, [FromBody] int? managerId)
+    public async Task<IActionResult> AssignManager(int id, [FromBody] AssignManagerDto dto)
     {
-        await _driverService.AssignManagerAsync(id, managerId);
+        await _driverService.AssignManagerAsync(id, dto.ManagerId);
         return NoContent();
     }
 

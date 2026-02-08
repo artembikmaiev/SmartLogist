@@ -23,7 +23,18 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred.");
+            // Log detailed exception info including inner exceptions
+            var innerEx = ex.InnerException;
+            var exceptionDetails = $"Exception: {ex.Message}";
+            if (innerEx != null)
+            {
+                exceptionDetails += $"\nInner Exception: {innerEx.Message}";
+                if (innerEx.InnerException != null)
+                {
+                    exceptionDetails += $"\nInner Inner Exception: {innerEx.InnerException.Message}";
+                }
+            }
+            _logger.LogError(ex, "An unhandled exception occurred. Details: {Details}", exceptionDetails);
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -58,6 +69,12 @@ public class ExceptionHandlingMiddleware
         if (statusCode == HttpStatusCode.Forbidden)
         {
             return "У вас недостатньо прав для виконання цієї дії.";
+        }
+
+        // For DbUpdateException, include inner exception details for debugging
+        if (exception is DbUpdateException dbEx && dbEx.InnerException != null)
+        {
+            return $"{exception.Message} | Inner: {dbEx.InnerException.Message}";
         }
 
         return statusCode == HttpStatusCode.InternalServerError 

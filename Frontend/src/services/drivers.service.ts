@@ -30,7 +30,7 @@ class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriv
     };
 
     assignManager = async (driverId: number, managerId: number | null): Promise<void> => {
-        return apiClient.post(`/admin/drivers/${driverId}/assign-manager`, managerId);
+        return apiClient.post(`/admin/drivers/${driverId}/assign-manager`, { managerId });
     };
 
     getStatsAdmin = async (): Promise<DriverStats> => {

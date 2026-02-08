@@ -14,7 +14,7 @@ public class TripRouteConfiguration : IEntityTypeConfiguration<TripRoute>
         builder.HasKey(tr => new { tr.TripId, tr.DepartureTime });
         
         builder.Property(tr => tr.TripId).HasColumnName("trip_id");
-        builder.Property(tr => tr.DepartureTime).HasColumnName("departure_time");
+        builder.Property(tr => tr.DepartureTime).HasColumnName("departure_time").HasPrecision(6);
         builder.Property(tr => tr.RouteGeometry).HasColumnName("route_geometry").HasColumnType("jsonb");
         
         builder.HasOne(tr => tr.Trip)

@@ -14,8 +14,7 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cors
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// builder.Services.AddControllers() ...
 
 // CORS
 builder.Services.AddCors(options =>
@@ -64,7 +63,7 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IAdminRequestService, AdminRequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddHttpClient<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IRoadConditionService, RoadConditionService>();
 builder.Services.AddScoped<IRoutingService, RoutingService>();

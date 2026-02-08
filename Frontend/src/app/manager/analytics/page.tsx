@@ -24,6 +24,7 @@ import type {
     CargoTypeAnalytics
 } from '@/types/analytics.types';
 import { formatCurrency } from '@/lib/utils/formatters';
+import { CARGO_TYPE_LABELS } from '@/lib/constants/trip.constants';
 import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function AnalyticsPage() {
@@ -189,7 +190,7 @@ export default function AnalyticsPage() {
                                     <InsightItem
                                         icon={Package}
                                         title="Топ категорія"
-                                        desc={cargo[0]?.cargoType || 'Немає даних'}
+                                        desc={CARGO_TYPE_LABELS[parseInt(cargo[0]?.cargoType) as keyof typeof CARGO_TYPE_LABELS] || cargo[0]?.cargoType || 'Немає даних'}
                                         sub={`${cargo[0]?.count || 0} рейсів виконано`}
                                     />
                                     <InsightItem
@@ -295,7 +296,9 @@ export default function AnalyticsPage() {
                                 </div>
                             </div>
 
-                            <h4 className="text-lg font-bold text-slate-900 mb-6">{item.cargoType}</h4>
+                            <h4 className="text-lg font-bold text-slate-900 mb-6">
+                                {CARGO_TYPE_LABELS[parseInt(item.cargoType) as keyof typeof CARGO_TYPE_LABELS] || item.cargoType}
+                            </h4>
 
                             <div className="space-y-4">
                                 <div className="flex justify-between items-end">

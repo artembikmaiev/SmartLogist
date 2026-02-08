@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
+    const { isAuthenticated, user } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
@@ -62,16 +64,16 @@ export default function Header() {
                         Адмін панель
                     </Link>
                     <Link
-                        href="/auth/manager"
+                        href={isAuthenticated && user?.role === 'manager' ? '/manager' : '/auth/manager'}
                         className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
                     >
-                        Кабінет менеджера
+                        {isAuthenticated && user?.role === 'manager' ? 'Мій кабінет' : 'Кабінет менеджера'}
                     </Link>
                     <Link
-                        href="/auth/driver"
+                        href={isAuthenticated && user?.role === 'driver' ? '/driver' : '/auth/driver'}
                         className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
-                        Вхід для водія
+                        {isAuthenticated && user?.role === 'driver' ? 'Мій профіль' : 'Вхід для водія'}
                     </Link>
                 </div>
             </div>

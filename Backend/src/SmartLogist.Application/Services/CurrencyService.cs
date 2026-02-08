@@ -1,17 +1,20 @@
 using System.Net.Http.Json;
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace SmartLogist.Application.Services;
 
 public class CurrencyService : ICurrencyService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<CurrencyService> _logger;
     private const string NbuApiUrl = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json";
 
-    public CurrencyService(HttpClient httpClient)
+    public CurrencyService(HttpClient httpClient, ILogger<CurrencyService> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<CurrencyDto>> GetExchangeRatesAsync()
@@ -50,8 +53,9 @@ public class CurrencyService : ICurrencyService
 
             return result;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error fetching currency rates from NBU");
             return Enumerable.Empty<CurrencyDto>();
         }
     }

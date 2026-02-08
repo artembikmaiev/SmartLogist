@@ -61,18 +61,19 @@ public class TripService : ITripService
         if (trip == null)
             throw new KeyNotFoundException("Рейс не знайдено");
 
-        trip.Accept(driverId);
+        if (trip.Status != TripStatus.Pending)
+            throw new InvalidOperationException("Рейс не можна прийняти в даному статусі");
+        
+        if (trip.DriverId != driverId)
+             throw new UnauthorizedAccessException("Цей рейс призначено іншому водію");
+
+        // trip.Accept(driverId) - REMOVED to avoid modifying entity state and causing potential tracking issues
         
         // Use direct atomic update to bypass partition key matching issues for status transition
         await _tripRepository.ChangeStatusAsync(tripId, TripStatus.Accepted);
 
         // Update driver status to OnTrip
-        var driver = await _userRepository.GetByIdAsync(driverId);
-        if (driver != null)
-        {
-            driver.DriverStatus = DriverStatus.OnTrip;
-            await _userRepository.UpdateAsync(driver);
-        }
+        await _userRepository.UpdateDriverStatusAsync(driverId, DriverStatus.OnTrip);
 
         await _activityService.LogAsync(
             driverId,
@@ -89,10 +90,17 @@ public class TripService : ITripService
         if (trip == null)
             throw new KeyNotFoundException("Рейс не знайдено");
 
-        trip.Decline(driverId);
+        if (trip.Status != TripStatus.Pending)
+            throw new InvalidOperationException("Рейс не можна відхилити в даному статусі");
+
+        if (trip.DriverId != driverId)
+             throw new UnauthorizedAccessException("Цей рейс призначено іншому водію");
 
         // Use direct atomic update 
         await _tripRepository.ChangeStatusAsync(tripId, TripStatus.Declined);
+        
+        // Ensure driver status is available (just in case)
+        await _userRepository.UpdateDriverStatusAsync(driverId, DriverStatus.Available);
 
         await _activityService.LogAsync(
             driverId,
@@ -241,47 +249,29 @@ public class TripService : ITripService
             trip.UpdateFuelStats(dto.ActualFuelConsumption.Value);
         }
 
-        if ((dto.Rating.HasValue || dto.ManagerReview != null) && trip.Status != TripStatus.Completed)
+        if (dto.Rating.HasValue || dto.ManagerReview != null)
         {
             trip.AddFeedback(dto.Rating, dto.ManagerReview);
         }
 
-        // Update Driver Status Side Effect
         if (statusChanged)
         {
-            var driver = await _userRepository.GetByIdAsync(trip.DriverId);
-            if (driver != null)
-            {
-                if (trip.Status == TripStatus.InTransit || trip.Status == TripStatus.Arrived)
-                    driver.DriverStatus = DriverStatus.OnTrip;
-                else if (trip.Status == TripStatus.Completed || trip.Status == TripStatus.Cancelled || trip.Status == TripStatus.Declined)
-                    driver.DriverStatus = DriverStatus.Available;
-                
-                await _userRepository.UpdateAsync(driver);
-            }
+            if (trip.Status == TripStatus.InTransit || trip.Status == TripStatus.Arrived)
+                await _userRepository.UpdateDriverStatusAsync(trip.DriverId, DriverStatus.OnTrip);
+            else if (trip.Status == TripStatus.Completed || trip.Status == TripStatus.Cancelled || trip.Status == TripStatus.Declined)
+                await _userRepository.UpdateDriverStatusAsync(trip.DriverId, DriverStatus.Available);
 
             // Mileage accounting for Completed trips
             if (trip.Status == TripStatus.Completed && trip.VehicleId.HasValue && !trip.IsMileageAccounted)
             {
-                var vehicle = await _vehicleRepository.GetByIdAsync(trip.VehicleId.Value);
-                if (vehicle != null)
-                {
-                    vehicle.TotalMileage += trip.CargoWeight > 0 ? trip.CargoWeight : 0; // Keeping original weird logic? Or correcting? 
-                    // Original: vehicle.TotalMileage += trip.CargoWeight > 0 ? trip.CargoWeight : 0; 
-                    // This seems like a bug in original code (adding weight to mileage??). 
-                    // Correcting to logic: Probably meant to just add Distance.
-                    // But to be safe and "refactor not rewrite logic", I should double check. 
-                    // Wait, audit said: "TotalMileage += trip.CargoWeight". That's definitely a bug.
-                    // I will fix it to: TotalMileage += DistanceKm.
-                    
-                    vehicle.TotalMileage += (float)trip.DistanceKm;
-                    trip.IsMileageAccounted = true;
-                    await _vehicleRepository.UpdateAsync(vehicle);
-                }
+                // Use atomic update for mileage to avoid change tracker conflicts with the driver/trip
+                await _vehicleRepository.UpdateMileageAsync(trip.VehicleId.Value, (float)trip.DistanceKm);
+                trip.IsMileageAccounted = true;
             }
         }
 
-        await _tripRepository.UpdateAsync(trip);
+        // Save all changes via the robust UpdateTripFieldsAsync
+        await _tripRepository.UpdateTripFieldsAsync(trip);
     }
 
     public async Task DeleteTripAsync(int tripId, int managerId)
@@ -336,6 +326,8 @@ public class TripService : ITripService
             ManagerReview = trip.Feedback?.ManagerReview,
             ManagerId = trip.ManagerId,
             ManagerName = trip.Manager?.FullName ?? "Адміністратор",
+            DriverId = trip.DriverId,
+            DriverName = trip.Driver?.FullName ?? "Не призначено",
             VehicleId = trip.VehicleId,
             VehicleModel = trip.Vehicle?.Model,
             VehicleLicensePlate = trip.Vehicle?.LicensePlate,

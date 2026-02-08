@@ -19,6 +19,7 @@ interface ProfileInfoCardProps {
 export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEditing, onSave, onStatusUpdate, role }: ProfileInfoCardProps) {
     const [formData, setFormData] = useState({
         fullName: '',
+        email: '',
         phone: '',
         licenseNumber: '',
         department: 'Відділ логістики'
@@ -29,6 +30,7 @@ export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEd
         if (user) {
             setFormData({
                 fullName: user.fullName || '',
+                email: user.email || '',
                 phone: user.phone || '',
                 licenseNumber: user.licenseNumber || '',
                 department: 'Відділ логістики'
@@ -93,7 +95,7 @@ export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEd
                     {isEditing ? <Input value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} icon={User} /> : <p className="font-bold text-slate-900">{user?.fullName}</p>}
                 </FormField>
                 <FormField label="Email" id="email">
-                    <p className="font-bold text-slate-900 flex items-center gap-2"><Mail className="w-4 h-4 text-slate-400" /> {user?.email}</p>
+                    {isEditing ? <Input value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} icon={Mail} /> : <p className="font-bold text-slate-900 flex items-center gap-2"><Mail className="w-4 h-4 text-slate-400" /> {user?.email}</p>}
                 </FormField>
                 <FormField label="Телефон" id="phone">
                     {isEditing ? <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} icon={Phone} /> : <p className="font-bold text-slate-900">{user?.phone || '—'}</p>}

@@ -17,6 +17,7 @@ public interface ITripRepository
     Task<decimal> GetTotalDistanceByDriverIdAsync(int driverId, int month, int year);
     Task<double?> GetAverageRatingByDriverIdAsync(int driverId);
     Task<Trip?> GetByOnlyIdAsync(int id);
+    Task UpdateTripFieldsAsync(Trip trip);
     Task DeleteAsync(int id, DateTime scheduledDeparture);
 }
  

@@ -166,14 +166,8 @@ public class DriverService : BaseService, IDriverService
 
     public async Task UpdateStatusAsync(int driverId, DriverStatus status)
     {
-        var driver = await _userRepository.GetDriverByIdAsync(driverId);
-        if (driver == null)
-        {
-            throw new KeyNotFoundException("Водія не знайдено");
-        }
-
-        driver.DriverStatus = status;
-        await _userRepository.UpdateAsync(driver);
+        // Use atomic update to avoid concurrency issues
+        await _userRepository.UpdateDriverStatusAsync(driverId, status);
 
         await _activityService.LogAsync(
             driverId,
@@ -361,8 +355,8 @@ public class DriverService : BaseService, IDriverService
             }
         }
 
-        driver.ManagerId = managerId;
-        await _userRepository.UpdateAsync(driver);
+        // Use atomic update to avoid persistence issues with tracked/navigation properties
+        await _userRepository.UpdateManagerAsync(driverId, managerId);
 
         string action = managerId.HasValue ? "Призначено менеджера" : "Відв'язано від менеджера";
         await _activityService.LogAsync(

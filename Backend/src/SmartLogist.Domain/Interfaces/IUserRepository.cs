@@ -1,4 +1,5 @@
 using SmartLogist.Domain.Entities;
+using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Domain.Interfaces;
 
@@ -25,4 +26,6 @@ public interface IUserRepository
     Task<User?> GetDriverByIdAsync(int driverId);
     Task<bool> IsDriverAssignedToManagerAsync(int driverId, int managerId);
     Task<int> GetDriversCountByManagerIdAsync(int managerId);
+    Task UpdateDriverStatusAsync(int driverId, DriverStatus status);
+    Task UpdateManagerAsync(int driverId, int? managerId);
 }

@@ -5,6 +5,7 @@ import Modal from '@/components/ui/Modal';
 import { MapPin, Package, Clock, DollarSign, Truck, Navigation, CheckCircle, Play, User, Fuel, Star } from 'lucide-react';
 import { Trip } from '@/types/trip.types';
 import { formatDate } from '@/lib/utils/date.utils';
+import { CARGO_TYPE_LABELS } from '@/lib/constants/trip.constants';
 import dynamic from 'next/dynamic';
 const Map = dynamic(() => import('./Map'), {
     ssr: false,
@@ -266,7 +267,7 @@ export default function TripDetailsModal({
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Назва та тип</p>
                                 <p className="font-black text-slate-900">{trip.cargoName || 'Не вказано'}</p>
                                 <span className="inline-block mt-1 px-2 py-0.5 bg-blue-600 text-white text-[10px] font-black rounded uppercase tracking-tighter">
-                                    {trip.cargoType}
+                                    {CARGO_TYPE_LABELS[parseInt(trip.cargoType || '0') as keyof typeof CARGO_TYPE_LABELS] || trip.cargoType}
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 gap-3">

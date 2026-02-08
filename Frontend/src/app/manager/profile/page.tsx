@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useState, useEffect } from 'react';
 import { currencyService } from '@/services/currency.service';
 import type { CurrencyRate } from '@/types/currency.types';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export default function ManagerProfilePage() {
     const { user, isEditing, setIsEditing, isSubmitting, activities, isLoadingActivities, updateProfile } = useProfile('manager');
@@ -81,7 +82,13 @@ export default function ManagerProfilePage() {
                                 <div key={rate.code} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group hover:border-blue-200 transition-all">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-xs">{rate.code === 'USD' ? '$' : '€'}</div>
-                                        <p className="font-black text-slate-900 text-xs tracking-widest">{rate.code}</p>
+                                        <div>
+                                            <p className="font-black text-slate-900 text-xs tracking-widest">{rate.code}</p>
+                                            <div className={`flex items-center gap-1 text-[10px] font-bold ${rate.change > 0 ? 'text-emerald-500' : rate.change < 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                                                {rate.change > 0 ? <TrendingUp className="w-3 h-3" /> : rate.change < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                                                <span>{Math.abs(rate.change).toFixed(2)}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <p className="font-black text-slate-900 text-sm">{rate.rate.toFixed(2)} <span className="text-[10px] text-slate-400">₴</span></p>
                                 </div>

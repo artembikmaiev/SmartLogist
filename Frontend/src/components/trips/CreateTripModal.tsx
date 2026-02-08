@@ -10,6 +10,7 @@ import { tripsService } from '@/services/trips.service';
 import { driversService } from '@/services/drivers.service';
 import { vehiclesService } from '@/services/vehicles.service';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { CARGO_TYPE_LABELS } from '@/lib/constants/trip.constants';
 import type { Driver } from '@/types/drivers.types';
 import type { Vehicle } from '@/types/vehicle.types';
 import { debounce } from 'lodash';
@@ -323,12 +324,9 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                         }));
                                     }}
                                 >
-                                    <option value={CargoType.Standard}>Стандартний</option>
-                                    <option value={CargoType.Fragile}>Крихкий</option>
-                                    <option value={CargoType.Hazardous}>Небезпечний (ADR)</option>
-                                    <option value={CargoType.Refrigerated}>Рефрижератор</option>
-                                    <option value={CargoType.Urgent}>Терміновий</option>
-                                    <option value={CargoType.Heavy}>Важкий</option>
+                                    {Object.entries(CARGO_TYPE_LABELS).map(([value, label]) => (
+                                        <option key={value} value={value}>{label}</option>
+                                    ))}
                                 </select>
                             </FormField>
                             <FormField label="Вага (тон)">

@@ -41,7 +41,7 @@ class TripsService extends BaseApiService<Trip, CreateTripDto, UpdateTripDto> {
     };
 
     deleteTrip = async (id: number): Promise<void> => {
-        return this.post(`${this.endpoint}/${id}/delete`, {});
+        return this.delete(id);
     };
 }
 

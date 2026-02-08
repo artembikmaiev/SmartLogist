@@ -189,4 +189,18 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .CountAsync(u => u.Role == UserRole.Driver && u.ManagerId == managerId);
     }
+
+    public async Task UpdateDriverStatusAsync(int driverId, DriverStatus status)
+    {
+        await _context.Users
+            .Where(u => u.Id == driverId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.DriverStatus, status));
+    }
+
+    public async Task UpdateManagerAsync(int driverId, int? managerId)
+    {
+        await _context.Users
+            .Where(u => u.Id == driverId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.ManagerId, managerId));
+    }
 }
