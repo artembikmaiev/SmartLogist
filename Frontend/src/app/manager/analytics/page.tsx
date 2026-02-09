@@ -102,8 +102,8 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Центр Аналітики</h1>
-                    <p className="text-slate-500 mt-1">Детальні звіти та інтелектуальні алгоритми оцінки ефективності</p>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Центр Аналітики</h1>
+                    <p className="text-slate-500 mt-1">Звіти та аналіз ефективності логістичних процесів</p>
                 </div>
 
                 <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
@@ -158,9 +158,9 @@ export default function AnalyticsPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Charts Area */}
-                        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs">Тренд прибутку та виручки</h3>
+                                <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Тренд прибутку та виручки</h3>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
                                         <div className="w-3 h-3 bg-blue-500 rounded-full"></div> Виручка
@@ -177,9 +177,9 @@ export default function AnalyticsPage() {
                         </div>
 
                         {/* Recent Insights */}
-                        <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl flex flex-col justify-between">
+                        <div className="bg-slate-50 rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
                             <div>
-                                <h3 className="font-black text-white/50 uppercase tracking-widest text-[10px] mb-6">AI Аналітика</h3>
+                                <h3 className="font-bold text-slate-400 uppercase tracking-widest text-[10px] mb-8">Аналітика</h3>
                                 <div className="space-y-6">
                                     <InsightItem
                                         icon={Award}
@@ -201,21 +201,15 @@ export default function AnalyticsPage() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="mt-8 pt-8 border-t border-white/10">
-                                <p className="text-[10px] text-white/30 leading-relaxed">
-                                    *Алгоритми базуються на історичних даних за останні 6 місяців з використанням лінійної регресії
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </>
             )}
 
             {activeTab === 'drivers' && (
-                <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                        <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs">Рейтинг ефективності водіїв</h3>
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Рейтинг водіїв</h3>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
@@ -230,11 +224,11 @@ export default function AnalyticsPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-slate-50">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Водій</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Виконано</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Сер. Оцінка</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Профіт за весь час</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Індекс Ефективності</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Водій</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Виконано</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Сер. Оцінка</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Профіт за весь час</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Індекс Ефективності</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
@@ -271,7 +265,7 @@ export default function AnalyticsPage() {
                                                         style={{ width: `${driver.efficiencyScore}%` }}
                                                     ></div>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-900">{driver.efficiencyScore}%</span>
+                                                <span className="text-sm font-bold text-slate-900">{driver.efficiencyScore}%</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -291,8 +285,8 @@ export default function AnalyticsPage() {
                                     <Package className="w-6 h-6" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Виконано рейсів</p>
-                                    <p className="text-xl font-black text-slate-900">{item.count}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Виконано рейсів</p>
+                                    <p className="text-xl font-bold text-slate-900">{item.count}</p>
                                 </div>
                             </div>
 
@@ -353,15 +347,14 @@ function MetricCard({
                     <Icon className="w-5 h-5" />
                 </div>
                 {trend && (
-                    <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${trendDown ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
-                        }`}>
+                    <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${trendDown ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
                         {trendDown ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
                         {trend}
                     </div>
                 )}
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</p>
-            <p className="text-2xl font-black text-slate-900 mt-1 tracking-tight">{value}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{value}</p>
         </div>
     );
 }
@@ -369,43 +362,48 @@ function MetricCard({
 function InsightItem({ icon: Icon, title, desc, sub }: { icon: any, title: string, desc: string, sub: string }) {
     return (
         <div className="flex items-start gap-4">
-            <div className="mt-1 p-2 bg-white/10 rounded-xl">
+            <div className="mt-1 p-2 bg-white border border-slate-200 rounded-xl text-slate-400">
                 <Icon className="w-4 h-4" />
             </div>
             <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{title}</p>
-                <p className="font-bold text-white tracking-tight">{desc}</p>
-                <p className="text-[10px] text-white/60 mt-0.5">{sub}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
+                <p className="font-bold text-slate-900 tracking-tight">{desc}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{sub}</p>
             </div>
         </div>
     );
 }
 
 function SimpleTrendChart({ data }: { data: MonthlyTrend[] }) {
-    if (data.length < 2) {
+    if (data.length === 0) {
         return (
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
                 <Calendar className="w-8 h-8 opacity-20" />
-                <p className="text-sm">Недостатньо даних для графіку</p>
+                <p className="text-sm">Дані відсутні</p>
             </div>
         );
     }
 
-    const maxVal = Math.max(...data.map(d => d.revenue)) * 1.1;
+    const rawMax = Math.max(...data.map(d => Math.max(d.revenue, d.profit)));
+    const maxVal = rawMax === 0 ? 1000 : rawMax * 1.1;
     const padding = 40;
     const width = 800;
     const height = 250;
 
     // Revenue Path
     const revPoints = data.map((d, i) => {
-        const x = (i / (data.length - 1)) * (width - 2 * padding) + padding;
+        const x = data.length === 1
+            ? width / 2
+            : (i / (data.length - 1)) * (width - 2 * padding) + padding;
         const y = height - ((d.revenue / maxVal) * (height - 2 * padding)) - padding;
         return `${x},${y}`;
     });
 
     // Profit Path
     const profitPoints = data.map((d, i) => {
-        const x = (i / (data.length - 1)) * (width - 2 * padding) + padding;
+        const x = data.length === 1
+            ? width / 2
+            : (i / (data.length - 1)) * (width - 2 * padding) + padding;
         const y = height - ((d.profit / maxVal) * (height - 2 * padding)) - padding;
         return `${x},${y}`;
     });
@@ -431,7 +429,9 @@ function SimpleTrendChart({ data }: { data: MonthlyTrend[] }) {
 
                 {/* X Axis Labels */}
                 {data.map((d, i) => {
-                    const x = (i / (data.length - 1)) * (width - 2 * padding) + padding;
+                    const x = data.length === 1
+                        ? width / 2
+                        : (i / (data.length - 1)) * (width - 2 * padding) + padding;
                     return (
                         <text key={i} x={x} y={height - 10} textAnchor="middle" className="text-[10px] fill-slate-400 font-bold">
                             {d.month.split(' ')[0]}

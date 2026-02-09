@@ -54,7 +54,7 @@ export default function ManagerTripsPage() {
       key: 'id',
       render: (trip) => (
         <div className="py-1">
-          <p className="text-sm font-black text-slate-900 leading-none">#{trip.id}</p>
+          <p className="text-sm font-bold text-slate-900 leading-none">#{trip.id}</p>
           <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
             {formatDate(trip.scheduledDeparture).split(',')[0]} о {formatDate(trip.scheduledDeparture).split(',')[1]?.trim()}
           </p>
@@ -82,7 +82,7 @@ export default function ManagerTripsPage() {
         <div className="py-1">
           <p className="text-sm font-bold text-slate-900">{trip.cargoName || '—'}</p>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase tracking-widest border border-blue-100">
+            <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-widest border border-blue-100">
               {CARGO_TYPE_LABELS[parseInt(trip.cargoType as unknown as string)] || trip.cargoType}
             </span>
             <span className="text-[10px] text-slate-400 font-bold">
@@ -124,10 +124,10 @@ export default function ManagerTripsPage() {
       key: 'paymentAmount',
       render: (trip) => (
         <div className="text-right py-1">
-          <p className="text-sm font-black text-slate-900">
+          <p className="text-sm font-bold text-slate-900">
             {trip.paymentAmount.toLocaleString()} <span className="text-[10px] text-slate-500 ml-0.5">UAH</span>
           </p>
-          <p className={`text-[10px] font-black mt-1 ${(trip.expectedProfit || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+          <p className={`text-[10px] font-bold mt-1 ${(trip.expectedProfit || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
             Прибуток: {trip.expectedProfit?.toLocaleString() || 0} ₴
           </p>
         </div>
@@ -164,9 +164,9 @@ export default function ManagerTripsPage() {
   }
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
+    <div className="p-8 bg-slate-50 min-h-screen animate-in fade-in duration-500">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Управління рейсами</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Управління рейсами</h1>
         {permissions?.create && (
           <Button onClick={() => setIsCreateOpen(true)} icon={<span className="text-lg">+</span>}>
             Створити рейс
@@ -180,9 +180,9 @@ export default function ManagerTripsPage() {
         <StatCard title="Завершено сьогодні" value={stats?.completedTripsTodayCount || '0'} icon={CheckCircle} color="green" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 pb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Список рейсів</h2>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Список рейсів</h2>
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
             <input
@@ -190,7 +190,7 @@ export default function ManagerTripsPage() {
               placeholder="Пошук рейсів..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-[300px] pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all"
+              className="w-[300px] pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all font-bold"
             />
           </div>
         </div>
