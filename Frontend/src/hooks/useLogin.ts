@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-export function useLogin(role: 'driver' | 'manager') {
+export function useLogin(role: 'driver' | 'manager' | 'admin') {
     const router = useRouter();
     const { login } = useAuth();
     const [email, setEmail] = useState('');

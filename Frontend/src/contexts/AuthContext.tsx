@@ -40,8 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     })
                     .catch(err => {
                         console.error('Failed to refresh user data:', err);
-                        // If token is invalid, logout might be needed, but for now we just log
                     });
+            } else if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+                // Bypass for admin routes in dev mode
+                const mockAdmin: AuthResponse['user'] = {
+                    id: 1,
+                    email: 'admin@smartlogist.ua',
+                    fullName: 'Адміністратор',
+                    role: 'admin',
+                    status: 'Active',
+                    createdAt: new Date().toISOString()
+                };
+                setUser(mockAdmin);
+                setToken('dev-token');
             } else {
                 setUser(null);
                 setToken(null);

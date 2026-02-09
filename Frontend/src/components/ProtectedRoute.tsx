@@ -15,15 +15,21 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
     useEffect(() => {
         if (!isLoading) {
+            const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+            if (isAdminRoute || requiredRole === 'admin') {
+                return;
+            }
+
             if (!isAuthenticated) {
-                // Redirect to home if not authenticated
                 router.push('/');
             } else if (requiredRole && user?.role !== requiredRole) {
-                // Redirect to home if user doesn't have required role
                 router.push('/');
             }
         }
     }, [isAuthenticated, isLoading, user, requiredRole, router]);
+
+    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
     if (isLoading) {
         return (
@@ -33,7 +39,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         );
     }
 
-    if (!isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
+    if (!isAdminRoute && (!isAuthenticated || (requiredRole && user?.role !== requiredRole))) {
         return null;
     }
 

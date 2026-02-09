@@ -144,7 +144,7 @@ export default function AdminManagersPage() {
             className: 'text-right',
             render: (m) => (
                 <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleEditOpen(m)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <button onClick={() => handleEditOpen(m)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDeleteOpen(m)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -158,7 +158,7 @@ export default function AdminManagersPage() {
     const stats = [
         { label: 'Всього менеджерів', value: allItems.length, color: 'purple', icon: Shield },
         { label: 'Активних', value: allItems.filter(m => m.isActive).length, color: 'green', icon: User },
-        { label: 'Водіїв під управлінням', value: allItems.reduce((sum, m) => sum + m.activeDriversCount, 0), color: 'blue', icon: Shield },
+        { label: 'Водіїв під управлінням', value: allItems.reduce((sum, m) => sum + m.activeDriversCount, 0), color: 'purple', icon: Shield },
     ];
 
     return (

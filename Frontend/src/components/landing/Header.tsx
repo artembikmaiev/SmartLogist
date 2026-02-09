@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, login, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -61,20 +63,28 @@ export default function Header() {
                         href="/admin/managers"
                         className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
                     >
-                        Адмін панель
+                        {isAuthenticated && user?.role === 'admin' ? 'Кабінет адміна' : 'Панель адміна'}
                     </Link>
                     <Link
                         href={isAuthenticated && user?.role === 'manager' ? '/manager' : '/auth/manager'}
                         className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
                     >
-                        {isAuthenticated && user?.role === 'manager' ? 'Мій кабінет' : 'Кабінет менеджера'}
+                        {isAuthenticated && user?.role === 'manager' ? 'Кабінет менеджера' : 'Вхід для менеджера'}
                     </Link>
                     <Link
                         href={isAuthenticated && user?.role === 'driver' ? '/driver' : '/auth/driver'}
                         className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
                     >
-                        {isAuthenticated && user?.role === 'driver' ? 'Мій профіль' : 'Вхід для водія'}
+                        {isAuthenticated && user?.role === 'driver' ? 'Кабінет водія' : 'Вхід для водія'}
                     </Link>
+                    {isAuthenticated && (
+                        <button
+                            onClick={() => logout()}
+                            className="text-slate-400 hover:text-red-600 transition-colors text-sm font-medium ml-2"
+                        >
+                            Вихід
+                        </button>
+                    )}
                 </div>
             </div>
         </header>

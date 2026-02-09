@@ -3,16 +3,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Users, Shield, UserCog, LogOut, Settings, Bell, X, Check, Info, AlertCircle, Clock, MessageSquare, Trash2, Loader2, Truck } from 'lucide-react';
+import { Shield, Users, UserCog, Truck, MessageSquare, Bell, LogOut, Trash2, Loader2, Check, X, Info, AlertCircle, Clock } from 'lucide-react';
 import { notificationsService, Notification } from '@/services/notifications.service';
 import { formatDateTime } from '@/lib/utils/date.utils';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useRouter } from 'next/navigation';
 
-export default function AdminLayout({
+function AdminLayoutContent({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const { user, logout } = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -79,6 +84,11 @@ export default function AdminLayout({
     };
 
     const isActive = (href: string) => pathname === href;
+
+    const handleLogout = async () => {
+        await logout();
+        router.push('/');
+    };
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -234,20 +244,22 @@ export default function AdminLayout({
 
                         <Link href="/admin/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-2 border-l border-slate-200">
                             <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-semibold text-sm">АД</span>
+                                <span className="text-white font-semibold text-sm">
+                                    {user?.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'A'}
+                                </span>
                             </div>
                             <div className="hidden md:block">
-                                <p className="text-sm font-medium text-slate-900">Адміністратор</p>
-                                <p className="text-xs text-slate-500">Admin</p>
+                                <p className="text-sm font-medium text-slate-900">{user?.fullName || 'Адміністратор'}</p>
+                                <p className="text-xs text-slate-500">{user?.role || 'Admin'}</p>
                             </div>
                         </Link>
-                        <Link
-                            href="/"
+                        <button
+                            onClick={handleLogout}
                             className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors"
                         >
                             <LogOut className="w-5 h-5" />
                             <span className="hidden md:inline">Вийти</span>
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </header>
@@ -290,5 +302,17 @@ export default function AdminLayout({
                 </div>
             )}
         </div>
+    );
+}
+
+export default function AdminLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <ProtectedRoute>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </ProtectedRoute>
     );
 }

@@ -23,6 +23,8 @@ interface CreateTripModalProps {
 const FUEL_PRICE = 58; // грн/літр (дизель Україна)
 const DRIVER_RATE_PER_KM = 7; // грн/км (заробіток водія)
 const BASE_PAYMENT_RATE = 35; // грн/км (ринкова ставка)
+const WEIGHT_SURCHARGE_PER_TON = 0.02; // +2% за кожну тону
+const DRIVER_SURCHARGE_SHARE = 0.4; // 40% надбавки йде водію
 
 // Помічник для форматування дати у локальний рядок ISO для datetime-local
 const toLocalISOString = (date: Date) => {
@@ -91,13 +93,21 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
     const fuelCost = Math.round((formData.distanceKm * (selectedVehicle?.fuelConsumption || 0) / 100) * FUEL_PRICE);
     const baseDriverSalary = Math.round(formData.distanceKm * DRIVER_RATE_PER_KM);
 
-    // Розрахунок надбавки за тип вантажу
-    const cargoSurchargePercent = SURCHARGES[formData.cargoType] || 0;
-    const basePayout = Math.round(formData.distanceKm * BASE_PAYMENT_RATE);
-    const surchargeAmount = Math.round(basePayout * cargoSurchargePercent);
+    // Розрахунок надбавок
+    const cargoSurchargeRate = SURCHARGES[formData.cargoType] || 0;
+    const weightSurchargeRate = formData.cargoWeight * WEIGHT_SURCHARGE_PER_TON;
+    const totalSurchargeRate = cargoSurchargeRate + weightSurchargeRate;
 
-    const driverSalary = baseDriverSalary + surchargeAmount;
+    const basePayout = Math.round(formData.distanceKm * BASE_PAYMENT_RATE);
+    const totalSurchargeAmount = Math.round(basePayout * totalSurchargeRate);
+
+    // Розподіл надбавки
+    const driverSurcharge = Math.round(totalSurchargeAmount * DRIVER_SURCHARGE_SHARE);
+    const driverSalary = baseDriverSalary + driverSurcharge;
+
     const expectedProfit = formData.paymentAmount - fuelCost - driverSalary;
+    const totalCosts = fuelCost + driverSalary;
+    const roi = totalCosts > 0 ? (expectedProfit / totalCosts) * 100 : 0;
 
     useEffect(() => {
         fetchDriversAndVehicles();
@@ -208,8 +218,9 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
         }
 
         const base = Math.round(distanceKm * BASE_PAYMENT_RATE);
-        const surcharge = SURCHARGES[formData.cargoType] || 0;
-        const totalSuggested = Math.round(base * (1 + surcharge));
+        const cargoSurcharge = SURCHARGES[formData.cargoType] || 0;
+        const weightSurcharge = formData.cargoWeight * WEIGHT_SURCHARGE_PER_TON;
+        const totalSuggested = Math.round(base * (1 + cargoSurcharge + weightSurcharge));
 
         setFormData(prev => ({
             ...prev,
@@ -320,7 +331,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                             ...prev,
                                             cargoType: newType,
                                             // Оновлюємо суму якщо вона була розрахована автоматично
-                                            paymentAmount: Math.round((prev.distanceKm * BASE_PAYMENT_RATE) * (1 + surcharge))
+                                            paymentAmount: Math.round((prev.distanceKm * BASE_PAYMENT_RATE) * (1 + SURCHARGES[newType] + prev.cargoWeight * WEIGHT_SURCHARGE_PER_TON))
                                         }));
                                     }}
                                 >
@@ -334,7 +345,14 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                     type="number"
                                     step="0.1"
                                     value={formData.cargoWeight}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, cargoWeight: parseFloat(e.target.value) }))}
+                                    onChange={(e) => {
+                                        const weight = parseFloat(e.target.value) || 0;
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            cargoWeight: weight,
+                                            paymentAmount: Math.round((prev.distanceKm * BASE_PAYMENT_RATE) * (1 + SURCHARGES[prev.cargoType] + weight * WEIGHT_SURCHARGE_PER_TON))
+                                        }));
+                                    }}
                                     required
                                 />
                             </FormField>
@@ -402,7 +420,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                             <div className="bg-slate-800/80 p-3 rounded-lg border border-slate-700/50">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block text-left">Ставка за рейс (Виплата)</label>
                                 <div className="flex items-center">
-                                    <DollarSign className="w-5 h-5 text-emerald-400 mr-2" />
+                                    <span className="text-emerald-400 text-xl font-black mr-2">₴</span>
                                     <input
                                         type="number"
                                         value={formData.paymentAmount}
@@ -428,15 +446,22 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                     </div>
                                     <div className="text-[9px] text-slate-600">
                                         {DRIVER_RATE_PER_KM} ₴/км
-                                        {surchargeAmount > 0 && ` + надбавка (${(cargoSurchargePercent * 100).toFixed(0)}%)`}
+                                        {driverSurcharge > 0 && ` + надбавка (${(totalSurchargeRate * 100).toFixed(0)}%)`}
                                     </div>
                                 </div>
                             </div>
 
-                            {cargoSurchargePercent > 0 && (
+                            {totalSurchargeRate > 0 && (
                                 <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg flex justify-between items-center mx-1">
-                                    <span className="text-[10px] font-bold text-blue-400 uppercase">Надбавка за тип вантажу (+{(cargoSurchargePercent * 100).toFixed(0)}%)</span>
-                                    <span className="text-xs font-black text-blue-300">+{surchargeAmount.toLocaleString()} ₴</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-blue-400 uppercase">
+                                            Надбавки (+{(totalSurchargeRate * 100).toFixed(0)}%)
+                                        </span>
+                                        <span className="text-[8px] text-blue-300/70 uppercase">
+                                            Тип: +{(cargoSurchargeRate * 100).toFixed(0)}% | Вага: +{(weightSurchargeRate * 100).toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <span className="text-xs font-black text-blue-300">+{totalSurchargeAmount.toLocaleString()} ₴</span>
                                 </div>
                             )}
 

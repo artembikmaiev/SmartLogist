@@ -215,7 +215,7 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel, error }: Vehi
 
             <div className="flex gap-3 mt-6">
                 <Button variant="secondary" onClick={onCancel} className="flex-1">Скасувати</Button>
-                <Button type="submit" className="flex-1">{isEdit ? 'Зберегти зміни' : 'Додати транспорт'}</Button>
+                <Button type="submit" variant="purple" className="flex-1">{isEdit ? 'Зберегти зміни' : 'Додати транспорт'}</Button>
             </div>
         </form>
     );

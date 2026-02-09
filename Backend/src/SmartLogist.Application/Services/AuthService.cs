@@ -17,18 +17,40 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
     {
+        var email = loginDto.Email.Trim().ToLower();
+        var password = loginDto.Password.Trim();
+
         // Знайти користувача за електронною адресою
-        var user = await _userRepository.GetByEmailAsync(loginDto.Email);
+        var user = await _userRepository.GetByEmailAsync(email);
         
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Невірний email або пароль");
+            throw new UnauthorizedAccessException("Користувача з таким email не знайдено");
         }
 
-        // Підтвердіти пароль
-        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+        // Підтвердіти пароль (строга перевірка через БД)
+        try
         {
-            throw new UnauthorizedAccessException("Невірний email або пароль");
+            var dbHash = user.PasswordHash?.Trim();
+            if (string.IsNullOrEmpty(dbHash))
+            {
+                throw new UnauthorizedAccessException("Пароль у базі даних пустий. Будь ласка, встановіть пароль.");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(password, dbHash))
+            {
+                throw new UnauthorizedAccessException("Невірний пароль");
+            }
+        }
+        catch (UnauthorizedAccessException) 
+        { 
+            // Прокидаємо помилку "Невірний пароль" без змін
+            throw; 
+        }
+        catch (Exception ex)
+        {
+            // Якщо хеш у БД має невірний формат, BCrypt викине помилку
+            throw new UnauthorizedAccessException($"Помилка перевірки пароля через BCrypt: {ex.Message}");
         }
 
         // Перевірити, чи користувач активний

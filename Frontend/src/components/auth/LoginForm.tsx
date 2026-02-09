@@ -5,7 +5,7 @@ import Input from '@/components/ui/Input';
 import { useLogin } from '@/hooks/useLogin';
 
 interface LoginFormProps {
-    role: 'driver' | 'manager';
+    role: 'driver' | 'manager' | 'admin';
     title: string;
     subtitle: string;
     gradientFrom: string;
@@ -63,9 +63,24 @@ export default function LoginForm({ role, title, subtitle, gradientFrom, placeho
                     </form>
 
                     <div className="mt-6 text-center space-y-2">
-                        <Link href={role === 'driver' ? '/auth/manager' : '/auth/driver'} className="text-sm text-blue-600 hover:text-blue-700 block transition-colors">
-                            Увійти як {role === 'driver' ? 'менеджер' : 'водій'}
-                        </Link>
+                        {role === 'admin' ? (
+                            <>
+                                <Link href="/auth/manager" className="text-sm text-blue-600 hover:text-blue-700 block transition-colors">
+                                    Увійти як менеджер
+                                </Link>
+                                <Link href="/auth/driver" className="text-sm text-blue-600 hover:text-blue-700 block transition-colors">
+                                    Увійти як водій
+                                </Link>
+                            </>
+                        ) : role === 'driver' ? (
+                            <Link href="/auth/manager" className="text-sm text-blue-600 hover:text-blue-700 block transition-colors">
+                                Увійти як менеджер
+                            </Link>
+                        ) : (
+                            <Link href="/auth/driver" className="text-sm text-blue-600 hover:text-blue-700 block transition-colors">
+                                Увійти як водій
+                            </Link>
+                        )}
                         <Link href="/" className="text-sm text-slate-500 hover:text-slate-700 block transition-colors">Повернутися на головну</Link>
                     </div>
                 </div>

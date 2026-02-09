@@ -264,7 +264,7 @@ export default function AdminDriversPage() {
                     >
                         <LinkIcon className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleEditOpen(driver)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <button onClick={() => handleEditOpen(driver)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDeleteOpen(driver)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" disabled={driver.hasPendingDeletion}>
@@ -290,8 +290,8 @@ export default function AdminDriversPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard title="Всього водіїв" value={stats?.totalDrivers || 0} color="purple" icon={UserCog} />
                 <StatCard title="Вільні" value={stats?.availableDrivers || 0} color="green" icon={Check} />
-                <StatCard title="На рейсі" value={stats?.onTripDrivers || 0} color="blue" icon={Truck} />
-                <StatCard title="Офлайн" value={stats?.offlineDrivers || 0} color="blue" icon={X} />
+                <StatCard title="На рейсі" value={stats?.onTripDrivers || 0} color="purple" icon={Truck} />
+                <StatCard title="Офлайн" value={stats?.offlineDrivers || 0} color="purple" icon={X} />
             </div>
 
             <FilterBar

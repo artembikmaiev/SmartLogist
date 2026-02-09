@@ -46,7 +46,7 @@ public class ExceptionHandlingMiddleware
         var statusCode = exception switch
         {
             KeyNotFoundException => HttpStatusCode.NotFound,
-            UnauthorizedAccessException => HttpStatusCode.Forbidden,
+            UnauthorizedAccessException => HttpStatusCode.Unauthorized,
             InvalidOperationException or DbUpdateException => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
@@ -66,9 +66,9 @@ public class ExceptionHandlingMiddleware
     {
         // For 500 errors, hide details in production. For now, we return the message.
         // For other known errors, return the exception message properly.
-        if (statusCode == HttpStatusCode.Forbidden)
+        if (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden)
         {
-            return "У вас недостатньо прав для виконання цієї дії.";
+            return exception.Message;
         }
 
         // For DbUpdateException, include inner exception details for debugging
@@ -77,8 +77,13 @@ public class ExceptionHandlingMiddleware
             return $"{exception.Message} | Inner: {dbEx.InnerException.Message}";
         }
 
-        return statusCode == HttpStatusCode.InternalServerError 
-            ? "Виникла внутрішня помилка сервера. Будь ласка, спробуйте пізніше або зверніться до підтримки." 
-            : exception.Message;
+        if (statusCode == HttpStatusCode.InternalServerError)
+        {
+            // For debugging, returning the actual message if it's not production
+            // In a real production app, you'd check environment here
+            return $"Виникла внутрішня помилка сервера: {exception.Message}. {(exception.InnerException != null ? "Inner: " + exception.InnerException.Message : "")}";
+        }
+
+        return exception.Message;
     }
 }

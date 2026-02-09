@@ -138,6 +138,7 @@ export default function DriverForm({ driver, onSubmit, onCancel, error, isAdmin 
                 </Button>
                 <Button
                     type="submit"
+                    variant="purple"
                     className="flex-1"
                 >
                     {driver ? 'Зберегти зміни' : 'Додати водія'}

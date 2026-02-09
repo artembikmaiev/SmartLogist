@@ -147,7 +147,7 @@ export default function AdminVehiclesPage() {
             className: 'text-right',
             render: (v) => (
                 <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleEditOpen(v)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                    <button onClick={() => handleEditOpen(v)} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
                         <Edit className="w-5 h-5" />
                     </button>
                     <button onClick={() => handleDeleteOpen(v)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
