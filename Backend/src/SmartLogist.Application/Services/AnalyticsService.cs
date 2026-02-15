@@ -1,3 +1,4 @@
+// Сервіс для генерації аналітичних звітів та розрахунку ключових показників ефективності логістики.
 using SmartLogist.Application.DTOs.Analytics;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Enums;
@@ -90,22 +91,22 @@ public class AnalyticsService : BaseService, IAnalyticsService
 
             if (!driverTrips.Any()) continue;
 
-            // ALGORITHM: Driver Efficiency Score
-            // Factors: 
-            // 1. Fuel Efficiency (Actual vs Vehicle Baseline) - 60%
-            // 2. Ratings - 40%
-            
+            // АЛГОРИТМ: Оцінка ефективності водія
+            // Фактори: 
+            // 1. Ефективність використання палива (фактична проти базової для автомобіля) — 60 %
+            // 2. Рейтинги — 40 %
+
             double fuelEfficiencyScore = 0;
             var tripsWithConsumption = driverTrips.Where(t => t.ActualFuelConsumption.HasValue && t.Vehicle != null).ToList();
             if (tripsWithConsumption.Any())
             {
-                // Ratio of (Baseline / Actual). Higher is better. 1.0 means perfect matching.
+                // Співвідношення (базове значення / фактичне значення). Чим вище, тим краще. 1,0 означає ідеальну відповідність.
                 var efficiencyRatio = tripsWithConsumption.Average(t => (double)t.Vehicle!.FuelConsumption / t.ActualFuelConsumption!.Value);
                 fuelEfficiencyScore = Math.Min(100, efficiencyRatio * 100);
             }
             else
             {
-                fuelEfficiencyScore = 70; // Neutral score if no fuel data
+                fuelEfficiencyScore = 70; // Нейтральний результат, якщо немає даних про паливо
             }
 
             var avgRating = driverTrips.Where(t => t.Feedback?.Rating.HasValue == true).Select(t => (double)t.Feedback!.Rating!.Value).DefaultIfEmpty(3).Average();

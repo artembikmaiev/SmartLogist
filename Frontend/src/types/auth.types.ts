@@ -1,3 +1,4 @@
+// Цей файл містить описи інтерфейсів для даних аутентифікації, включаючи облікові дані та відповіді сервера.
 export interface LoginCredentials {
     email: string;
     password: string;

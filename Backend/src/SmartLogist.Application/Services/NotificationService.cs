@@ -1,3 +1,4 @@
+// Сервіс, відповідальний за логіку створення та доставку внутрішньосистемних сповіщень.
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

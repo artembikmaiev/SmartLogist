@@ -1,3 +1,4 @@
+// Головна сторінка веб-додатка SmartLogist, що слугує лендінгом для нових користувачів.
 import Header from '@/components/landing/Header';
 import Hero from '@/components/landing/Hero';
 import Features from '@/components/landing/Features';

@@ -1,5 +1,6 @@
 'use client';
 
+// Компонент вищого порядку для захисту маршрутів від неавторизованого доступу на основі ролей.
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';

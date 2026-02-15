@@ -1,3 +1,4 @@
+// Компонент заголовка сторінки, що відображає назву розділу, опис та додаткові дії.
 import React from 'react';
 import { Plus, RotateCcw } from 'lucide-react';
 import Button from './Button';

@@ -1,3 +1,6 @@
+// Інтерфейс сервісу для створення та надсилання сповіщень користувачам системи.
+using SmartLogist.Domain.Entities;
+
 namespace SmartLogist.Application.Interfaces;
 
 public interface INotificationService

@@ -1,3 +1,4 @@
+// Компонент "Заклик до дії" (CTA) для залучення нових користувачів до реєстрації в системі.
 import Link from 'next/link';
 
 export default function CTA() {

@@ -1,3 +1,4 @@
+// Цей файл містить налаштований клієнт для здійснення HTTP-запитів до API з автоматичною обробкою токенів.
 import { API_CONFIG } from '@/config/api.config';
 
 class ApiClient {
@@ -36,17 +37,17 @@ class ApiClient {
             const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
             if (!response.ok) {
-                // Read response text first
+                // Спочатку прочитайте текст відповіді
                 const responseText = await response.text();
                 let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
-                // Try to parse as JSON
+                // Спробуйте розпарсити як JSON
                 if (responseText) {
                     try {
                         const errorData = JSON.parse(responseText);
                         errorMessage = errorData.message || errorData.Message || responseText;
                     } catch {
-                        // If not JSON, use the text directly
+                        // Якщо це не JSON, використовуйте текст безпосередньо
                         errorMessage = responseText;
                     }
                 }
@@ -54,7 +55,7 @@ class ApiClient {
                 throw new Error(errorMessage);
             }
 
-            // Handle 204 No Content responses
+            // Обробка відповідей 204 No Content
             if (response.status === 204 || response.headers.get('content-length') === '0') {
                 return undefined as T;
             }

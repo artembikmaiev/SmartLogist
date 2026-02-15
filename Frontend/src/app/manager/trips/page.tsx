@@ -1,5 +1,6 @@
-"use client";
+'use client';
 
+// Сторінка менеджера для моніторингу та управління рейсами, призначеними йому для контролю.
 import { useState } from 'react';
 import { Clock, CheckCircle, Truck, Search, Trash } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';

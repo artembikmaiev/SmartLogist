@@ -1,4 +1,5 @@
 'use client';
+// Компонент-обгортка, що об'єднує всі провайдери контексту (авторизація, сповіщення тощо) для додатку.
 
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';

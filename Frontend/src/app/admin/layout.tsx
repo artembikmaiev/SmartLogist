@@ -8,6 +8,7 @@ import { notificationsService, Notification } from '@/services/notifications.ser
 import { formatDateTime } from '@/lib/utils/date.utils';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+// Макет панелі адміністратора, що містить бокову панелі навігації та захист маршрутів.
 import { useRouter } from 'next/navigation';
 
 function AdminLayoutContent({

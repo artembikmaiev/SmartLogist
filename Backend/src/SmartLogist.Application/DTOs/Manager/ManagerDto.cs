@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для відображення детальної інформації про менеджера.
 namespace SmartLogist.Application.DTOs.Manager;
 
 public class ManagerDto

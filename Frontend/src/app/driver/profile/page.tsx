@@ -1,5 +1,7 @@
 'use client';
 
+// Сторінка персонального профілю водія з можливістю перегляду та подання запитів на зміну даних.
+
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
 import ActivitySidebar from '@/components/profile/ActivitySidebar';
 import FuelPricesCard from '@/components/profile/FuelPricesCard';

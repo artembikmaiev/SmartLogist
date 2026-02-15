@@ -1,3 +1,4 @@
+// Контролер для повного управління життєвим циклом рейсів, від планування до завершення.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Trip;
@@ -78,7 +79,7 @@ public class TripsController : BaseApiController
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTrip(int id, [FromBody] UpdateTripDto dto)
     {
-        // Simple validation: drivers can update their trips, managers can update any trip
+        // Проста перевірка: водії можуть оновлювати свої поїздки, менеджери можуть оновлювати будь-яку поїздку
         await _tripService.UpdateTripAsync(id, dto);
         return Ok(new { Message = "Рейс оновлено" });
     }

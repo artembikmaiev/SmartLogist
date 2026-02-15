@@ -1,3 +1,4 @@
+// Цей файл містить конфігурацію сутності маршруту рейсу для Entity Framework Core.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -10,7 +11,7 @@ public class TripRouteConfiguration : IEntityTypeConfiguration<TripRoute>
     {
         builder.ToTable("trip_routes");
         
-        // Composite Key matching partitioned Trips
+        // Складений ключ, що відповідає секціонованим рейсам
         builder.HasKey(tr => new { tr.TripId, tr.DepartureTime });
         
         builder.Property(tr => tr.TripId).HasColumnName("trip_id");

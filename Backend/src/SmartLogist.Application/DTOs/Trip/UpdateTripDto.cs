@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для оновлення параметрів існуючого рейсу.
 using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Application.DTOs.Trip;

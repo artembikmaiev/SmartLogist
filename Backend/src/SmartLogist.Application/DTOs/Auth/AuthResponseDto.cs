@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для відповіді сервера при успішній аутентифікації, що містить токен і дані користувача.
 namespace SmartLogist.Application.DTOs.Auth;
 
 public class AuthResponseDto

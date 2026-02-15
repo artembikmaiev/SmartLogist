@@ -1,3 +1,4 @@
+// Спеціалізований хук для управління станом та операціями з даними водіїв (отримання, створення, оновлення).
 import { useState, useMemo, useCallback } from 'react';
 import { driversService } from '@/services/drivers.service';
 import { requestsService, AdminRequest, RequestStatus, RequestType } from '@/services/requests.service';

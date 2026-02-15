@@ -1,3 +1,4 @@
+// Об'єкт передачі даних, що описує конкретний дозвіл, наданий менеджеру.
 namespace SmartLogist.Application.DTOs.Manager;
 
 public class ManagerPermissionDto

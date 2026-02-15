@@ -1,3 +1,4 @@
+// Сутність, що містить оцінку та відгук користувача про завершений рейс.
 namespace SmartLogist.Domain.Entities;
 
 public class TripFeedback

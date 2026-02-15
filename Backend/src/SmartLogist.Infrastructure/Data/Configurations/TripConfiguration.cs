@@ -1,3 +1,4 @@
+// Цей файл визначає детальну конфігурацію сутності рейсів, включаючи складні типи та типи вкладених об'єктів.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -10,13 +11,13 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
     {
         builder.ToTable("trips");
         
-        // Composite Key for Partitioning support
+        // Складений ключ для підтримки секціонування (Partitioning)
         builder.HasKey(t => new { t.Id, t.ScheduledDeparture });
         
         builder.Property(t => t.Id).HasColumnName("id").ValueGeneratedOnAdd();
         builder.Property(t => t.ScheduledDeparture).HasColumnName("scheduled_departure").HasPrecision(6);
 
-        // Normalized Locations
+        // Нормалізовані локації (Місця)
         builder.Property(t => t.OriginId).HasColumnName("origin_id");
         builder.Property(t => t.DestinationId).HasColumnName("destination_id");
         
@@ -45,7 +46,7 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.DriverId).HasColumnName("driver_id");
         builder.Property(t => t.VehicleId).HasColumnName("vehicle_id");
 
-        // Economic info (Normalized Cargo)
+        // Економічна інформація (Нормалізований вантаж)
         builder.Property(t => t.CargoId).HasColumnName("cargo_id");
         builder.HasOne(t => t.Cargo)
             .WithMany()

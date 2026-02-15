@@ -1,3 +1,4 @@
+// Цей файл містить конфігурацію для сутності відгуків про рейси в базі даних.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -10,7 +11,7 @@ public class TripFeedbackConfiguration : IEntityTypeConfiguration<TripFeedback>
     {
         builder.ToTable("trip_feedback");
         
-        // Composite Key matching partitioned Trips
+        // Складений ключ, що відповідає секціонованим рейсам (Trips)
         builder.HasKey(tf => new { tf.TripId, tf.DepartureTime });
         
         builder.Property(tf => tf.TripId).HasColumnName("trip_id");

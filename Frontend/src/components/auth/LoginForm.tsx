@@ -1,3 +1,7 @@
+'use client';
+
+// Універсальний компонент форми входу, що підтримує різні ролі користувачів та валідацію.
+
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';

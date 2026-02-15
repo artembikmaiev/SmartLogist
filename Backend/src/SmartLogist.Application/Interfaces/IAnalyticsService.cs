@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для збору та обробки аналітичних даних про роботу системи.
 using SmartLogist.Application.DTOs.Analytics;
 
 namespace SmartLogist.Application.Interfaces;

@@ -1,3 +1,4 @@
+// Цей файл містить конфігурацію для сутності логування активності користувачів у системі.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -36,7 +37,7 @@ public class ActivityLogConfiguration : IEntityTypeConfiguration<ActivityLog>
             .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Relationships
+        // Зв'язки
         builder.HasOne(a => a.User)
             .WithMany()
             .HasForeignKey(a => a.UserId)

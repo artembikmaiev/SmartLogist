@@ -1,3 +1,4 @@
+// Сервіс для генерації та валідації JSON Web Tokens для безпечної аутентифікації користувачів.
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

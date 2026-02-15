@@ -1,3 +1,4 @@
+// Цей сервіс забезпечує отримання аналітичних даних та статистики через API для відображення на дашборді.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type {

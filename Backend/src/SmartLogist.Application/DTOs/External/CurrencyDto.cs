@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для представлення курсів валют, отриманих від зовнішніх сервісів.
 namespace SmartLogist.Application.DTOs.External;
 
 public class CurrencyDto

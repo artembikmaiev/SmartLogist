@@ -1,3 +1,4 @@
+// Хук для управління процесом входу в систему, обробки помилок аутентифікації та збереження сесії.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';

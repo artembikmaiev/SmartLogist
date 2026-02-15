@@ -1,3 +1,4 @@
+// Цей файл містить переліки типів запитів та їх станів для системи адміністрування.
 namespace SmartLogist.Domain.Enums;
 
 public enum RequestType

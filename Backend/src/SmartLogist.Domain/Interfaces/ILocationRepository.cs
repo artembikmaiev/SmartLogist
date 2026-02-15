@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для управління географічними локаціями в системі.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

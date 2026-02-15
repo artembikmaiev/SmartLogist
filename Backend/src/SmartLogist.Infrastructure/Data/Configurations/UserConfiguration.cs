@@ -1,3 +1,4 @@
+// Цей файл налаштовує відображення сутності користувачів, їх персональних даних та ролей.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -65,7 +66,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Relationships
+        // Зв'язки
         builder.HasOne(u => u.Manager)
             .WithMany(u => u.ManagedDrivers)
             .HasForeignKey(u => u.ManagerId)

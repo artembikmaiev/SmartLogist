@@ -1,3 +1,4 @@
+// Контролер для отримання даних про маршрути та стан дорожнього покриття через інтегровані сервіси.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.External;

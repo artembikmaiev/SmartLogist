@@ -1,3 +1,4 @@
+// Картка з інформацією про поточні дорожні умови та можливі затримки на рейсах.
 import { RoadCondition, externalService } from '@/services/external.service';
 import { useState, useEffect } from 'react';
 import { MapPin, RefreshCcw, Info, CloudRain, Sun, Snowflake, Wind, AlertTriangle } from 'lucide-react';

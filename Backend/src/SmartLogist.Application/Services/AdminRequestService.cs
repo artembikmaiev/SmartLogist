@@ -1,3 +1,4 @@
+// Сервіс для управління процесом розгляду та виконання адміністративних запитів у системі.
 using SmartLogist.Application.DTOs.AdminRequest;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;

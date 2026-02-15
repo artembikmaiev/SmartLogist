@@ -1,5 +1,7 @@
 'use client';
 
+// Особистий кабінет менеджера з налаштуваннями профілю та контактною інформацією.
+
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
 import ActivitySidebar from '@/components/profile/ActivitySidebar';
 import { useProfile } from '@/hooks/useProfile';

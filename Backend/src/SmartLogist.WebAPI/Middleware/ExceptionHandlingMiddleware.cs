@@ -1,3 +1,4 @@
+// Цей компонент проміжного ПЗ забезпечує централізовану обробку та логування винятків у всьоому додатку.
 using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            // Log detailed exception info including inner exceptions
+            // Логування детальної інформації про виняток, включаючи внутрішні помилки
             var innerEx = ex.InnerException;
             var exceptionDetails = $"Exception: {ex.Message}";
             if (innerEx != null)
@@ -64,14 +65,14 @@ public class ExceptionHandlingMiddleware
 
     private static string GetUserFriendlyMessage(Exception exception, HttpStatusCode statusCode)
     {
-        // For 500 errors, hide details in production. For now, we return the message.
-        // For other known errors, return the exception message properly.
+        // Для помилок 500 приховуйте деталі в продакшені. Наразі ми повертаємо повідомлення.
+        // Для інших відомих помилок повертаємо повідомлення про виняток належним чином.
         if (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden)
         {
             return exception.Message;
         }
 
-        // For DbUpdateException, include inner exception details for debugging
+        // Для DbUpdateException включаємо деталі внутрішнього винятку для відлагодження
         if (exception is DbUpdateException dbEx && dbEx.InnerException != null)
         {
             return $"{exception.Message} | Inner: {dbEx.InnerException.Message}";
@@ -79,8 +80,8 @@ public class ExceptionHandlingMiddleware
 
         if (statusCode == HttpStatusCode.InternalServerError)
         {
-            // For debugging, returning the actual message if it's not production
-            // In a real production app, you'd check environment here
+            // Для відлагодження повертаємо фактичне повідомлення, якщо це не продакшн
+            // У справжньому продакшн-додатку тут слід було б перевіряти середовище
             return $"Виникла внутрішня помилка сервера: {exception.Message}. {(exception.InnerException != null ? "Inner: " + exception.InnerException.Message : "")}";
         }
 

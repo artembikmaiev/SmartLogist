@@ -1,3 +1,4 @@
+// Сутність, що представляє персональне сповіщення для користувача про важливі події в системі.
 namespace SmartLogist.Domain.Entities;
 
 public class Notification

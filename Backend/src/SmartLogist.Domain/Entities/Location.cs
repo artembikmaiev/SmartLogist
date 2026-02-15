@@ -1,3 +1,4 @@
+// Сутність, що представляє географічну локацію (адресу або місто) в системі логістики.
 namespace SmartLogist.Domain.Entities;
 
 public class Location

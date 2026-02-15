@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для зміни інформації про існуючого менеджера.
 namespace SmartLogist.Application.DTOs.Manager;
 
 public class UpdateManagerDto

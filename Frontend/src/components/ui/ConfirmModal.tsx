@@ -1,3 +1,4 @@
+// Цей спеціалізований компонент використовується для підтвердження критичних дій користувача через модальне вікно.
 import React from 'react';
 import Modal from './Modal';
 import Button from './Button';
@@ -42,7 +43,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         success: 'bg-emerald-100'
     };
 
-    // Map variant to Button variant
+    // Відображення варіанту на варіант кнопки Button
     const buttonVariant: any = variant === 'primary' ? 'primary' :
         variant === 'danger' ? 'danger' :
             variant === 'success' ? 'success' : 'primary';

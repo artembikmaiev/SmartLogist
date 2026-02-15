@@ -1,3 +1,4 @@
+// Цей репозиторій керує доступом до даних про рейси, включаючи їх деталі, маршрути та статистику.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
@@ -88,7 +89,7 @@ public class TripRepository : ITripRepository
         var entry = _context.Entry(trip);
         if (entry.State == EntityState.Detached)
         {
-            // Use Attach instead of Update to avoid marking the entire graph (Driver, Manager, etc.) as modified
+            // Використовуйте Attach замість Update, щоб уникнути позначення всього графа (водій, менеджер тощо) як зміненого
             _context.Trips.Attach(trip);
             entry.State = EntityState.Modified;
         }
@@ -97,8 +98,8 @@ public class TripRepository : ITripRepository
 
     public async Task ChangeStatusAsync(int id, TripStatus status)
     {
-        // ExecuteUpdateAsync allows us to bypass the composite key (Id, ScheduledDeparture) tracking issues
-        // and target the row by ID alone for status changes.
+        // ExecuteUpdateAsync дозволяє нам обійти проблеми відстеження складеного ключа (Id, ScheduledDeparture)
+        // і націлитися на рядок лише за ID для зміни статусу.
         await _context.Trips
             .Where(t => t.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, status));
@@ -160,7 +161,7 @@ public class TripRepository : ITripRepository
 
     public async Task UpdateTripFieldsAsync(Trip trip)
     {
-        // First, get the exact scheduled_departure from DB (it's part of the PK and cannot be modified)
+        // Спочатку отримайте точний час запланованого відправлення з БД (він є частиною первинного ключа і не може бути змінений)
         var rawDeparture = await _context.Trips
             .Where(t => t.Id == trip.Id)
             .Select(t => t.ScheduledDeparture)
@@ -171,16 +172,16 @@ public class TripRepository : ITripRepository
             throw new KeyNotFoundException($"Trip with ID {trip.Id} not found");
         }
 
-        // CRITICAL: Ensure we use the exact UTC Kind for the partition key match
+        // КРИТИЧНО: Переконайтеся, що ми використовуємо точний тип UTC для відповідності ключу партиції
         var exactDeparture = DateTime.SpecifyKind(rawDeparture, DateTimeKind.Utc);
 
-        // Use explicit transaction to ensure ExecuteUpdate and SaveChanges/FK check are atomic
-        // and visible to each other within the same transaction scope.
+        // Використовуйте явну транзакцію, щоб переконатися, що ExecuteUpdate та SaveChanges/перевірка FK є атомарними
+        // і видимими один одному в межах однієї транзакції.
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // Update Trip fields atomically using ExecuteUpdateAsync (no tracking issues)
-            // Target by composite PK: (id, scheduled_departure)
+            // Оновлення полів рейсу атомарно за допомогою ExecuteUpdateAsync (без проблем із відстеженням)
+            // Використовуйте складений первинний ключ: (id, scheduled_departure)
             await _context.Trips
                 .Where(t => t.Id == trip.Id && t.ScheduledDeparture == exactDeparture)
                 .ExecuteUpdateAsync(s => s
@@ -196,7 +197,7 @@ public class TripRepository : ITripRepository
                     .SetProperty(t => t.PaymentAmount, trip.PaymentAmount)
                 );
 
-            // Handle Feedback in the same transaction
+            // Обробка відгуків у тій же транзакції
             if (trip.Feedback != null)
             {
                 var existingFeedback = await _context.TripFeedbacks
@@ -204,7 +205,7 @@ public class TripRepository : ITripRepository
 
                 if (existingFeedback == null)
                 {
-                    // Create new feedback with EXACT departure time
+                    // Створіть новий відгук з ТОЧНИМ часом відправлення
                     var newFeedback = new TripFeedback
                     {
                         TripId = trip.Id,
@@ -220,7 +221,7 @@ public class TripRepository : ITripRepository
                     existingFeedback.ManagerReview = trip.Feedback.ManagerReview;
                 }
 
-                // Save feedback within transaction
+                // Збереження відгуку в межах транзакції
                 await _context.SaveChangesAsync();
             }
 

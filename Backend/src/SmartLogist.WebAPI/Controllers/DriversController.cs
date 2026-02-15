@@ -1,3 +1,4 @@
+// Контролер для управління даними водіїв, перегляду їх статистики та зміни їхнього статусу.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Driver;

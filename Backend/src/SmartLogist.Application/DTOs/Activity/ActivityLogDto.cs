@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для запису активності користувача в системі логування.
 namespace SmartLogist.Application.DTOs.Activity;
 
 public class ActivityLogDto

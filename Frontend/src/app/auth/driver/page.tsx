@@ -1,5 +1,6 @@
 'use client';
 
+// Сторінка авторизації для водіїв, що забезпечує доступ до їхньої робочої панелі.
 import LoginForm from '@/components/auth/LoginForm';
 
 export default function DriverLogin() {

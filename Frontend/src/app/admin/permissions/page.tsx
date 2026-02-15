@@ -1,5 +1,7 @@
 'use client';
 
+// Інтерфейс для налаштування та розподілу прав доступу між ролями користувачів.
+
 import { useState, useEffect } from 'react';
 import { Shield, Users, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { managersService, Manager } from '@/services/managers.service';

@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Globalization;
+// Цей сервіс отримує дані про погодні умови та стан доріг на маршруті через зовнішній API Open-Meteo.
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
 

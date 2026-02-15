@@ -1,3 +1,4 @@
+// Клас валідації для перевірки оновленої інформації про менеджера та його контактних даних.
 using FluentValidation;
 using SmartLogist.Application.DTOs.Manager;
 

@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для доступу до даних про вантажі.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

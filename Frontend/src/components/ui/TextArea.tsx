@@ -1,3 +1,4 @@
+// Стилізоване багаторядкове поле введення тексту для довгих описів або повідомлень.
 import React, { forwardRef } from 'react';
 
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {

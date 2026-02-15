@@ -1,5 +1,7 @@
 'use client';
 
+// Модуль управління транспортними засобами для менеджерів автопарку.
+
 import { Truck, CheckCircle, Settings, CircleCheck, Search, Clock, Star, Edit, Trash2, UserPlus, UserMinus } from 'lucide-react';
 import { useVehicles } from '@/hooks/useVehicles';
 import StatCard from '@/components/ui/StatCard';

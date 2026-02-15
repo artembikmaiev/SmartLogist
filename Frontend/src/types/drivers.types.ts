@@ -46,6 +46,7 @@ export interface DriverStats {
     offlineDrivers: number;
 }
 
+// Цей файл містить описи інтерфейсів для водіїв, їхньої статистики та станів доступності.
 export enum DriverStatus {
     Available = 'Available',
     OnTrip = 'OnTrip',

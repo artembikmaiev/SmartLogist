@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+// Універсальний хук для виконання CRUD-операцій з будь-яким типом системних ресурсів.
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 interface UseResourceProps<T> {
     fetchFn: () => Promise<T[]>;

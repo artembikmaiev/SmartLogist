@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління даними водіїв та їх робочим статусом.
 using SmartLogist.Application.DTOs.Driver;
 using SmartLogist.Domain.Enums;
 

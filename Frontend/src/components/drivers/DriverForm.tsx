@@ -1,3 +1,6 @@
+'use client';
+
+// Універсальний компонент форми для управління даними водіїв та їх документами.
 import React from 'react';
 import { Driver, DriverStatus } from '@/types/drivers.types';
 import Button from '@/components/ui/Button';

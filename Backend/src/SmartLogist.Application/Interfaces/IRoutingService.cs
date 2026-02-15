@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для побудови оптимальних маршрутів та розрахунку відстаней між пунктами.
 using SmartLogist.Application.DTOs.External;
 
 namespace SmartLogist.Application.Interfaces;

@@ -1,3 +1,4 @@
+// Сервіс для управління клієнтською частиною сповіщень, включаючи отримання нових повідомлень та їх статусів.
 import { apiClient } from '@/lib/api/client';
 
 export interface Notification {

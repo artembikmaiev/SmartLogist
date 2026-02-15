@@ -1,5 +1,6 @@
 'use client';
 
+// Компонент для спливаючих повідомлень (нотифікацій) про успіх, помилку або інформацію.
 import React, { useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 

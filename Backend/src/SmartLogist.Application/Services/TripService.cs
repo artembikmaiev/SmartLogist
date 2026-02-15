@@ -1,3 +1,4 @@
+// Цей сервіс відповідає за життєвий цикл рейсу, від створення до завершення, та розрахунок економічних показників.
 using SmartLogist.Application.DTOs.Trip;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;
@@ -67,12 +68,10 @@ public class TripService : ITripService
         if (trip.DriverId != driverId)
              throw new UnauthorizedAccessException("Цей рейс призначено іншому водію");
 
-        // trip.Accept(driverId) - REMOVED to avoid modifying entity state and causing potential tracking issues
-        
-        // Use direct atomic update to bypass partition key matching issues for status transition
+        // Використовуйється пряме атомарне оновлення, щоб обійти проблеми зі збігом ключів розділів для переходу стану.
         await _tripRepository.ChangeStatusAsync(tripId, TripStatus.Accepted);
 
-        // Update driver status to OnTrip
+        // Оновити статус водія на OnTrip
         await _userRepository.UpdateDriverStatusAsync(driverId, DriverStatus.OnTrip);
 
         await _activityService.LogAsync(
@@ -96,10 +95,10 @@ public class TripService : ITripService
         if (trip.DriverId != driverId)
              throw new UnauthorizedAccessException("Цей рейс призначено іншому водію");
 
-        // Use direct atomic update 
+        // Використовуйте пряме атомарне оновлення 
         await _tripRepository.ChangeStatusAsync(tripId, TripStatus.Declined);
-        
-        // Ensure driver status is available (just in case)
+
+        // Переконатися, що статус водія доступний (про всяк випадок)
         await _userRepository.UpdateDriverStatusAsync(driverId, DriverStatus.Available);
 
         await _activityService.LogAsync(
@@ -113,7 +112,7 @@ public class TripService : ITripService
 
     public async Task<TripDto> CreateTripAsync(CreateTripDto dto, int managerId)
     {
-        // Get or Create Locations
+        // Отримати або створити місця
         var origin = await _locationRepository.GetByCityAndAddressAsync(dto.OriginCity, dto.OriginAddress)
                      ?? await _locationRepository.AddAsync(new Location 
                      { 
@@ -132,7 +131,7 @@ public class TripService : ITripService
                               Longitude = dto.DestinationLongitude
                           });
 
-        // Get or Create Cargo (Simple implementation)
+        // Отримати або створити вантаж (проста реалізація)
         var cargo = await _cargoRepository.AddAsync(new Cargo { Name = dto.CargoName ?? "Unknown", TypeId = (int)dto.CargoType });
 
         var trip = new Trip
@@ -149,15 +148,15 @@ public class TripService : ITripService
             Notes = dto.Notes,
             ManagerId = managerId,
             Status = TripStatus.Pending,
-            
-            // Economic info
+
+            // Економічна інформація
             CargoId = cargo.Id,
             CargoWeight = dto.CargoWeight,
             ExpectedProfit = dto.ExpectedProfit,
             EstimatedFuelCost = dto.EstimatedFuelCost
         };
 
-        // Vertical partitioning: Route
+        // Вертикальне розділення: Маршрут
         trip.Route = new TripRoute
         {
             DepartureTime = dto.ScheduledDeparture,
@@ -165,8 +164,8 @@ public class TripService : ITripService
         };
 
         var createdTrip = await _tripRepository.AddAsync(trip);
-        
-        // Refresh to get navigation properties
+
+        // Оновити, щоб отримати властивості навігації
         var result = await _tripRepository.GetWithDetailsAsync(createdTrip.Id, createdTrip.ScheduledDeparture);
         return MapToDto(result!, new List<int>());
     }
@@ -209,7 +208,7 @@ public class TripService : ITripService
         bool statusChanged = false;
         TripStatus? previousStatus = trip.Status;
 
-        // Handle Status Transitions
+        // Обробка переходів стану
         if (!string.IsNullOrEmpty(dto.Status) && Enum.TryParse<TripStatus>(dto.Status, true, out var newStatus))
         {
             if (newStatus != trip.Status)
@@ -229,21 +228,20 @@ public class TripService : ITripService
                     case TripStatus.Cancelled:
                         trip.Cancel(dto.Notes ?? "Скасовано менеджером");
                         break;
-                    // Accepted/Declined/Pending are handled via specific methods or creating
                     default:
-                        // For other manual updates (rare)
+                        // Для інших ручних оновлень 
                         trip.Status = newStatus;
                         break;
                 }
             }
         }
 
-        // Handle simple updates if not handled by Start/Arrive/Complete
+        // Обробляти прості оновлення, якщо вони не обробляються функціями Start/Arrive/Complete
         if (dto.ActualDeparture.HasValue && trip.Status != TripStatus.InTransit) trip.ActualDeparture = dto.ActualDeparture;
         if (dto.ActualArrival.HasValue && trip.Status != TripStatus.Completed) trip.ActualArrival = dto.ActualArrival;
         if (dto.Notes != null && trip.Status != TripStatus.Cancelled) trip.Notes = dto.Notes;
 
-        // Handle logic that wasn't covered by Complete() (e.g. if just updating info without completing)
+        // Обробка логіки, яка не була охоплена функцією Complete() (наприклад, якщо просто оновлюється інформація без завершення)
         if (dto.ActualFuelConsumption.HasValue && trip.Status != TripStatus.Completed) 
         {
             trip.UpdateFuelStats(dto.ActualFuelConsumption.Value);
@@ -261,16 +259,16 @@ public class TripService : ITripService
             else if (trip.Status == TripStatus.Completed || trip.Status == TripStatus.Cancelled || trip.Status == TripStatus.Declined)
                 await _userRepository.UpdateDriverStatusAsync(trip.DriverId, DriverStatus.Available);
 
-            // Mileage accounting for Completed trips
+            // Облік пробігу за завершеними поїздками
             if (trip.Status == TripStatus.Completed && trip.VehicleId.HasValue && !trip.IsMileageAccounted)
             {
-                // Use atomic update for mileage to avoid change tracker conflicts with the driver/trip
+                // Використовується атомарне оновлення пробігу, щоб уникнути конфліктів між трекером змін і водієм/поїздкою.
                 await _vehicleRepository.UpdateMileageAsync(trip.VehicleId.Value, (float)trip.DistanceKm);
                 trip.IsMileageAccounted = true;
             }
         }
 
-        // Save all changes via the robust UpdateTripFieldsAsync
+        // Збереження всіх змін за допомогою надійної функції UpdateTripFieldsAsync
         await _tripRepository.UpdateTripFieldsAsync(trip);
     }
 

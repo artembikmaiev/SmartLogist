@@ -1,6 +1,7 @@
+// Цей файл містить функції для форматування дат та перетворення часу між часовими поясами.
 /**
- * Utility for consistent date formatting across the application.
- * Handles UTC-to-Local conversion by ensuring 'Z' suffix.
+ * Утиліта для послідовного форматування дат у всьому додатку.
+ * Обробляє перетворення UTC-у-Local, забезпечуючи суфікс 'Z'.
  */
 export const formatDate = (dateString: string | undefined, options?: Intl.DateTimeFormatOptions): string => {
     if (!dateString) return '—';

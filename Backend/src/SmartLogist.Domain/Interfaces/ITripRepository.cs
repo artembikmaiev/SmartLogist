@@ -1,3 +1,4 @@
+// Цей інтерфейс описує операції з даними рейсів, включаючи фільтрацію та підрахунок статистики.
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
 

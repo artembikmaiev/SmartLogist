@@ -1,5 +1,6 @@
+// Ця утиліта забезпечує безпечне парсинг JSON-рядків та обробку спеціальних випадків кодування.
 /**
- * Utility for safe JSON parsing, including double-encoded strings from backend.
+ * Утиліта для безпечного парсингу JSON, включаючи рядки з подвійним кодуванням від бекенда.
  */
 export const safeJsonParse = (jsonString: string | null | undefined): any => {
     if (!jsonString) return null;
@@ -7,7 +8,7 @@ export const safeJsonParse = (jsonString: string | null | undefined): any => {
     try {
         let data = JSON.parse(jsonString);
 
-        // Handle double-encoded JSON if necessary
+        // При необхідності обробіть JSON з подвійним кодуванням
         if (typeof data === 'string') {
             try {
                 data = JSON.parse(data);

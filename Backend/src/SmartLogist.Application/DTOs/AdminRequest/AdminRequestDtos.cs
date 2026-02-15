@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Enums;
 
+// Об'єкти передачі даних для створення та обробки запитів на адміністрування.
 namespace SmartLogist.Application.DTOs.AdminRequest;
 
 public class AdminRequestDto

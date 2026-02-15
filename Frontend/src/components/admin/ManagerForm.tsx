@@ -1,3 +1,6 @@
+'use client';
+
+// Спеціалізована форма для створення та оновлення облікових записів менеджерів адміністратором.
 import React from 'react';
 import { Manager } from '@/services/managers.service';
 import Button from '@/components/ui/Button';

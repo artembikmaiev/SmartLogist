@@ -1,3 +1,4 @@
+// Цей сервіс реалізує бізнес-логіку управління транспортними засобами, включаючи створення, оновлення та перевірку прав доступу.
 using SmartLogist.Application.DTOs.Vehicle;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;

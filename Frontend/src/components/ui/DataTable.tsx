@@ -1,3 +1,4 @@
+// Універсальний компонент таблиці для відображення структурованих даних з підтримкою кастомних стовпців.
 import React from 'react';
 import { Pagination, PaginationProps } from './Pagination';
 import TableSkeleton from './TableSkeleton';

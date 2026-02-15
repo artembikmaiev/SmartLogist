@@ -1,3 +1,4 @@
+// –¶–µ–π —Ñ–∞–π–ª –∫–æ–Ω—Ñ—ñ–≥—É—Ä—É—î –∑–≤'—è–∑–æ–∫ –º—ñ–∂ –≤–æ–¥—ñ—è–º–∏ —Ç–∞ —Ç—Ä–∞–Ω—Å–ø–æ—Ä—Ç–Ω–∏–º–∏ –∑–∞—Å–æ–±–∞–º–∏ –≤ –±–∞–∑—ñ –¥–∞–Ω–∏—Ö.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -29,7 +30,7 @@ public class DriverVehicleConfiguration : IEntityTypeConfiguration<DriverVehicle
             .HasColumnName("assigned_at")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // ”Ì≥Í‡Î¸ÌËÈ ≥Ì‰ÂÍÒ - ‚Ó‰≥È ÌÂ ÏÓÊÂ ·ÛÚË ÔËÁÌ‡˜ÂÌËÈ Ó‰ÌÓÏÛ ≥ ÚÓÏÛ Ê Ú‡ÌÒÔÓÚÌÓÏÛ Á‡ÒÓ·Û ‰‚≥˜≥
+        // –£–Ω—ñ–∫–∞–ª—å–Ω–∏–π —ñ–Ω–¥–µ–∫—Å - –≤–æ–¥—ñ–π –º–æ–∂–µ –±—É—Ç–∏ –ø—Ä–∏–∑–Ω–∞—á–µ–Ω–∏–π –ª–∏—à–µ –æ–¥–∏–Ω —Ä–∞–∑ –¥–æ –æ–¥–Ω—ñ—î—ó —Ç—Ä–∞–Ω—Å–ø–æ—Ä—Ç–Ω–æ—ó –æ–¥–∏–Ω–∏—Ü—ñ
         builder.HasIndex(dv => new { dv.DriverId, dv.VehicleId }).IsUnique();
     }
 }

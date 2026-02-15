@@ -1,3 +1,4 @@
+// Сутність, що зберігає деталізовані дані про геометрію маршруту для візуалізації на карті.
 namespace SmartLogist.Domain.Entities;
 
 public class TripRoute

@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління логуванням та отриманням активності користувачів.
 using SmartLogist.Application.DTOs.Activity;
 
 namespace SmartLogist.Application.Interfaces;

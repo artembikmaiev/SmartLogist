@@ -1,3 +1,4 @@
+// Цей файл містить визначення типів та інтерфейсів для даних, пов'язаних із рейсами та їх економікою.
 export interface Trip {
     id: number;
     originCity: string;
@@ -25,7 +26,7 @@ export interface Trip {
     vehicleModel?: string;
     vehicleLicensePlate?: string;
 
-    // ETS info
+    // інформація ETS
     cargoName?: string;
     cargoType?: string;
     cargoWeight?: number;

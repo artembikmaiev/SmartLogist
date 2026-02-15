@@ -1,3 +1,4 @@
+// Цей інтерфейс визначає методи для роботи з даними користувачів та перевірки їхніх прав.
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
 

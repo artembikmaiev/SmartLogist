@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+// Контролер для доступу до зовнішніх даних, таких як курси валют та погодні умови.
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;
 

@@ -1,3 +1,4 @@
+// Набір глобальних констант та статусів для управління життєвим циклом рейсів у системі.
 export const TRIP_STATUS_LABELS: Record<string, string> = {
     Pending: 'Очікує',
     Accepted: 'Прийнято',

@@ -1,3 +1,6 @@
+// Сутність, що описує характеристики та тип вантажу, який перевозиться під час рейсу.
+using SmartLogist.Domain.Enums;
+
 namespace SmartLogist.Domain.Entities;
 
 public class Cargo

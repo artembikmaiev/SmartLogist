@@ -1,3 +1,4 @@
+// Визначення типів та інтерфейсів, що описують сутність транспортного засобу в системі.
 export enum VehicleStatus {
     Available = 'Available',
     InUse = 'InUse',

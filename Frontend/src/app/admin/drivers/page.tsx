@@ -1,5 +1,7 @@
 'use client';
 
+// Сторінка управління списком водіїв для системного адміністратора.
+
 import { useState, useEffect } from 'react';
 import { UserCog, Link as LinkIcon, Edit, Trash2, AlertCircle, Truck, X, Check } from 'lucide-react';
 import { driversService } from '@/services/drivers.service';

@@ -1,3 +1,4 @@
+// Базовий сервіс, що містить загальну логіку для виконання HTTP-запитів та обробки відповідей.
 import { apiClient } from '@/lib/api/client';
 
 export class BaseApiService<T, TCreate = any, TUpdate = any> {

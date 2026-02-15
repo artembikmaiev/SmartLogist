@@ -1,3 +1,4 @@
+// Сервіс для управління даними водіїв, їх призначенням до менеджерів та моніторингу статусу.
 using SmartLogist.Application.DTOs.Driver;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;

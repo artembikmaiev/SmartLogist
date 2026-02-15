@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління обліковими записами менеджерів та їхніми повноваженнями.
 using SmartLogist.Application.DTOs.Manager;
 using SmartLogist.Application.DTOs.Permission;
 
@@ -11,7 +12,7 @@ public interface IManagerService
     Task<ManagerDto?> UpdateManagerAsync(int id, UpdateManagerDto dto);
     Task<bool> DeleteManagerAsync(int id);
 
-    // ��������� ���������
+    // Управління правами доступу
     Task<IEnumerable<PermissionDto>> GetAllPermissionsAsync();
     Task<IEnumerable<PermissionDto>> GetManagerPermissionsAsync(int managerId);
     Task GrantPermissionAsync(int managerId, int permissionId);

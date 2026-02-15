@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для обробки запитів на зміну даних, що потребують підтвердження адміністратором.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

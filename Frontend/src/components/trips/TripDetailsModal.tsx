@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+// Цей компонент представляє модальне вікно з детальною інформацією про рейс та інструментами керування його станом.
+import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { MapPin, Package, Clock, DollarSign, Truck, Navigation, CheckCircle, Play, User, Fuel, Star } from 'lucide-react';
 import { Trip } from '@/types/trip.types';
@@ -56,7 +57,7 @@ export default function TripDetailsModal({
     React.useEffect(() => {
         if (!trip) return;
 
-        // Immediately sync from trip properties when it changes
+        // Негайно синхронізуйте з властивостей рейсу при їх зміні
         const currentOrigin = {
             lat: trip.originLatitude || 0,
             lng: trip.originLongitude || 0,
@@ -72,7 +73,7 @@ export default function TripDetailsModal({
         let newDestination = { ...currentDestination };
         let changed = false;
 
-        // Try to recover from geometry if DB fields are empty
+        // Спробуйте відновити з геометрії, якщо поля БД порожні
         if (trip.routeGeometry && (newOrigin.lat === 0 || newDestination.lat === 0)) {
             try {
                 const coords = JSON.parse(trip.routeGeometry);
@@ -100,7 +101,7 @@ export default function TripDetailsModal({
             setMapDestination(newDestination);
 
             if (newOrigin.lat === 0 || newDestination.lat === 0) {
-                // geocoding fallback
+                // Резервний варіант геокодування
                 const geocodeCity = async (city: string, address: string, type: 'origin' | 'destination') => {
                     const tryGeocode = async (q: string) => {
                         try {
@@ -116,15 +117,15 @@ export default function TripDetailsModal({
                         return null;
                     };
 
-                    // Strategy 1: City + Address + Ukraine
+                    // Стратегія 1: Місто + Адреса + Україна
                     let point = await tryGeocode(`${city}, ${address}, Ukraine`);
 
-                    // Strategy 2: City + Ukraine (if address fails or is empty)
+                    // Стратегія 2: Місто + Україна (якщо адреса невірна або порожня)
                     if (!point) {
                         point = await tryGeocode(`${city}, Ukraine`);
                     }
 
-                    // Strategy 3: Just the original query if others failed (though unlikely to help)
+                    // Стратегія 3: Просто оригінальний запит, якщо інші не спрацювали (хоча це малоймовірно допоможе)
                     if (!point && address) {
                         point = await tryGeocode(`${city}, ${address}`);
                     }
@@ -155,7 +156,7 @@ export default function TripDetailsModal({
         try {
             const data: any = { status };
             if (status === 'Arrived' && actualConsumption) {
-                // Handle both dot and comma
+                // Обробка крапки та коми як роздільника
                 const parsedValue = parseFloat(actualConsumption.replace(',', '.'));
                 if (isNaN(parsedValue)) {
                     alert('Будь ласка, введіть коректне число для розходу палива');
@@ -203,9 +204,9 @@ export default function TripDetailsModal({
             maxWidth="5xl"
         >
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8">
-                {/* Left Column: Info */}
+                {/* Ліва колонка: Інфо */}
                 <div className="space-y-6">
-                    {/* Route Section */}
+                    {/* Секція маршруту */}
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Navigation className="w-4 h-4 text-blue-500" /> Маршрут та час
@@ -257,7 +258,7 @@ export default function TripDetailsModal({
                         </div>
                     </div>
 
-                    {/* Cargo Section */}
+                    {/* Секція вантажу */}
                     <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/50">
                         <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Package className="w-4 h-4" /> Вантаж
@@ -284,7 +285,7 @@ export default function TripDetailsModal({
                         </div>
                     </div>
 
-                    {/* Economics & Actions */}
+                    {/* Економіка та дії */}
                     <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-xl flex flex-col justify-between">
                         <div className="space-y-4 mb-6">
                             <div className="flex justify-between items-start">
@@ -402,7 +403,7 @@ export default function TripDetailsModal({
                                         <div className="bg-slate-100/50 p-4 rounded-2xl border border-slate-200">
                                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Оцінка та відгук менеджера</p>
 
-                                            {/* Stars */}
+                                            {/* Зірки */}
                                             <div className="flex gap-1 mb-4">
                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                     <button
@@ -454,7 +455,7 @@ export default function TripDetailsModal({
                     </div>
                 </div>
 
-                {/* Right Column: Map */}
+                {/* Права колонка: Мапа */}
                 <div className="flex flex-col h-full min-h-[500px] border border-slate-200 rounded-[32px] overflow-hidden">
                     <Map
                         origin={mapOrigin}

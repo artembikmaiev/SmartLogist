@@ -1,3 +1,4 @@
+// Об'єкт передачі основних даних водія для відображення в списках та профілях.
 namespace SmartLogist.Application.DTOs.Driver;
 
 public class DriverDto

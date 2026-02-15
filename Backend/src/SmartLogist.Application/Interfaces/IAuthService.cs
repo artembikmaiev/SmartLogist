@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для виконання операцій аутентифікації, реєстрації та управління профілями.
 using SmartLogist.Application.DTOs.Auth;
 
 namespace SmartLogist.Application.Interfaces;

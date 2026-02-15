@@ -1,3 +1,4 @@
+// Об'єкт передачі даних про стан доріг та погодні умови для планування безпечних маршрутів.
 namespace SmartLogist.Application.DTOs.External;
 
 public class RoadConditionDto

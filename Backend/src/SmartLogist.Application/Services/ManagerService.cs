@@ -1,6 +1,7 @@
 using SmartLogist.Application.DTOs.Manager;
 using SmartLogist.Application.DTOs.Permission;
 using SmartLogist.Application.Interfaces;
+// Цей сервіс керує даними менеджерів, їхніми правами доступу та взаємодією з водіями.
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
 using SmartLogist.Domain.Interfaces;

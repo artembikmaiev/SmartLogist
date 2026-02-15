@@ -1,3 +1,4 @@
+// Цей репозиторій забезпечує функціонал для роботи зі сповіщеннями користувачів у системі.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+// Контролер для виконання адміністративних операцій з базою даних, таких як скидання або ініціалізація даних.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Infrastructure.Data;

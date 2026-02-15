@@ -1,3 +1,4 @@
+// Контролер для роботи зі сповіщеннями користувачів, включаючи їх отримання та зміну статусу прочитання.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;
@@ -35,9 +36,9 @@ public class NotificationsController : BaseApiController
     public async Task<IActionResult> MarkAsRead(int id)
     {
         var userId = GetUserId();
-        // Typically MarkAsRead needs userId to verify ownership, but original controller just passed param.
-        // Checking original: await _notificationService.MarkAsReadAsync(id);
-        // Correcting to original.
+        // Зазвичай MarkAsRead потребує userId для перевірки власності, але оригінальний контролер просто передавав параметр.
+        // Перевірка оригіналу: await _notificationService.MarkAsReadAsync(id);
+        // Виправлення до оригіналу.
         await _notificationService.MarkAsReadAsync(id);
         return NoContent();
     }

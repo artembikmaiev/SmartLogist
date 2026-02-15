@@ -1,3 +1,4 @@
+// Цей інтерфейс визначає контракт для репозиторію управління транспортними засобами.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління автопарком, призначення водіїв та контролю стану машин.
 using SmartLogist.Application.DTOs.Vehicle;
 
 namespace SmartLogist.Application.Interfaces;

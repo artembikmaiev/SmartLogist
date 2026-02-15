@@ -1,3 +1,4 @@
+// Цей файл визначає конфігурацію сутності географічних локацій для Entity Framework Core.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;

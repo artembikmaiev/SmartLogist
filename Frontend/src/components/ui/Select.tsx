@@ -1,3 +1,4 @@
+// Цей компонент є стилізованим випадаючим списком для вибору значень у формах.
 import React, { forwardRef } from 'react';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -17,7 +18,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
         ? "border-red-300 text-red-900 focus:ring-2 focus:ring-red-200"
         : "border-slate-300 text-slate-900 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600";
 
-    // Custom arrow icon
+    // Спеціальна іконка стрілки
     const arrowUrl = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E`;
 
     return (

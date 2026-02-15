@@ -1,3 +1,4 @@
+// Цей репозиторій відповідає за збереження та отримання записів про активність користувачів у системі.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

@@ -1,3 +1,4 @@
+// Цей сервіс управляє процесами аутентифікації користувача, включаючи вхід, вихід та збереження даних сесії.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { LoginCredentials, AuthResponse } from '@/types/auth.types';
@@ -10,7 +11,7 @@ export const authService = {
             credentials
         );
 
-        // Store token in sessionStorage
+        // Зберегти токен у sessionStorage
         if (response.token) {
             sessionStorage.setItem('token', response.token);
             sessionStorage.setItem('user', JSON.stringify(response.user));
@@ -30,7 +31,7 @@ export const authService = {
             API_ENDPOINTS.AUTH.ME
         );
 
-        // Sync sessionStorage with fresh data from server
+        // Синхронізувати sessionStorage зі свіжими даними із сервера
         if (typeof window !== 'undefined') {
             sessionStorage.setItem('user', JSON.stringify(response));
         }
@@ -41,7 +42,7 @@ export const authService = {
     async updateProfile(data: { fullName: string; email: string; phone?: string }): Promise<void> {
         await apiClient.put(API_ENDPOINTS.AUTH.PROFILE, data);
 
-        // Update stored user data
+        // Оновити збережені дані користувача
         const currentUser = this.getStoredUser();
         if (currentUser) {
             const updatedUser = { ...currentUser, ...data };

@@ -1,3 +1,4 @@
+// Сервіс для отримання журналів активності користувачів через API.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import { ActivityLog } from '@/types/activity.types';

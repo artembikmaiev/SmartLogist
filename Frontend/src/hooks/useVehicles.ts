@@ -1,3 +1,4 @@
+// Хук для управління даними транспортних засобів, включаючи їх пошук, фільтрацію та зміну характеристик.
 import { useState, useMemo, useCallback } from 'react';
 import { vehiclesService } from '@/services/vehicles.service';
 import { driversService } from '@/services/drivers.service';

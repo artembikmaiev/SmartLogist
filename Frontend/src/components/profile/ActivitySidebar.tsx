@@ -1,3 +1,6 @@
+"use client";
+
+// Бокова панель для відображення останньої активності та подій у профілі користувача.
 import { Trash2, RefreshCcw, Info, Truck, CheckCircle, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date.utils';
 import type { ActivityLog } from '@/types/activity.types';

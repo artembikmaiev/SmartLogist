@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Manager;
 using SmartLogist.Application.Interfaces;
+// Контролер для управління обліковими записами менеджерів та їхніми повноваженнями в системі.
 using Microsoft.AspNetCore.Authorization;
 
 namespace SmartLogist.WebAPI.Controllers;

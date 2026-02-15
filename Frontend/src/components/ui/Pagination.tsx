@@ -1,5 +1,6 @@
 'use client';
 
+// Компонент навігації по сторінках для великих списків даних з можливістю переходу до конкретної сторінки.
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 

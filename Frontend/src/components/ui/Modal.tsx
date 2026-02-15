@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+// Цей базовий компонент реалізує функціонал модальних вікон з підтримкою розкладки та анімацій.
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -50,7 +51,7 @@ const Modal: React.FC<ModalProps> = ({
                 className={`bg-white rounded-[32px] w-full ${maxWidthClasses[maxWidth]} shadow-2xl animate-in zoom-in slide-in-from-bottom-4 duration-300 overflow-hidden flex flex-col max-h-[90vh]`}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
+                {/* Заголовок */}
                 <div className="px-8 py-6 flex items-center justify-between border-b border-slate-50 shrink-0">
                     <h2 className="text-2xl font-bold text-slate-900 leading-none">{title}</h2>
                     <button
@@ -61,12 +62,12 @@ const Modal: React.FC<ModalProps> = ({
                     </button>
                 </div>
 
-                {/* Content */}
+                {/* Контент */}
                 <div className="px-8 py-6 overflow-y-auto flex-1 custom-scrollbar">
                     {children}
                 </div>
 
-                {/* Footer */}
+                {/* Футер */}
                 {footer && (
                     <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-50 shrink-0">
                         {footer}
@@ -74,7 +75,7 @@ const Modal: React.FC<ModalProps> = ({
                 )}
             </div>
 
-            {/* Backdrop click listener */}
+            {/* Слухач кліку по бекдропу */}
             <div className="absolute inset-0 -z-10" onClick={onClose} />
         </div>
     );

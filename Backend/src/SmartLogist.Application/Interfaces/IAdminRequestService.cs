@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління адміністративними запитами та їх життєвим циклом.
 using SmartLogist.Application.DTOs.AdminRequest;
 
 namespace SmartLogist.Application.Interfaces;

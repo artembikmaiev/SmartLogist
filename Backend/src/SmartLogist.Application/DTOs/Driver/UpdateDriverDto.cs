@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Enums;
 
+// Об'єкт передачі даних для зміни інформації про водія адміністратором або менеджером.
 namespace SmartLogist.Application.DTOs.Driver;
 
 public class UpdateDriverDto

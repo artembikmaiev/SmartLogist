@@ -1,3 +1,4 @@
+// Сутність, що представляє зв'язок між водієм та транспортним засобом, включаючи статус основного призначення.
 namespace SmartLogist.Domain.Entities;
 
 public class DriverVehicle

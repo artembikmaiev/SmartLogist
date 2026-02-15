@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+// Цей компонент надає інтерфейс для створення нового рейсу, включаючи вибір водія, транспорту та налаштування маршруту.
+import React, { useState, useEffect, useMemo } from 'react';
 import { MapPin, Truck, User as UserIcon, Calendar, Clock, Navigation, Package, DollarSign, Fuel, Briefcase, AlertCircle } from 'lucide-react';
 import FormField from '@/components/ui/FormField';
 import Input from '@/components/ui/Input';
@@ -73,7 +74,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
         driverId: 0,
         vehicleId: 0 as number | undefined,
         notes: '',
-        // ETS info
+        // Інформація ETS (системи відстеження)
         cargoName: '',
         cargoType: CargoType.Standard,
         cargoWeight: 0,
@@ -344,6 +345,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                 <Input
                                     type="number"
                                     step="0.1"
+                                    min="0.1"
                                     value={formData.cargoWeight}
                                     onChange={(e) => {
                                         const weight = parseFloat(e.target.value) || 0;
@@ -489,6 +491,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                         <FormField label="Дата виїзду">
                             <Input
                                 type="datetime-local"
+                                min={toLocalISOString(new Date())}
                                 value={formData.scheduledDeparture}
                                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledDeparture: e.target.value }))}
                                 required

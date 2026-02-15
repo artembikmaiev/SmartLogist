@@ -1,3 +1,4 @@
+// Сервіс для управління даними про транспортні засоби, їх доступність та технічний стан.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { Vehicle, CreateVehicleDto, UpdateVehicleDto, AssignVehicleDto, VehicleStats } from '@/types/vehicle.types';

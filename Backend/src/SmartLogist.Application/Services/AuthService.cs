@@ -1,5 +1,7 @@
 using SmartLogist.Application.DTOs.Auth;
 using SmartLogist.Application.Interfaces;
+// Сервіс, що реалізує логіку аутентифікації, реєстрації користувачів та управління доступом.
+using System.IdentityModel.Tokens.Jwt;
 using SmartLogist.Domain.Interfaces;
 
 namespace SmartLogist.Application.Services;

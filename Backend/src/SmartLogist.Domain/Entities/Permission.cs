@@ -1,6 +1,7 @@
+// Сутність, що визначає конкретне право доступу в системі (наприклад, перегляд або редагування).
 namespace SmartLogist.Domain.Entities;
 
-// Permission entity
+// Сутність дозволу
 public class Permission
 {
     public int Id { get; set; }

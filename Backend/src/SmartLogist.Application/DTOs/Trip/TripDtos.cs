@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Enums;
 
+// Об'єкти передачі даних для відображення детальної та короткої інформації про рейси.
 namespace SmartLogist.Application.DTOs.Trip;
 
 public class TripDto

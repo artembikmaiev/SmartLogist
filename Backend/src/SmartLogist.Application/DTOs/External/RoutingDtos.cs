@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 
+// Набір об'єктів передачі даних для обміну географічними координатами та параметрами маршрутів.
 namespace SmartLogist.Application.DTOs.External;
 
 public class RoutePoint

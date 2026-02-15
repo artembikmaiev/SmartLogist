@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для опису системних прав та дозволів.
 namespace SmartLogist.Application.DTOs.Permission;
 
 public class PermissionDto

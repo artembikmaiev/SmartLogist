@@ -1,3 +1,4 @@
+// Клас валідації для перевірки даних при створенні нового облікового запису менеджера.
 using FluentValidation;
 using SmartLogist.Application.DTOs.Manager;
 

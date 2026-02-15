@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Enums;
 
+// Об'єкти передачі даних для перегляду та управління транспортними засобами в системі.
 namespace SmartLogist.Application.DTOs.Vehicle;
 
 public class VehicleDto

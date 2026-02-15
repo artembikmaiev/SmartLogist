@@ -1,4 +1,5 @@
 'use client';
+// Верхня панель навігації лендінгу з логотипом та кнопками швидкого доступу до авторизації.
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';

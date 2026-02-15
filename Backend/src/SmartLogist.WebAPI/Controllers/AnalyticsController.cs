@@ -1,3 +1,4 @@
+// Контролер для отримання аналітичних даних та статистики щодо рейсів, водіїв та вантажів.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;

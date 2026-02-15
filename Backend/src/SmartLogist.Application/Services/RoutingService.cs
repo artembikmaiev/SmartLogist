@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
 
+// Цей сервіс забезпечує інтеграцію з API TomTom для розрахунку оптимальних маршрутів та відстаней між локаціями.
 using Microsoft.Extensions.Caching.Memory;
 
 namespace SmartLogist.Application.Services;
@@ -47,8 +48,8 @@ public class RoutingService : IRoutingService
         try
         {
             var route = await GetRouteFromTomTomAsync(origin, destination, tomTomKey, height, width, length, weight, isHazardous);
-            
-            // Cache for 1 minute to prevent rapid repeated requests
+
+            // Кеш на 1 хвилину, щоб запобігти швидким повторним запитам
             _cache.Set(cacheKey, route, TimeSpan.FromMinutes(1));
             
             return route;
@@ -75,10 +76,10 @@ public class RoutingService : IRoutingService
         
         var client = _httpClientFactory.CreateClient("TomTom");
         
-        // Base URL
+        // Базовий URL
         var url = $"https://api.tomtom.com/routing/1/calculateRoute/{originStr}:{destStr}/json?key={apiKey}&traffic=true&routeType=fastest";
         
-        // Determine travel mode and add truck parameters if any dimensions are provided
+        // Визначення режиму подорожі та додавання параметрів вантажівки, якщо вказано розміри або вагу
         if (height > 0 || width > 0 || length > 0 || weight > 0 || isHazardous == true)
         {
             url += "&travelMode=truck&vehicleCommercial=true";
@@ -86,7 +87,7 @@ public class RoutingService : IRoutingService
             if (width > 0) url += $"&vehicleWidth={width.Value.ToString(CultureInfo.InvariantCulture)}";
             if (length > 0) url += $"&vehicleLength={length.Value.ToString(CultureInfo.InvariantCulture)}";
             
-            // TomTom expects weight in kilograms (we receive tons)
+            // TomTom очікує вагу в кілограмах (ми отримуємо в тоннах)
             if (weight > 0) 
             {
                 var weightKg = (int)(weight.Value * 1000);

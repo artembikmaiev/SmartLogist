@@ -1,3 +1,5 @@
+// Картка для відображення ключових показників (KPI) з іконкою, значенням та описом.
+// Компонент переліку статистичних показників у вигляді картки з іконкою та значенням.
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
@@ -6,6 +8,8 @@ interface StatCardProps {
     value: string | number;
     icon: LucideIcon;
     color: 'blue' | 'purple' | 'green' | 'amber' | 'red' | 'orange';
+    unit?: string;
+    subtitle?: string;
     trend?: {
         value: string;
         isPositive: boolean;
@@ -17,6 +21,8 @@ const StatCard: React.FC<StatCardProps> = ({
     value,
     icon: Icon,
     color,
+    unit,
+    subtitle,
     trend
 }) => {
     const colors = {
@@ -60,7 +66,11 @@ const StatCard: React.FC<StatCardProps> = ({
             </div>
             <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-                <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{value}</h3>
+                <div className="flex items-baseline gap-1">
+                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{value}</h3>
+                    {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
+                </div>
+                {subtitle && <p className="text-[10px] text-slate-400 mt-1">{subtitle}</p>}
             </div>
         </div>
     );

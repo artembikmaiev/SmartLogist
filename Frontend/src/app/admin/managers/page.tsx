@@ -1,4 +1,5 @@
 'use client';
+// Панель управління менеджерами системи з можливістю додавання та редагування їхніх профілів.
 
 import { Mail, Phone, Edit, Trash2, Shield, User } from 'lucide-react';
 import { managersService, Manager } from '@/services/managers.service';

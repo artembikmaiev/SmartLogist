@@ -1,3 +1,4 @@
+// Хук для отримання та оновлення персональних даних поточного користувача через API.
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { activitiesService } from '@/services/activities.service';

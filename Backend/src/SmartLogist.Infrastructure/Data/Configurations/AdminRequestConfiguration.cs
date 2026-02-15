@@ -1,3 +1,4 @@
+// Цей файл налаштовує структуру таблиці запитів до адміністратора та їхні зв'язки.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -51,7 +52,7 @@ public class AdminRequestConfiguration : IEntityTypeConfiguration<AdminRequest>
         builder.Property(r => r.ProcessedById)
             .HasColumnName("processed_by_id");
 
-        // Relationships
+        // Зв'язки
         builder.HasOne(r => r.Requester)
             .WithMany()
             .HasForeignKey(r => r.RequesterId)

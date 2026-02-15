@@ -1,3 +1,4 @@
+// Нижній колонтитул (футер) сайту з контактною інформацією та навігаційними посиланнями.
 import Link from 'next/link';
 
 export default function Footer() {

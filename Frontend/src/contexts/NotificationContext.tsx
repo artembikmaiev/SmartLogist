@@ -1,5 +1,7 @@
 'use client';
 
+// Контекст для зберігання та оперативного сповіщення про нові системні події в UI та їх відображення у реальному часі.
+
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Toast, ToastType } from '@/components/ui/Toast';
 

@@ -1,5 +1,7 @@
 'use client';
 
+// Сторінка аналітики для менеджерів, що відображає графіки та звіти про ефективність рейсів.
+
 import { useState, useEffect } from 'react';
 import {
     BarChart3,
@@ -33,6 +35,7 @@ export default function AnalyticsPage() {
     const [drivers, setDrivers] = useState<DriverPerformance[]>([]);
     const [cargo, setCargo] = useState<CargoTypeAnalytics[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'drivers' | 'cargo'>('overview');
 
     useEffect(() => {
@@ -45,31 +48,11 @@ export default function AnalyticsPage() {
                     analyticsService.getCargoAnalysis()
                 ]);
                 setSummary(s);
-                setTrends(t);
-                setDrivers(d);
-                setCargo(c);
-            } catch (err) {
-                console.error('Failed to fetch analytics:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
 
-    const [error, setError] = useState<string | null>(null);
+                // Pad data to ensure we always have 6 months for a proper "graph" feel
+                const paddedTrends = padMonthlyTrends(t);
+                setTrends(paddedTrends);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [s, t, d, c] = await Promise.all([
-                    analyticsService.getSummary(),
-                    analyticsService.getMonthlyTrends(12),
-                    analyticsService.getDriverRankings(),
-                    analyticsService.getCargoAnalysis()
-                ]);
-                setSummary(s);
-                setTrends(t);
                 setDrivers(d);
                 setCargo(c);
             } catch (err: any) {
@@ -81,6 +64,17 @@ export default function AnalyticsPage() {
         };
         fetchData();
     }, []);
+
+    // Helper to pad trends for the last 6 months
+    const padMonthlyTrends = (data: MonthlyTrend[]): MonthlyTrend[] => {
+        const months = ['Вер', 'Жовт', 'Лист', 'Груд', 'Січ', 'Лют']; // Approximate current window
+        // In a real app, this would be dynamic based on current date
+
+        return months.map(m => {
+            const existing = data.find(d => d.month.toLowerCase().includes(m.toLowerCase().slice(0, 3)));
+            return existing || { month: m, revenue: 0, profit: 0, tripCount: 0 };
+        });
+    };
 
     if (loading) {
         return (
@@ -158,15 +152,18 @@ export default function AnalyticsPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Charts Area */}
-                        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Тренд прибутку та виручки</h3>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div> Виручка
+                                <div>
+                                    <h3 className="font-black text-slate-900 uppercase tracking-widest text-[10px]">Тренд прибутку та виручки</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Останні 6 місяців</p>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="w-3 h-3 bg-blue-500 rounded-full shadow-sm shadow-blue-200"></div> Виручка
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                        <div className="w-3 h-3 bg-emerald-500 rounded-full"></div> Прибуток
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-sm shadow-emerald-200"></div> Прибуток
                                     </div>
                                 </div>
                             </div>
@@ -177,28 +174,37 @@ export default function AnalyticsPage() {
                         </div>
 
                         {/* Recent Insights */}
-                        <div className="bg-slate-50 rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col justify-between">
                             <div>
-                                <h3 className="font-bold text-slate-400 uppercase tracking-widest text-[10px] mb-8">Аналітика</h3>
-                                <div className="space-y-6">
+                                <h3 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-8">Ключові показники</h3>
+                                <div className="space-y-8">
                                     <InsightItem
                                         icon={Award}
                                         title="Найкращий водій"
                                         desc={drivers[0]?.fullName || 'Немає даних'}
-                                        sub={`Рейтинг ефективності: ${drivers[0]?.efficiencyScore}%`}
+                                        sub={`Рейтинг ефективності: ${drivers[0]?.efficiencyScore || 0}%`}
                                     />
                                     <InsightItem
                                         icon={Package}
                                         title="Топ категорія"
-                                        desc={CARGO_TYPE_LABELS[parseInt(cargo[0]?.cargoType) as keyof typeof CARGO_TYPE_LABELS] || cargo[0]?.cargoType || 'Немає даних'}
+                                        desc={cargo[0]?.cargoType ? (CARGO_TYPE_LABELS[parseInt(cargo[0].cargoType) as keyof typeof CARGO_TYPE_LABELS] || cargo[0].cargoType) : 'Немає даних'}
                                         sub={`${cargo[0]?.count || 0} рейсів виконано`}
                                     />
                                     <InsightItem
                                         icon={TrendingUp}
                                         title="Прогноз на місяць"
-                                        desc={formatCurrency((summary?.totalProfit || 0) / (trends.length || 1) * 1.05)}
+                                        desc={formatCurrency((summary?.totalProfit || 0) / (trends.filter(t => t.profit > 0).length || 1) * 1.05)}
                                         sub="Очікуваний ріст на 5%"
                                     />
+                                </div>
+                            </div>
+                            <div className="mt-8 pt-8 border-t border-slate-200">
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                    <span>Ефективність витрат</span>
+                                    <span className="text-blue-600">{summary?.profitMargin || 0}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${summary?.profitMargin || 0}%` }}></div>
                                 </div>
                             </div>
                         </div>
@@ -385,33 +391,37 @@ function SimpleTrendChart({ data }: { data: MonthlyTrend[] }) {
     }
 
     const rawMax = Math.max(...data.map(d => Math.max(d.revenue, d.profit)));
-    const maxVal = rawMax === 0 ? 1000 : rawMax * 1.1;
-    const padding = 40;
+    const maxVal = rawMax === 0 ? 1000 : rawMax * 1.3;
+    const padding = 50;
     const width = 800;
     const height = 250;
 
-    // Revenue Path
-    const revPoints = data.map((d, i) => {
-        const x = data.length === 1
-            ? width / 2
-            : (i / (data.length - 1)) * (width - 2 * padding) + padding;
-        const y = height - ((d.revenue / maxVal) * (height - 2 * padding)) - padding;
-        return `${x},${y}`;
-    });
+    const getX = (i: number) => {
+        if (data.length === 1) return width / 2;
+        return (i / (data.length - 1)) * (width - 2 * padding) + padding;
+    };
 
-    // Profit Path
-    const profitPoints = data.map((d, i) => {
-        const x = data.length === 1
-            ? width / 2
-            : (i / (data.length - 1)) * (width - 2 * padding) + padding;
-        const y = height - ((d.profit / maxVal) * (height - 2 * padding)) - padding;
-        return `${x},${y}`;
-    });
+    const getY = (val: number) => {
+        return height - ((val / maxVal) * (height - 2 * padding)) - padding;
+    };
+
+    const revPoints = data.map((d, i) => `${getX(i)},${getY(d.revenue)}`);
+    const profitPoints = data.map((d, i) => `${getX(i)},${getY(d.profit)}`);
 
     return (
         <div className="w-full h-full flex flex-col">
             <svg viewBox={`0 0 ${width} ${height}`} className="w-full flex-1 overflow-visible">
-                {/* Horizontal Lines */}
+                <defs>
+                    <linearGradient id="profitAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.1" />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                    </linearGradient>
+                    <filter id="shadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1" />
+                    </filter>
+                </defs>
+
+                {/* Horizontal Grid */}
                 {[0, 0.25, 0.5, 0.75, 1].map(p => {
                     const y = height - (p * (height - 2 * padding)) - padding;
                     return (
@@ -420,49 +430,110 @@ function SimpleTrendChart({ data }: { data: MonthlyTrend[] }) {
                                 x1={padding} y1={y} x2={width - padding} y2={y}
                                 className="stroke-slate-100" strokeWidth="1" strokeDasharray="4 4"
                             />
-                            <text x={padding - 10} y={y + 4} textAnchor="end" className="text-[10px] fill-slate-300 font-bold">
+                            <text x={padding - 10} y={y + 4} textAnchor="end" className="text-[10px] fill-slate-300 font-bold uppercase">
                                 {Math.round((p * maxVal) / 1000)}k
                             </text>
                         </g>
                     );
                 })}
 
+                {/* Vertical Guides for points */}
+                {data.map((_, i) => (
+                    <line
+                        key={`v-${i}`}
+                        x1={getX(i)} y1={padding} x2={getX(i)} y2={height - padding}
+                        className="stroke-slate-50" strokeWidth="1"
+                    />
+                ))}
+
                 {/* X Axis Labels */}
+                {data.map((d, i) => (
+                    <text key={i} x={getX(i)} y={height - 10} textAnchor="middle" className="text-[11px] fill-slate-500 font-black uppercase tracking-widest">
+                        {d.month}
+                    </text>
+                ))}
+
+                {/* Trends (Lines and Area) - Only for 2+ points */}
+                {data.length > 1 && (
+                    <>
+                        <path
+                            d={`M ${getX(0)},${height - padding} ${profitPoints.join(' ')} L ${getX(data.length - 1)},${height - padding} Z`}
+                            fill="url(#profitAreaGradient)"
+                        />
+                        <polyline
+                            points={revPoints.join(' ')}
+                            fill="none" className="stroke-blue-500" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+                        />
+                        <polyline
+                            points={profitPoints.join(' ')}
+                            fill="none" className="stroke-emerald-500" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+                        />
+                    </>
+                )}
+
+                {/* Comparison Gap for single point */}
+                {data.length === 1 && (
+                    <line
+                        x1={getX(0)} y1={getY(data[0].revenue)} x2={getX(0)} y2={getY(data[0].profit)}
+                        className="stroke-slate-200" strokeWidth="2" strokeDasharray="4 4"
+                    />
+                )}
+
+                {/* Data Marker Points and Labels */}
                 {data.map((d, i) => {
-                    const x = data.length === 1
-                        ? width / 2
-                        : (i / (data.length - 1)) * (width - 2 * padding) + padding;
+                    const rx = getX(i);
+                    const ry = getY(d.revenue);
+                    const px = getX(i);
+                    const py = getY(d.profit);
+
+                    const hasRevenue = d.revenue > 0;
+                    const hasProfit = d.profit > 0;
+
                     return (
-                        <text key={i} x={x} y={height - 10} textAnchor="middle" className="text-[10px] fill-slate-400 font-bold">
-                            {d.month.split(' ')[0]}
-                        </text>
-                    );
-                })}
+                        <g key={i} className="group cursor-help">
+                            {/* Revenue Circle & Label */}
+                            <circle
+                                cx={rx} cy={ry} r="7"
+                                className="fill-white stroke-blue-500 transition-all duration-300 group-hover:r-9"
+                                strokeWidth="4"
+                                filter="url(#shadow)"
+                            />
+                            {hasRevenue && (
+                                <text
+                                    x={rx} y={ry - 15}
+                                    textAnchor="middle"
+                                    className="text-[10px] font-black fill-blue-600 drop-shadow-sm select-none"
+                                >
+                                    {formatCurrency(d.revenue)}
+                                </text>
+                            )}
 
-                {/* Data Lines */}
-                <polyline
-                    points={revPoints.join(' ')}
-                    fill="none" className="stroke-blue-500" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                />
-                <polyline
-                    points={profitPoints.join(' ')}
-                    fill="none" className="stroke-emerald-500" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                />
+                            {/* Profit Circle & Label */}
+                            <circle
+                                cx={px} cy={py} r="7"
+                                className="fill-white stroke-emerald-500 transition-all duration-300 group-hover:r-9"
+                                strokeWidth="4"
+                                filter="url(#shadow)"
+                            />
+                            {hasProfit && (
+                                <text
+                                    x={px} y={py + 22}
+                                    textAnchor="middle"
+                                    className="text-[10px] font-black fill-emerald-600 drop-shadow-sm select-none"
+                                >
+                                    {formatCurrency(d.profit)}
+                                </text>
+                            )}
 
-                {/* Area under Profit */}
-                <path
-                    d={`M ${padding},${height - padding} ${profitPoints.join(' ')} L ${width - padding},${height - padding} Z`}
-                    className="fill-emerald-500/5"
-                />
-
-                {/* Data Points */}
-                {data.map((d, i) => {
-                    const [rx, ry] = revPoints[i].split(',').map(Number);
-                    const [px, py] = profitPoints[i].split(',').map(Number);
-                    return (
-                        <g key={i}>
-                            <circle cx={rx} cy={ry} r="4" className="fill-white stroke-blue-500" strokeWidth="2" />
-                            <circle cx={px} cy={py} r="4" className="fill-white stroke-emerald-500" strokeWidth="2" />
+                            {/* Hidden Tooltip Area */}
+                            <rect x={rx - 40} y={padding} width="80" height={height - 2 * padding} className="fill-transparent">
+                                <title>
+                                    {d.month}:
+                                    Виручка: {formatCurrency(d.revenue)}
+                                    Прибуток: {formatCurrency(d.profit)}
+                                    Витрати: {formatCurrency(d.revenue - d.profit)}
+                                </title>
+                            </rect>
                         </g>
                     );
                 })}

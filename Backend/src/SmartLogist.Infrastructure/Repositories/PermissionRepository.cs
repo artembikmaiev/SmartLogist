@@ -1,3 +1,4 @@
+// Репозиторій для роботи з дозволами та правами доступу користувачів у базі даних.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

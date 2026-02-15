@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Цей файл є точкою входу в додаток, де налаштовуються сервіси, конфігурація та конвеєр обробки HTTP-запитів.
+using Microsoft.EntityFrameworkCore;
 using SmartLogist.Infrastructure.Data;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -14,9 +15,9 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddControllers() ...
+// реєстрація контролерів ...
 
-// CORS
+// налаштування CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -36,15 +37,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
-// DbContext
+// налаштування контексту бази даних
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// FluentValidation
+// налаштування валідації
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateManagerDtoValidator>();
 
-// Repositories
+// реєстрація репозиторіїв
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
@@ -55,7 +56,7 @@ builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ICargoRepository, CargoRepository>();
 
-// Services
+// реєстрація сервісів
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
@@ -76,7 +77,7 @@ builder.Services.AddHttpClient("TomTom", client =>
 });
 builder.Services.AddScoped<JwtService>();
 
-// JWT Authentication
+// налаштування аутентифікації JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
 
@@ -107,13 +108,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// CORS
+// застосування CORS
 app.UseCors("AllowFrontend");
 
-// Global Exception Handler
+// глобальна обробка помилок
 app.UseMiddleware<SmartLogist.WebAPI.Middleware.ExceptionHandlingMiddleware>();
 
-// app.UseHttpsRedirection();
+// перенаправлення на HTTPS (закоментовано)
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -1,3 +1,4 @@
+// Реалізація сервісу активності, що забезпечує запис та витяг даних про дії користувачів.
 using SmartLogist.Application.DTOs.Activity;
 using SmartLogist.Application.Interfaces;
 using SmartLogist.Domain.Entities;

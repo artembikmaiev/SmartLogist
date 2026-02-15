@@ -1,4 +1,5 @@
-import { CheckCircle2 } from 'lucide-react';
+// Компонент, що демонструє можливості системи для різних ролей: адміністраторів, менеджерів та водіїв.
+import { Shield, Users, Truck, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 

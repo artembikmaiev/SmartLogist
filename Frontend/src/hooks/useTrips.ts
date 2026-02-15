@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
+// Хук для роботи з даними рейсів, що надає методи для фільтрації, пагінації та управління станом рейсів.
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import useResource from './useResource';
 import { tripsService } from '@/services/trips.service';
 import { useNotifications } from '@/contexts/NotificationContext';

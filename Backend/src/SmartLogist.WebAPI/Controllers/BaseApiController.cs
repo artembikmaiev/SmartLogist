@@ -1,4 +1,5 @@
 using System.Security.Claims;
+// Базовий контролер з загальними налаштуваннями маршрутизації та атрибутами для всіх API-контролерів.
 using Microsoft.AspNetCore.Mvc;
 
 namespace SmartLogist.WebAPI.Controllers;
@@ -15,7 +16,7 @@ public abstract class BaseApiController : ControllerBase
             return userId;
         }
 
-        // DEV MODE: Return default User ID (1) if no token is present
+        // РЕЖИМ РОЗРОБКИ: Повертати ID користувача за замовчуванням (1), якщо токен відсутній
         return 1; 
     }
 }

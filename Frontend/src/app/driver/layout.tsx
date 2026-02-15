@@ -1,9 +1,11 @@
 'use client';
+// Спеціалізований макет для інтерфейсу водія з адаптивною навігацією та доступом до подорожей.
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Route, LogOut } from 'lucide-react';
+import { Route, LogOut, User, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function DriverLayout({
   children,

@@ -1,6 +1,7 @@
+// Цей файл визначає основні ролі користувачів для розмежування прав доступу в системі.
 namespace SmartLogist.Domain.Enums;
 
-// User roles in the system
+// Ролі користувачів у системі
 public enum UserRole
 {
     Admin = 1,

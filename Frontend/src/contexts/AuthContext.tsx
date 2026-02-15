@@ -1,5 +1,7 @@
 'use client';
 
+// Контекст управління станом аутентифікації користувачів, ролями та сесіями.
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';

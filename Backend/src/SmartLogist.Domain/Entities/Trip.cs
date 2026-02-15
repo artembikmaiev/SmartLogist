@@ -1,34 +1,37 @@
+// Ця сутність є основою системи, представляючи рейс разом з його маршрутом, вантажем та економічними показниками.
 using SmartLogist.Domain.Enums;
+using SmartLogist.Domain.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace SmartLogist.Domain.Entities;
 
 public class Trip
 {
     public int Id { get; set; }
-    
-    // Route info (Normalized)
+
+    // Інформація про маршрут 
     public int OriginId { get; set; }
     public virtual Location Origin { get; set; } = null!;
     
     public int DestinationId { get; set; }
     public virtual Location Destination { get; set; } = null!;
-    
-    // Schedule (DepartureTime is part of the Primary Key in SQL due to partitioning)
+
+    // Розклад (DepartureTime є частиною первинного ключа в SQL через розділення)
     public DateTime ScheduledDeparture { get; set; }
     public DateTime ScheduledArrival { get; set; }
     public DateTime? ActualDeparture { get; set; }
     public DateTime? ActualArrival { get; set; }
-    
-    // Financials
+
+    // Фінанси
     public decimal PaymentAmount { get; set; }
     public string Currency { get; set; } = "UAH";
-    
-    // System info
+
+    // сІнформація про систему
     public decimal DistanceKm { get; set; }
     public TripStatus Status { get; set; } = TripStatus.Pending;
     public string? Notes { get; set; }
-    
-    // Economic info
+
+    // Економічні показники 
     public int? CargoId { get; set; }
     public virtual Cargo? Cargo { get; set; }
     public float CargoWeight { get; set; }
@@ -39,8 +42,8 @@ public class Trip
     
     public bool IsMileageAccounted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    // Relations
+
+    // Відносини
     public int DriverId { get; set; }
     public virtual User Driver { get; set; } = null!;
     
@@ -50,11 +53,11 @@ public class Trip
     public int ManagerId { get; set; }
     public virtual User Manager { get; set; } = null!;
 
-    // Vertical Partitioning Relations
+    // Відносини вертикального поділу
     public virtual TripRoute? Route { get; set; }
     public virtual TripFeedback? Feedback { get; set; }
 
-    // Domain Methods
+    // Методи домену
     public void Accept(int driverId)
     {
         if (Status != TripStatus.Pending)
@@ -129,7 +132,7 @@ public class Trip
         var realFuelCost = (DistanceKm / 100m) * (decimal)actualFuelConsumption * FuelPrice;
         var oldFuelCost = EstimatedFuelCost;
         EstimatedFuelCost = Math.Round(realFuelCost, 2);
-        // Recalculate profit based on difference
+        // Перерахувати прибуток на основі різниці
         ExpectedProfit = ExpectedProfit + (oldFuelCost - EstimatedFuelCost);
     }
 

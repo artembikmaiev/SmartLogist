@@ -1,3 +1,4 @@
+// Сервіс для моніторингу та надання інформації про ціни на різні типи палива.
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
 

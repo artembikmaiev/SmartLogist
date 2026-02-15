@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Enums;
 
+// Об'єкт передачі даних для створення нового рейсу, включаючи параметри вантажу та маршруту.
 namespace SmartLogist.Application.DTOs.Trip;
 
 public class CreateTripDto

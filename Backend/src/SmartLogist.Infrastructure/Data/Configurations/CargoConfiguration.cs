@@ -1,3 +1,4 @@
+// Цей файл містить налаштування відображення сутності вантажів на таблицю бази даних.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;

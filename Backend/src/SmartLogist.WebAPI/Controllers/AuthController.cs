@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+// Контролер, відповідальний за аутентифікацію користувачів, обробку входу та реєстрації.
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Auth;
 using SmartLogist.Application.Interfaces;
@@ -29,7 +30,7 @@ public class AuthController : BaseApiController
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // Client-side will handle token removal
+        // Видалення токена буде оброблено на стороні клієнта
         return Ok(new { Message = "Вихід успішний" });
     }
 

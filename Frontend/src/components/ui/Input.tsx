@@ -1,4 +1,5 @@
-import React from 'react';
+// Стандартний стилізований компонент текстового поля введення з підтримкою іконок та станів валідації.
+import React, { forwardRef } from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     error?: string;

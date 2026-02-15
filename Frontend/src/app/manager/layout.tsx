@@ -1,5 +1,7 @@
 'use client';
 
+// Макет інтерфейсу менеджера, що забезпечує групування функцій управління рейсами та ресурсами.
+
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Truck, Users, BarChart3, Route, LogOut, Bell, X, Check, MessageSquare, Info, AlertCircle, Clock, Trash2, Loader2 } from 'lucide-react';

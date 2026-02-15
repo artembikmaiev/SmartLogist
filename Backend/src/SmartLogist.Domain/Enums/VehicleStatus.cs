@@ -1,6 +1,7 @@
+// Цей файл містить перелік можливих станів транспортного засобу в системі.
 namespace SmartLogist.Domain.Enums;
 
-// Vehicle status
+// Статус транспортного засобу
 public enum VehicleStatus
 {
     Available = 1,

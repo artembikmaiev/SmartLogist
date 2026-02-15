@@ -1,3 +1,4 @@
+// Цей файл визначає структуру та зв'язки таблиці транспортних засобів у базі даних через Entity Framework Core.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;
@@ -80,7 +81,7 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .HasDefaultValue(0)
             .IsRequired();
 
-        // Relationships
+        // Зв'язки
         builder.HasMany(v => v.AssignedDrivers)
             .WithOne(dv => dv.Vehicle)
             .HasForeignKey(dv => dv.VehicleId)

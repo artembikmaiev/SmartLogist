@@ -1,8 +1,9 @@
+// Ця сутність представляє транспортний засіб у системі з усіма його технічними характеристиками та статусом.
 using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Domain.Entities;
 
-// Vehicle entity
+// Сутність транспортного засобу
 
 public class Vehicle
 {
@@ -11,11 +12,11 @@ public class Vehicle
     public string LicensePlate { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty; // e.g., Вантажівка
     public string FuelType { get; set; } = string.Empty; // e.g., Дизель
-    public float FuelConsumption { get; set; } // REAL (L/100km)
-    public float Height { get; set; } // REAL (meters)
-    public float Width { get; set; } // REAL (meters)
-    public float Length { get; set; } // REAL (meters)
-    public float Weight { get; set; } // REAL (tons)
+    public float FuelConsumption { get; set; } // REAL (л/100км)
+    public float Height { get; set; } // REAL (метри)
+    public float Width { get; set; } // REAL (метри)
+    public float Length { get; set; } // REAL (метри)
+    public float Weight { get; set; } // REAL (тонни)
     public bool IsHazardous { get; set; } = false;
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
     public float TotalMileage { get; set; } = 0;

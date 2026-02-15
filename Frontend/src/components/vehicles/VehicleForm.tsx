@@ -1,3 +1,6 @@
+'use client';
+
+// Спеціалізована форма для внесення технічних характеристик транспортних засобів у систему.
 import React from 'react';
 import { Truck, AlertCircle, Clock } from 'lucide-react';
 import { Vehicle, VehicleStatus } from '@/types/vehicle.types';

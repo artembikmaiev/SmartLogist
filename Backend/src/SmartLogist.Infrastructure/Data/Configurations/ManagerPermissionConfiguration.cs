@@ -1,3 +1,4 @@
+// Цей файл визначає конфігурацію зв'язків між менеджерами та їхніми дозволами в базі даних.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;

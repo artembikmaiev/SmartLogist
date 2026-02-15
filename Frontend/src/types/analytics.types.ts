@@ -1,3 +1,4 @@
+// Цей файл містить визначення типів для аналітичних звітів, графіків та статистичних даних.
 export interface AnalyticsSummary {
     totalRevenue: number;
     totalProfit: number;

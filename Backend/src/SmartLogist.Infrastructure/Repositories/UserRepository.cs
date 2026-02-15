@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Цей репозиторій відповідає за операції з даними користувачів, їхніми ролями та правами доступу.
+// Репозиторій для управління обліковими записами користувачів та їх аутентифікаційними даними.
+using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Enums;
 using SmartLogist.Domain.Interfaces;

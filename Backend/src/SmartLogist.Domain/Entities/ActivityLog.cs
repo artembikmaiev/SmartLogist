@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+// Сутність, що представляє запис про конкретну дію користувача в системі для цілей аудиту.
 namespace SmartLogist.Domain.Entities;
 
 public class ActivityLog

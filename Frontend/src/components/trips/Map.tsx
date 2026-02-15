@@ -1,4 +1,5 @@
 "use client";
+// Інтерактивний компонент карти для візуалізації маршрутів та розташування об'єктів.
 
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import { Navigation } from 'lucide-react';
@@ -8,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 
-// Fix for default marker icons
+// Виправлення для стандартних іконок маркерів
 if (typeof window !== 'undefined') {
     const DefaultIcon = L.icon({
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -50,7 +51,7 @@ function AutoBounds({ origin, destination, isInteracting }: { origin?: { lat: nu
         if (isInteracting) return;
 
         const points: [number, number][] = [];
-        // Only include non-zero points
+        // Включати лише ненульові точки
         if (origin && (origin.lat !== 0 || origin.lng !== 0)) points.push([origin.lat, origin.lng]);
         if (destination && (destination.lat !== 0 || destination.lng !== 0)) points.push([destination.lat, destination.lng]);
 
@@ -97,7 +98,7 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
     });
     const [isInteracting, setIsInteracting] = useState(false);
 
-    // Synchronize route with initialRouteGeometry when it changes (e.g., trip selection changes)
+    // Синхронізуйте маршрут з initialRouteGeometry при зміні (наприклад, зміна вибраного рейсу)
     useEffect(() => {
         if (initialRouteGeometry) {
             try {
@@ -113,7 +114,7 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
         }
     }, [initialRouteGeometry, origin?.lat, destination?.lat]);
 
-    // Default to Kyiv if no origin or origin is [0,0]
+    // За замовчуванням Київ, якщо немає початку або він [0,0]
     const center: [number, number] = origin && (origin.lat !== 0 || origin.lng !== 0)
         ? [origin.lat, origin.lng]
         : [50.4501, 30.5234];
@@ -124,7 +125,7 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
         if (initialRouteGeometry && route.length > 0) return;
 
         if (origin && destination) {
-            // Prevent routing if coordinates are [0,0]
+            // Запобігайте маршрутизації, якщо координати [0,0]
             if ((origin.lat === 0 && origin.lng === 0) || (destination.lat === 0 && destination.lng === 0)) {
                 console.warn('Skipping route fetch: Origin or destination has [0,0] coordinates');
                 setRoute([]);
@@ -142,7 +143,7 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
             const timer = setTimeout(() => {
                 setLastParams(params);
                 fetchRoute(origin, destination);
-            }, 800); // Debounce route requests
+            }, 800); // Затримка (debounce) запитів маршруту
 
             return () => clearTimeout(timer);
         } else {

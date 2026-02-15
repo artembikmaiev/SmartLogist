@@ -1,3 +1,5 @@
+// Цей репозиторій керує даними про типи та характеристики вантажів, що перевозяться.
+using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;
 using SmartLogist.Infrastructure.Data;

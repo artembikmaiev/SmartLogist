@@ -1,3 +1,4 @@
+// Цей файл містить функції для взаємодії з API управління водіями, включаючи отримання статистики та адміністрування.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { Driver, CreateDriverData, UpdateDriverData, DriverStats, DriverStatus } from '@/types/drivers.types';
@@ -12,7 +13,7 @@ class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriv
         return apiClient.get<DriverStats>(`${this.endpoint}/stats`);
     };
 
-    // Admin methods
+    // Методи адміністратора
     getAllAdmin = async (): Promise<Driver[]> => {
         return apiClient.get<Driver[]>('/admin/drivers');
     };

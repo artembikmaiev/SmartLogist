@@ -1,3 +1,4 @@
+// Набір об'єктів для десеріалізації відповідей від зовнішнього сервісу маршрутизації TomTom.
 using System.Text.Json.Serialization;
 
 namespace SmartLogist.Application.DTOs.External;

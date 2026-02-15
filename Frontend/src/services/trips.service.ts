@@ -1,6 +1,7 @@
 import { BaseApiService } from './base.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 import type { Trip, CreateTripDto, UpdateTripDto } from '@/types/trip.types';
+// Сервіс для повного циклу управління рейсами, включаючи створення, редагування та отримання деталей.
 import { apiClient } from '@/lib/api/client';
 
 class TripsService extends BaseApiService<Trip, CreateTripDto, UpdateTripDto> {

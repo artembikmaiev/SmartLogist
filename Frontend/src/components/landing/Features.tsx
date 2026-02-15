@@ -1,4 +1,5 @@
-import { Route, DollarSign, User } from 'lucide-react';
+// Секція з описом ключових переваг та функціональних можливостей платформи SmartLogist.
+import { Route, DollarSign, User, Zap, BarChart3, Shield } from 'lucide-react';
 
 export default function Features() {
     const features = [

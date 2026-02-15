@@ -1,6 +1,7 @@
+// Цей файл містить перелік станів доступності водія для виконання рейсів.
 namespace SmartLogist.Domain.Enums;
 
-//Driver status
+// Статус водія
 public enum DriverStatus
 {
     Available = 1,

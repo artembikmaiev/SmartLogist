@@ -1,3 +1,4 @@
+// Цей репозиторій відповідає за збереження та пошук географічних локацій (міст та адрес) у базі даних.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

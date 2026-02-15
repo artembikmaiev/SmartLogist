@@ -1,5 +1,6 @@
 'use client';
 
+// Сторінка входу для менеджерів з розділеним інтерфейсом авторизації.
 import LoginForm from '@/components/auth/LoginForm';
 
 export default function ManagerLogin() {

@@ -1,3 +1,4 @@
+// Сервіс для взаємодії з зовнішніми API, такими як погодні сервіси або картографічні дані.
 import { apiClient } from '@/lib/api/client';
 import { FuelPrice } from '@/types/fuel.types';
 

@@ -1,4 +1,6 @@
-'use client';
+"use client";
+
+// Сторінка для перегляду та управління списком призначених водієві рейсів.
 
 import { Truck, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, RefreshCcw } from 'lucide-react';
 import { useState } from 'react';
@@ -65,7 +67,6 @@ export default function DriverTripsPage() {
                     <StatCard
                         title="Відстань"
                         value={stats?.totalDistance.toLocaleString() || '0'}
-                        subtitle={stats?.earningsSubtitle || 'цього місяця'}
                         unit="км"
                         icon={MapPin}
                         color="purple"
@@ -73,7 +74,6 @@ export default function DriverTripsPage() {
                     <StatCard
                         title="Заробіток"
                         value={stats?.totalEarnings.toLocaleString() || '0'}
-                        subtitle={stats?.earningsSubtitle || 'цього місяця'}
                         unit={user?.assignedVehicle ? '₴' : '$'}
                         icon={DollarSign}
                         color="orange"

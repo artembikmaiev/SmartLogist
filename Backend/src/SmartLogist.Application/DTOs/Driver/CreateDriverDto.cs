@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для створення нового облікового запису водія в системі.
 namespace SmartLogist.Application.DTOs.Driver;
 
 public class CreateDriverDto

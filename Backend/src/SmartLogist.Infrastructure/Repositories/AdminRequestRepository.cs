@@ -1,3 +1,4 @@
+// Цей репозиторій керує запитами менеджерів до адміністратора, такими як створення або видалення об'єктів.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;

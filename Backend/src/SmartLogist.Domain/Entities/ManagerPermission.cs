@@ -1,6 +1,7 @@
+// Сутність-зв'язок між менеджером та конкретним дозволом, визначеним у системі.
 namespace SmartLogist.Domain.Entities;
 
-// Manager permissions 
+// Дозволи менеджера
 public class ManagerPermission
 {
     public int Id { get; set; }

@@ -1,3 +1,4 @@
+// Контролер для перевірки працездатності API та базових сервісів системи.
 using Microsoft.AspNetCore.Mvc;
 
 namespace SmartLogist.WebAPI.Controllers;
@@ -7,7 +8,7 @@ namespace SmartLogist.WebAPI.Controllers;
 public class HealthController : ControllerBase
 {
     /// <summary>
-    /// Health check endpoint
+    /// Кінцева точка перевірки працездатності
     /// </summary>
     [HttpGet]
     public IActionResult Get()

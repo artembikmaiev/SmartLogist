@@ -1,3 +1,4 @@
+// Компонент-заглушка для таблиці, що відображається під час завантаження даних.
 import React from 'react';
 
 interface TableSkeletonProps {

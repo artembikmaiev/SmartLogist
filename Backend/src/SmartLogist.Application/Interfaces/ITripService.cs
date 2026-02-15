@@ -1,3 +1,4 @@
+// Інтерфейс сервісу для управління бізнес-логікою рейсів, їх планування та виконання.
 using SmartLogist.Application.DTOs.Trip;
 
 namespace SmartLogist.Application.Interfaces;

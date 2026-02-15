@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для управління системними дозволами та правами доступу.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

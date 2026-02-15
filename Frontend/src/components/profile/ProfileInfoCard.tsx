@@ -1,4 +1,5 @@
-import { User, Mail, Phone, Calendar, Shield, Save, X, Edit, ChevronDown, CheckCircle2 } from 'lucide-react';
+// Компонент відображення основних персональних даних користувача та його контактної інформації.
+import { User, Mail, Phone, MapPin, Calendar, Shield, Save, X, Edit, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+// Головний банер (Hero section) лендінгу з головним заголовком та презентацією продукту.
 import Link from 'next/link';
 
 export default function Hero() {

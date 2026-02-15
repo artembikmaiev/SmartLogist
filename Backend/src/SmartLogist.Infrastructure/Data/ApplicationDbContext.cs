@@ -1,3 +1,4 @@
+// Цей файл визначає контекст бази даних Entity Framework Core та налаштовує відображення сутностей на таблиці.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 
@@ -10,7 +11,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    // DbSets
+    // Набори даних (DbSets)
     public DbSet<User> Users { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<DriverVehicle> DriverVehicles { get; set; }
@@ -29,7 +30,7 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Global UTC DateTime Converter to prevent partition key mismatches in Postgres
+        // Глобальний конвертер UTC DateTime для запобігання невідповідностей ключів партицій у Postgres
         var dateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
             v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
             v => DateTime.SpecifyKind(v, DateTimeKind.Utc));

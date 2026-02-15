@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для роботи зі сповіщеннями користувачів.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;

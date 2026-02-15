@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для самостійного оновлення водієм власної контактної інформації.
 namespace SmartLogist.Application.DTOs.Driver;
 
 public class UpdateDriverSelfDto

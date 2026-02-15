@@ -1,5 +1,7 @@
 'use client';
 
+// Центр обробки адміністративних запитів на зміну даних від менеджерів та водіїв.
+
 import { useState, useEffect, useMemo } from 'react';
 import { Bell, Check, X, Clock, User, MessageSquare, UserMinus, RotateCcw, Trash2, Truck, Edit } from 'lucide-react';
 import { requestsService, AdminRequest, RequestStatus, RequestType } from '@/services/requests.service';

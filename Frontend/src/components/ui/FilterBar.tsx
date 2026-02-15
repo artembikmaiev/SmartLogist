@@ -1,3 +1,4 @@
+// Цей компонент представляє панель фільтрації з полем пошуку та можливістю додавання додаткових фільтрів.
 import React from 'react';
 import { Search } from 'lucide-react';
 import Input from '@/components/ui/Input';
@@ -6,7 +7,7 @@ interface FilterBarProps {
     searchQuery: string;
     onSearchChange: (query: string) => void;
     searchPlaceholder?: string;
-    children?: React.ReactNode; // For additional filters like selects
+    children?: React.ReactNode; // Для додаткових фільтрів, таких як селектори
     className?: string;
 }
 

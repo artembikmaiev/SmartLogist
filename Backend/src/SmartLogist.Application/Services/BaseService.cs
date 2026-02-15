@@ -1,5 +1,6 @@
 using SmartLogist.Domain.Interfaces;
 
+// Абстрактний базовий сервіс з загальною функціональністю для всіх сервісів прикладного рівня.
 namespace SmartLogist.Application.Services;
 
 public abstract class BaseService

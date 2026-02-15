@@ -1,4 +1,5 @@
 'use client';
+// Загальний реєстр транспортних засобів системи з можливістю редагування технічних параметрів.
 
 import { useState } from 'react';
 import { Truck, CheckCircle2, Wrench, Edit, Trash2, AlertCircle } from 'lucide-react';

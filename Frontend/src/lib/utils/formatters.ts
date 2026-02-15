@@ -1,4 +1,4 @@
-// Date formatting utilities
+// Утиліти для форматування дат
 export const formatDate = (date: string | Date): string => {
     const d = new Date(date);
     return d.toLocaleDateString('uk-UA', {
@@ -27,7 +27,7 @@ export const formatTime = (date: string | Date): string => {
     });
 };
 
-// Currency formatting
+// Форматування валюти
 export const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('uk-UA', {
         style: 'currency',
@@ -36,7 +36,7 @@ export const formatCurrency = (amount: number): string => {
     }).format(amount);
 };
 
-// Distance formatting
+// Форматування відстані
 export const formatDistance = (km: number): string => {
     if (km < 1) {
         return `${Math.round(km * 1000)} м`;
@@ -44,7 +44,7 @@ export const formatDistance = (km: number): string => {
     return `${km.toFixed(1)} км`;
 };
 
-// Duration formatting
+// Форматування тривалості
 export const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -60,12 +60,12 @@ export const formatDuration = (minutes: number): string => {
     return `${hours} год ${mins} хв`;
 };
 
-// Number formatting
+// Форматування чисел
 export const formatNumber = (num: number): string => {
     return new Intl.NumberFormat('uk-UA').format(num);
 };
 
-// Percentage formatting
+// Форматування відсотків
 export const formatPercentage = (value: number, decimals: number = 1): string => {
     return `${value.toFixed(decimals)}%`;
 };

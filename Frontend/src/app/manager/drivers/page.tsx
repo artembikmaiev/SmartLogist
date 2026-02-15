@@ -1,5 +1,7 @@
 'use client';
 
+// Сторінка менеджера для перегляду списку підпорядкованих водіїв та їх поточної завантаженості.
+
 import { Users, CheckCircle, Truck, Moon, Search, Clock, Star, Edit, Trash2, Eye } from 'lucide-react';
 import { useDrivers } from '@/hooks/useDrivers';
 import StatCard from '@/components/ui/StatCard';

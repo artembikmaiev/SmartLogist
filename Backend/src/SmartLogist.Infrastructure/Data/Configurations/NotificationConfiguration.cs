@@ -1,3 +1,4 @@
+// Цей файл налаштовує властивості та обмеження для сутності сповіщень у базі даних.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartLogist.Domain.Entities;

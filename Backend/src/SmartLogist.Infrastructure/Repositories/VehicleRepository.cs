@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Цей репозиторій забезпечує доступ до даних про транспортні засоби та їхнє закріплення за водіями в базі даних.
+// Репозиторій для управління даними про транспортні засоби, їх технічний стан та доступність.
+using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
 using SmartLogist.Domain.Interfaces;
 using SmartLogist.Infrastructure.Data;
@@ -46,13 +48,13 @@ public class VehicleRepository : IVehicleRepository
 
     public async Task DeleteAsync(int id)
     {
-        // 1. Manually nullify VehicleId in trips to avoid FK constraint violations
-        // as the DB schema might not have ON DELETE SET NULL correctly set for all partitions
+        // 1. Вручну обнуліть VehicleId у рейсах, щоб уникнути порушень обмежень зовнішнього ключа
+        // оскільки схема БД може не мати ON DELETE SET NULL для всіх партицій правильно налаштованим
         await _context.Trips
             .Where(t => t.VehicleId == id)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.VehicleId, (int?)null));
 
-        // 2. Delete the vehicle
+        // 2. Видалити транспортний засіб
         var vehicle = await _context.Vehicles.FindAsync(id);
         if (vehicle != null)
         {

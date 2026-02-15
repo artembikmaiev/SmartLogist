@@ -1,3 +1,4 @@
+// Клас валідації для перевірки коректності змінених даних профілю водія.
 using FluentValidation;
 using SmartLogist.Application.DTOs.Driver;
 

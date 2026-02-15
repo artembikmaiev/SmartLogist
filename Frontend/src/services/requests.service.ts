@@ -1,3 +1,4 @@
+// Сервіс для управління запитами на адміністрування та відстеження їх статусів виконання.
 import { apiClient } from '@/lib/api/client';
 import { BaseApiService } from './base.service';
 

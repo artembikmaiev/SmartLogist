@@ -1,3 +1,5 @@
+// Цей файл є вхідною точкою для компонентів управління рейсами, що об'єднує карту та список рейсів.
+import React from 'react';
 import dynamic from 'next/dynamic';
 
 export const Map = dynamic(() => import('./Map'), {

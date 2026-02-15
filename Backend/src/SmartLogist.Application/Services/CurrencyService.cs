@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 using SmartLogist.Application.DTOs.External;
 using SmartLogist.Application.Interfaces;
+// Сервіс для взаємодії з API курсів валют та надання актуальних фінансових даних.
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace SmartLogist.Application.Services;

@@ -1,3 +1,4 @@
+// Цей контролер надає методи для отримання логів активності користувачів у системі.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.Interfaces;

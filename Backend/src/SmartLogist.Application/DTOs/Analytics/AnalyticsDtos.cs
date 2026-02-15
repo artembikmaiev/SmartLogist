@@ -1,3 +1,4 @@
+// Об'єкти передачі даних для аналітичних звітів та статистики виконання рейсів.
 namespace SmartLogist.Application.DTOs.Analytics;
 
 public class AnalyticsSummaryDto

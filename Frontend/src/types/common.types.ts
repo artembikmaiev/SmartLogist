@@ -1,4 +1,4 @@
-// Common types used across the application
+// Загальні типи, що використовуються в усьому додатку
 export interface User {
     id: string;
     email: string;
@@ -6,6 +6,7 @@ export interface User {
     role: 'manager' | 'driver';
 }
 
+// Цей файл визначає загальні типи та структури даних, що використовуються в декількох модулях фронтенд-додатка.
 export interface ApiResponse<T> {
     data: T;
     message?: string;

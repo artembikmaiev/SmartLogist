@@ -1,3 +1,4 @@
+// Віджет для відображення актуальних цін на пальне від зовнішнього сервісу.
 import { FuelPrice } from '@/types/fuel.types';
 import { externalService } from '@/services/external.service';
 import { useState, useEffect } from 'react';

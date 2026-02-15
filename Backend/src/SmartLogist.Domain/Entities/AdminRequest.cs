@@ -1,3 +1,4 @@
+// Сутність запиту менеджера до адміністратора для виконання операцій, що потребують підтвердження.
 using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Domain.Entities;

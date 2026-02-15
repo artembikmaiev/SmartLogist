@@ -1,8 +1,9 @@
+// Ця сутність описує користувача системи, включаючи його роль, контактні дані та зв'язки з керованими об'єктами.
 using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Domain.Entities;
 
-// User entity (Admin, Manager, Driver)
+// Сутність користувача (Адміністратор, Менеджер, Водій)
 
 public class User
 {

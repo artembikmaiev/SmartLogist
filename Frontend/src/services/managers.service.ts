@@ -1,3 +1,4 @@
+// Сервіс для управління обліковими записами менеджерів та їхніми налаштуваннями доступу.
 import { apiClient } from '@/lib/api/client';
 import { BaseApiService } from './base.service';
 

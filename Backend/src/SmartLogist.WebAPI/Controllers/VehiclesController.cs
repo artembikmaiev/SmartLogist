@@ -1,3 +1,4 @@
+// Контролер для управління парком транспортних засобів, включаючи їх реєстрацію, моніторинг та призначення водіїв.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLogist.Application.DTOs.Vehicle;

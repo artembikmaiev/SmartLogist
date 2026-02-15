@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Users, Truck } from 'lucide-react';
+// Проміжний компонент для попереднього перегляду змін в адміністративних запитах перед їх схваленням.
+import { Users, Truck, ArrowRight, FileText } from 'lucide-react';
 import { AdminRequest, RequestType } from '@/services/requests.service';
 import { safeJsonParse } from '@/lib/utils/json.utils';
 import StatusIndicator from '@/components/ui/StatusIndicator';

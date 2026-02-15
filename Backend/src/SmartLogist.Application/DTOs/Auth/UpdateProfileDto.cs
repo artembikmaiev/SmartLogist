@@ -1,3 +1,4 @@
+// Об'єкт передачі даних для оновлення особистої інформації користувача в його профілі.
 namespace SmartLogist.Application.DTOs.Auth;
 
 public class UpdateProfileDto

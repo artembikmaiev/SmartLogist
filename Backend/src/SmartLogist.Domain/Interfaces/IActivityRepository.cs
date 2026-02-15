@@ -1,3 +1,4 @@
+// Інтерфейс репозиторію для управління записами про активність користувачів.
 using SmartLogist.Domain.Entities;
 
 namespace SmartLogist.Domain.Interfaces;
