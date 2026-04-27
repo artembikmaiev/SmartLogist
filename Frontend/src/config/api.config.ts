@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
         REFRESH: '/auth/refresh',
         ME: '/auth/me',
         PROFILE: '/auth/profile',
+        CHANGE_PASSWORD: '/auth/change-password',
     },
     TRIPS: {
         BASE: '/trips',

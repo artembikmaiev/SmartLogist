@@ -102,9 +102,32 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
     const basePayout = Math.round(formData.distanceKm * BASE_PAYMENT_RATE);
     const totalSurchargeAmount = Math.round(basePayout * totalSurchargeRate);
 
+    // Розрахунок відстані від водія до точки старту для доплати
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const p = 0.017453292519943295;
+        const c = Math.cos;
+        const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+        return 12742 * Math.asin(Math.sqrt(a));
+    };
+
+    const selectedDriverForMap = drivers.find(d => d.id === formData.driverId);
+    let outOfZoneSurcharge = 0;
+    let distanceToOrigin = 0;
+    if (selectedDriverForMap?.currentLocationLat && selectedDriverForMap?.currentLocationLng && mapPoints.origin) {
+        distanceToOrigin = calculateDistance(
+            selectedDriverForMap.currentLocationLat, 
+            selectedDriverForMap.currentLocationLng, 
+            mapPoints.origin.lat, 
+            mapPoints.origin.lng
+        );
+        if (distanceToOrigin > 20) {
+            outOfZoneSurcharge = Math.round((distanceToOrigin - 20) * 15); // +15 грн за кожен км
+        }
+    }
+
     // Розподіл надбавки
     const driverSurcharge = Math.round(totalSurchargeAmount * DRIVER_SURCHARGE_SHARE);
-    const driverSalary = baseDriverSalary + driverSurcharge;
+    const driverSalary = baseDriverSalary + driverSurcharge + outOfZoneSurcharge;
 
     const expectedProfit = formData.paymentAmount - fuelCost - driverSalary;
     const totalCosts = fuelCost + driverSalary;
@@ -171,6 +194,14 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
         debouncedGeocode(fullAddress, field === 'originAddress' ? 'origin' : 'destination');
     };
 
+    const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'originCity' | 'destinationCity') => {
+        const value = e.target.value;
+        setFormData(prev => ({ ...prev, [field]: value }));
+        const addrField = field === 'originCity' ? 'originAddress' : 'destinationAddress';
+        const fullAddress = `${value}, ${formData[addrField as keyof typeof formData]}`;
+        debouncedGeocode(fullAddress, field === 'originCity' ? 'origin' : 'destination');
+    };
+
     const handleMapClick = async (lat: number, lng: number) => {
         debouncedGeocode.cancel();
         const type = selectingType;
@@ -231,6 +262,26 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
         }));
     };
 
+    const handleClearRoute = () => {
+        setFormData(prev => ({
+            ...prev,
+            originCity: '',
+            originAddress: '',
+            originLatitude: undefined,
+            originLongitude: undefined,
+            destinationCity: '',
+            destinationAddress: '',
+            destinationLatitude: undefined,
+            destinationLongitude: undefined,
+            distanceKm: 0,
+            routeGeometry: ''
+        }));
+        setMapPoints({});
+        setRoutingError(null);
+        setLastRouteDuration(0);
+        setSelectingType('origin');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.driverId === 0) {
@@ -266,14 +317,27 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                 <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2">
                     {/* Точки маршруту */}
                     <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                            <MapPin className="w-3 h-3" /> Маршрут
-                        </h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <MapPin className="w-3 h-3" /> Маршрут
+                            </h3>
+                            {(mapPoints.origin || mapPoints.destination) && (
+                                <button 
+                                    type="button" 
+                                    onClick={handleClearRoute}
+                                    className="text-xs text-red-500 hover:text-red-600 hover:underline font-bold"
+                                >
+                                    Очистити точки
+                                </button>
+                            )}
+                        </div>
                         <div className="grid grid-cols-2 gap-3">
                             <FormField label="Місто відправлення">
                                 <Input
                                     value={formData.originCity}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, originCity: e.target.value }))}
+                                    onChange={(e) => handleCityChange(e, 'originCity')}
+                                    onFocus={() => setSelectingType('origin')}
+                                    className={selectingType === 'origin' ? 'ring-2 ring-blue-500' : ''}
                                     required
                                 />
                             </FormField>
@@ -291,7 +355,9 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                             <FormField label="Місто прибуття">
                                 <Input
                                     value={formData.destinationCity}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, destinationCity: e.target.value }))}
+                                    onChange={(e) => handleCityChange(e, 'destinationCity')}
+                                    onFocus={() => setSelectingType('destination')}
+                                    className={selectingType === 'destination' ? 'ring-2 ring-blue-500' : ''}
                                     required
                                 />
                             </FormField>
@@ -449,6 +515,7 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                                     <div className="text-[9px] text-slate-600">
                                         {DRIVER_RATE_PER_KM} ₴/км
                                         {driverSurcharge > 0 && ` + надбавка (${(totalSurchargeRate * 100).toFixed(0)}%)`}
+                                        {outOfZoneSurcharge > 0 && <span className="text-amber-500 font-bold block mt-0.5">+{outOfZoneSurcharge} ₴ за доїзд ({Math.round(distanceToOrigin)} км)</span>}
                                     </div>
                                 </div>
                             </div>
@@ -508,20 +575,26 @@ export default function CreateTripModal({ onSuccess, onCancel }: CreateTripModal
                     </div>
 
                     <div className="flex-1 min-h-[400px]">
-                        <Map
-                            origin={mapPoints.origin}
-                            destination={mapPoints.destination}
-                            onMapClick={handleMapClick}
-                            onRouteInfo={handleRouteInfo}
+                        {(() => {
+                            const selectedDriverForMap = drivers.find(d => d.id === formData.driverId);
+                            return (
+                                <Map
+                                    origin={mapPoints.origin}
+                                    destination={mapPoints.destination}
+                                    driverLocation={selectedDriverForMap?.currentLocationLat && selectedDriverForMap?.currentLocationLng ? { lat: selectedDriverForMap.currentLocationLat, lng: selectedDriverForMap.currentLocationLng, radiusKm: 20, label: selectedDriverForMap.currentLocationCity } : undefined}
+                                    onMapClick={handleMapClick}
+                                    onRouteInfo={handleRouteInfo}
                             height="100%"
-                            vehicleDimensions={useMemo(() => selectedVehicle ? {
-                                height: selectedVehicle.height,
-                                width: selectedVehicle.width,
-                                length: selectedVehicle.length,
-                                weight: selectedVehicle.weight,
-                                isHazardous: selectedVehicle.isHazardous
-                            } : undefined, [selectedVehicle?.id, selectedVehicle?.height, selectedVehicle?.width, selectedVehicle?.length, selectedVehicle?.weight, selectedVehicle?.isHazardous])}
-                        />
+                                vehicleDimensions={useMemo(() => selectedVehicle ? {
+                                    height: selectedVehicle.height,
+                                    width: selectedVehicle.width,
+                                    length: selectedVehicle.length,
+                                    weight: selectedVehicle.weight,
+                                    isHazardous: selectedVehicle.isHazardous
+                                } : undefined, [selectedVehicle?.id, selectedVehicle?.height, selectedVehicle?.width, selectedVehicle?.length, selectedVehicle?.weight, selectedVehicle?.isHazardous])}
+                            />
+                        );
+                        })()}
                     </div>
                 </div>
             </div>

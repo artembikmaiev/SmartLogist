@@ -1,4 +1,4 @@
-﻿// Цей репозиторій відповідає за операції з даними користувачів, їхніми ролями та правами доступу.
+// Цей репозиторій відповідає за операції з даними користувачів, їхніми ролями та правами доступу.
 // Репозиторій для управління обліковими записами користувачів та їх аутентифікаційними даними.
 using Microsoft.EntityFrameworkCore;
 using SmartLogist.Domain.Entities;
@@ -27,6 +27,7 @@ public class UserRepository : IUserRepository
                 .ThenInclude(dv => dv.Vehicle)
             .Include(u => u.ManagerPermissions)
                 .ThenInclude(mp => mp.Permission)
+            .Include(u => u.CurrentLocation)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
@@ -153,6 +154,7 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
+            .Include(u => u.CurrentLocation)
             .Where(u => u.Role == UserRole.Driver && u.ManagerId == managerId)
             .OrderBy(u => u.FullName)
             .ToListAsync();
@@ -165,6 +167,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.Manager)
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
+            .Include(u => u.CurrentLocation)
             .Where(u => u.Role == UserRole.Driver)
             .OrderBy(u => u.FullName)
             .ToListAsync();
@@ -177,6 +180,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.Manager)
             .Include(u => u.AssignedVehicles)
                 .ThenInclude(dv => dv.Vehicle)
+            .Include(u => u.CurrentLocation)
             .FirstOrDefaultAsync(u => u.Id == driverId && u.Role == UserRole.Driver);
     }
 
@@ -204,5 +208,12 @@ public class UserRepository : IUserRepository
         await _context.Users
             .Where(u => u.Id == driverId)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.ManagerId, managerId));
+    }
+
+    public async Task UpdateLocationAsync(int driverId, int locationId)
+    {
+        await _context.Users
+            .Where(u => u.Id == driverId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.CurrentLocationId, locationId));
     }
 }

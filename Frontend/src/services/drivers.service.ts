@@ -53,6 +53,10 @@ class DriversService extends BaseApiService<Driver, CreateDriverData, UpdateDriv
     updateProfileFromDriver = async (data: { fullName: string; phone?: string; licenseNumber?: string }): Promise<Driver> => {
         return apiClient.put<Driver>(`${this.endpoint}/profile`, data);
     };
+
+    updateLocationFromDriver = async (data: { city: string; address: string; latitude: number; longitude: number }): Promise<void> => {
+        return apiClient.put(`${this.endpoint}/me/location`, data);
+    };
 }
 
 export const driversService = new DriversService();

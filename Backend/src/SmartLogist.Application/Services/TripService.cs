@@ -134,6 +134,26 @@ public class TripService : ITripService
         // Отримати або створити вантаж (проста реалізація)
         var cargo = await _cargoRepository.AddAsync(new Cargo { Name = dto.CargoName ?? "Unknown", TypeId = (int)dto.CargoType });
 
+        // Перевірка 50-км зони
+        var driver = await _userRepository.GetDriverByIdAsync(dto.DriverId);
+        if (driver != null && driver.CurrentLocation != null && driver.CurrentLocation.Latitude.HasValue && driver.CurrentLocation.Longitude.HasValue)
+        {
+            if (dto.OriginLatitude.HasValue && dto.OriginLongitude.HasValue)
+            {
+                var distance = CalculateDistanceInKm(
+                    driver.CurrentLocation.Latitude.Value, 
+                    driver.CurrentLocation.Longitude.Value,
+                    dto.OriginLatitude.Value, 
+                    dto.OriginLongitude.Value);
+                    
+                // Обмеження у 20 км знято, оскільки тепер є доплата
+                // if (distance > 20)
+                // {
+                //     throw new InvalidOperationException($"Неможливо призначити водія. Він знаходиться за {Math.Round(distance)} км від точки відправлення (ліміт: 20 км).");
+                // }
+            }
+        }
+
         var trip = new Trip
         {
             OriginId = origin.Id,
@@ -259,6 +279,12 @@ public class TripService : ITripService
             else if (trip.Status == TripStatus.Completed || trip.Status == TripStatus.Cancelled || trip.Status == TripStatus.Declined)
                 await _userRepository.UpdateDriverStatusAsync(trip.DriverId, DriverStatus.Available);
 
+            // Оновлення локації водія після прибуття/завершення
+            if (trip.Status == TripStatus.Completed || trip.Status == TripStatus.Arrived)
+            {
+                await _userRepository.UpdateLocationAsync(trip.DriverId, trip.DestinationId);
+            }
+
             // Облік пробігу за завершеними поїздками
             if (trip.Status == TripStatus.Completed && trip.VehicleId.HasValue && !trip.IsMileageAccounted)
             {
@@ -340,5 +366,18 @@ public class TripService : ITripService
             ActualFuelConsumption = trip.ActualFuelConsumption,
             RouteGeometry = trip.Route?.RouteGeometry ?? ""
         };
+    }
+
+    private static double CalculateDistanceInKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        var dLat = (lat2 - lat1) * Math.PI / 180.0;
+        var dLon = (lon2 - lon1) * Math.PI / 180.0;
+        
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+                
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return 6371 * c; // Радіус Землі в кілометрах
     }
 }

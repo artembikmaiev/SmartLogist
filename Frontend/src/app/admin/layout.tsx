@@ -234,9 +234,13 @@ function AdminLayoutContent({
                                         </div>
 
                                         <div className="p-3 border-t border-slate-50 bg-slate-50/30 text-center">
-                                            <span className="text-xs font-bold text-slate-400">
-                                                Всі сповіщення
-                                            </span>
+                                            <Link
+                                                href="/admin/notifications"
+                                                onClick={() => setShowNotifications(false)}
+                                                className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors block"
+                                            >
+                                                Переглянути всю історію
+                                            </Link>
                                         </div>
                                     </div>
                                 </>

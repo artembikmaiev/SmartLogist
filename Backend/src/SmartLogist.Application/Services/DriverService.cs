@@ -13,6 +13,7 @@ public class DriverService : BaseService, IDriverService
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IAdminRequestService _adminRequestService;
     private readonly ITripRepository _tripRepository;
+    private readonly ILocationRepository _locationRepository;
 
     public DriverService(
         IUserRepository userRepository, 
@@ -20,12 +21,14 @@ public class DriverService : BaseService, IDriverService
         IActivityService activityService,
         IVehicleRepository vehicleRepository,
         IAdminRequestService adminRequestService,
-        ITripRepository tripRepository) : base(userRepository, permissionRepository)
+        ITripRepository tripRepository,
+        ILocationRepository locationRepository) : base(userRepository, permissionRepository)
     {
         _activityService = activityService;
         _vehicleRepository = vehicleRepository;
         _adminRequestService = adminRequestService;
         _tripRepository = tripRepository;
+        _locationRepository = locationRepository;
     }
 
     public async Task<IEnumerable<DriverDto>> GetDriversByManagerIdAsync(int managerId)
@@ -202,6 +205,23 @@ public class DriverService : BaseService, IDriverService
         );
 
         return MapToDto(driver);
+    }
+
+    public async Task UpdateLocationFromDriverAsync(int driverId, UpdateDriverLocationDto dto)
+    {
+        var driver = await _userRepository.GetDriverByIdAsync(driverId);
+        if (driver == null) throw new KeyNotFoundException("Водія не знайдено");
+
+        var location = await _locationRepository.GetByCityAndAddressAsync(dto.City, dto.Address)
+            ?? await _locationRepository.AddAsync(new Location 
+            { 
+                City = dto.City, 
+                Address = dto.Address,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
+            });
+
+        await _userRepository.UpdateLocationAsync(driverId, location.Id);
     }
 
     public async Task<DriverStatsDto> GetDriverStatsAsync(int managerId)
@@ -436,7 +456,10 @@ public class DriverService : BaseService, IDriverService
             } : null,
             CreatedAt = driver.CreatedAt,
             TotalTrips = totalTrips,
-            Rating = rating
+            Rating = rating,
+            CurrentLocationCity = driver.CurrentLocation?.City,
+            CurrentLocationLat = driver.CurrentLocation?.Latitude,
+            CurrentLocationLng = driver.CurrentLocation?.Longitude
         };
     }
 }

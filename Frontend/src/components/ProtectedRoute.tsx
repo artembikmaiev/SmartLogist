@@ -2,7 +2,7 @@
 
 // Компонент вищого порядку для захисту маршрутів від неавторизованого доступу на основі ролей.
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -13,24 +13,28 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
     const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (!isLoading) {
-            const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-
-            if (isAdminRoute || requiredRole === 'admin') {
-                return;
-            }
+            const isAdminRoute = pathname?.startsWith('/admin');
 
             if (!isAuthenticated) {
-                router.push('/');
+                if (isAdminRoute) {
+                    router.push('/auth/admin');
+                } else {
+                    router.push('/');
+                }
             } else if (requiredRole && user?.role !== requiredRole) {
-                router.push('/');
+                // Тимчасово не перевіряємо роль для адмін-панелі, якщо користувач уже авторизований
+                if (!isAdminRoute) {
+                    router.push('/');
+                }
             }
         }
-    }, [isAuthenticated, isLoading, user, requiredRole, router]);
+    }, [isAuthenticated, isLoading, user, requiredRole, router, pathname]);
 
-    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+    const isAdminRoute = pathname?.startsWith('/admin');
 
     if (isLoading) {
         return (
@@ -40,7 +44,11 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         );
     }
 
-    if (!isAdminRoute && (!isAuthenticated || (requiredRole && user?.role !== requiredRole))) {
+    if (!isAuthenticated) {
+        return null;
+    }
+
+    if (requiredRole && user?.role !== requiredRole && !isAdminRoute) {
         return null;
     }
 

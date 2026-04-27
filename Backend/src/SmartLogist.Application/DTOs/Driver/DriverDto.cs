@@ -18,6 +18,10 @@ public class DriverDto
     public double? Rating { get; set; }
     public bool HasPendingDeletion { get; set; }
     public bool HasPendingUpdate { get; set; }
+    
+    public string? CurrentLocationCity { get; set; }
+    public double? CurrentLocationLat { get; set; }
+    public double? CurrentLocationLng { get; set; }
 }
 
 public class AssignedVehicleDto

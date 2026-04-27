@@ -29,4 +29,5 @@ public interface IUserRepository
     Task<int> GetDriversCountByManagerIdAsync(int managerId);
     Task UpdateDriverStatusAsync(int driverId, DriverStatus status);
     Task UpdateManagerAsync(int driverId, int? managerId);
+    Task UpdateLocationAsync(int driverId, int locationId);
 }

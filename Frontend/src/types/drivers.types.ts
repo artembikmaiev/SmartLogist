@@ -14,6 +14,9 @@ export interface Driver {
     rating?: number;
     hasPendingDeletion: boolean;
     hasPendingUpdate: boolean;
+    currentLocationCity?: string;
+    currentLocationLat?: number;
+    currentLocationLng?: number;
 }
 
 export interface AssignedVehicle {

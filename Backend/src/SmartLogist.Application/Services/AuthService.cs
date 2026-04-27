@@ -30,7 +30,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Користувача з таким email не знайдено");
         }
 
-        // Підтвердіти пароль (строга перевірка через БД)
+        // ПІДТВЕРДЖЕННЯ ПАРОЛЯ
         try
         {
             var dbHash = user.PasswordHash?.Trim();
@@ -116,14 +116,17 @@ public class AuthService : IAuthService
                 VehicleId = primaryVehicle.VehicleId,
                 Model = primaryVehicle.Vehicle?.Model ?? string.Empty,
                 LicensePlate = primaryVehicle.Vehicle?.LicensePlate ?? string.Empty,
-                KmUntilMaintenance = primaryVehicle.Vehicle != null 
-                    ? Math.Max(0, 10000 - (primaryVehicle.Vehicle.TotalMileage - primaryVehicle.Vehicle.MileageAtLastMaintenance))
-                    : 0
-            } : null,
-            CreatedAt = user.CreatedAt,
-            Permissions = permissions
-        };
-    }
+            KmUntilMaintenance = primaryVehicle.Vehicle != null 
+                ? Math.Max(0, 10000 - (primaryVehicle.Vehicle.TotalMileage - primaryVehicle.Vehicle.MileageAtLastMaintenance))
+                : 0
+        } : null,
+        CreatedAt = user.CreatedAt,
+        CurrentLocationCity = user.CurrentLocation?.City,
+        CurrentLocationLat = user.CurrentLocation?.Latitude,
+        CurrentLocationLng = user.CurrentLocation?.Longitude,
+        Permissions = permissions
+    };
+}
 
     public async Task UpdateProfileAsync(int userId, UpdateProfileDto dto)
     {
@@ -149,6 +152,25 @@ public class AuthService : IAuthService
         user.Email = dto.Email;
         user.Phone = dto.Phone;
 
+        await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task ChangePasswordAsync(int userId, ChangePasswordDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("Користувача не знайдено");
+        }
+
+        // Перевірити старий пароль
+        if (string.IsNullOrEmpty(user.PasswordHash) || !BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+        {
+            throw new UnauthorizedAccessException("Поточний пароль невірний");
+        }
+
+        // Хешувати новий пароль
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         await _userRepository.UpdateAsync(user);
     }
 }

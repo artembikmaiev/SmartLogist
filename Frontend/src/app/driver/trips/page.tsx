@@ -2,8 +2,8 @@
 
 // Сторінка для перегляду та управління списком призначених водієві рейсів.
 
-import { Truck, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, RefreshCcw } from 'lucide-react';
-import { useState } from 'react';
+import { Truck, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, RefreshCcw, Edit2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { driversService } from '@/services/drivers.service';
@@ -17,6 +17,48 @@ export default function DriverTripsPage() {
     const { user, refreshUser } = useAuth();
     const [isChangingStatus, setIsChangingStatus] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+    const [locationCity, setLocationCity] = useState('');
+    const [isUpdatingLocBlock, setIsUpdatingLocBlock] = useState(false);
+
+    useEffect(() => {
+        if (user?.currentLocationCity) {
+            setLocationCity(user.currentLocationCity);
+        }
+    }, [user?.currentLocationCity]);
+
+    const handleLocationUpdate = async () => {
+        if (!locationCity.trim() || locationCity === user?.currentLocationCity) {
+            setIsUpdatingLocation(false);
+            return;
+        }
+        setIsUpdatingLocBlock(true);
+        try {
+            let lat = 0; let lng = 0;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationCity)}&limit=1`, { headers: { 'Accept-Language': 'uk,en' } });
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    lat = parseFloat(data[0].lat);
+                    lng = parseFloat(data[0].lon);
+                }
+            } catch (e) { console.error(e); }
+
+            await driversService.updateLocationFromDriver({
+                city: locationCity,
+                address: "",
+                latitude: lat,
+                longitude: lng
+            });
+            await refreshUser();
+            setIsUpdatingLocation(false);
+        } catch (err: any) {
+            alert(`Не вдалося оновити локацію: ${err.message || 'Помилка'}`);
+        } finally {
+            setIsUpdatingLocBlock(false);
+        }
+    };
 
     const {
         allItems: trips,
@@ -188,6 +230,46 @@ export default function DriverTripsPage() {
                                     </div>
                                 </div>
                             ) : <p className="text-sm text-slate-400 italic">Не закріплено</p>}
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-slate-900">Геолокація</h2>
+                                {!isUpdatingLocation && (
+                                    <button onClick={() => setIsUpdatingLocation(true)} className="text-slate-400 hover:text-blue-600 transition-colors p-1" title="Змінити локацію">
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {isUpdatingLocation ? (
+                                <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <input
+                                        type="text"
+                                        placeholder="Введіть нове місто..."
+                                        value={locationCity}
+                                        onChange={(e) => setLocationCity(e.target.value)}
+                                        className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                                        disabled={isUpdatingLocBlock}
+                                    />
+                                    <div className="flex gap-2">
+                                        <button onClick={handleLocationUpdate} disabled={isUpdatingLocBlock} className="flex-1 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">Зберегти</button>
+                                        <button onClick={() => { setIsUpdatingLocation(false); setLocationCity(user?.currentLocationCity || ''); }} disabled={isUpdatingLocBlock} className="flex-1 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">Скасувати</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                user?.currentLocationCity ? (
+                                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
+                                        <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-sm text-slate-900">{user.currentLocationCity}</p>
+                                            <p className="text-[10px] font-bold text-slate-500 mt-1">Останнє зафіксоване місцезнаходження.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-400 italic">Локація ще не зафіксована (завершіть свій перший рейс).</p>
+                                )
+                            )}
                         </div>
 
                         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">

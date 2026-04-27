@@ -18,6 +18,11 @@ public class UserInfoDto
     public string? Status { get; set; }
     public DriverVehicleInfoDto? AssignedVehicle { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    public string? CurrentLocationCity { get; set; }
+    public double? CurrentLocationLat { get; set; }
+    public double? CurrentLocationLng { get; set; }
+
     public List<PermissionDto>? Permissions { get; set; }
 }
 

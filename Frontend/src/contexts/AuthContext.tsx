@@ -3,7 +3,7 @@
 // Контекст управління станом аутентифікації користувачів, ролями та сесіями.
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import type { AuthResponse } from '@/types/auth.types';
 
@@ -21,12 +21,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
     const [user, setUser] = useState<AuthResponse['user'] | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Load user from sessionStorage on mount
+        // Load user from sessionStorage
         const loadStoredAuth = () => {
             const storedUser = authService.getStoredUser();
             const storedToken = authService.getStoredToken();
@@ -43,18 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     .catch(err => {
                         console.error('Failed to refresh user data:', err);
                     });
-            } else if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-                // Bypass for admin routes in dev mode
-                const mockAdmin: AuthResponse['user'] = {
-                    id: 1,
-                    email: 'admin@smartlogist.ua',
-                    fullName: 'Адміністратор',
-                    role: 'admin',
-                    status: 'Active',
-                    createdAt: new Date().toISOString()
-                };
-                setUser(mockAdmin);
-                setToken('dev-token');
             } else {
                 setUser(null);
                 setToken(null);
@@ -63,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         loadStoredAuth();
         setIsLoading(false);
-    }, []);
+    }, [pathname]);
 
     const login = async (email: string, password: string) => {
         const response = await authService.login({ email, password });

@@ -2,7 +2,7 @@
 
 // Сторінка менеджера для перегляду списку підпорядкованих водіїв та їх поточної завантаженості.
 
-import { Users, CheckCircle, Truck, Moon, Search, Clock, Star, Edit, Trash2, Eye } from 'lucide-react';
+import { Users, CheckCircle, Truck, Moon, Search, Clock, Star, Edit, Trash2, Eye, MapPin } from 'lucide-react';
 import { useDrivers } from '@/hooks/useDrivers';
 import StatCard from '@/components/ui/StatCard';
 import Button from '@/components/ui/Button';
@@ -49,6 +49,11 @@ export default function DriversPage() {
                     <div>
                         <p className="text-sm font-semibold text-slate-900 line-clamp-1">{driver.fullName}</p>
                         <p className="text-xs text-slate-500 underline decoration-slate-200">{driver.email}</p>
+                        {driver.currentLocationCity && (
+                            <p className="text-[10px] text-blue-600 font-bold flex items-center gap-1 mt-0.5" title="Поточна локація водія">
+                                <MapPin className="w-3 h-3" /> {driver.currentLocationCity}
+                            </p>
+                        )}
                     </div>
                 </div>
             )

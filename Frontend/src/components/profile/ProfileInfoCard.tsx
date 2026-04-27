@@ -14,7 +14,7 @@ interface ProfileInfoCardProps {
     setIsEditing: (val: boolean) => void;
     onSave: (data: any) => void;
     onStatusUpdate?: (status: DriverStatus) => void;
-    role: 'driver' | 'manager';
+    role: 'driver' | 'manager' | 'admin';
 }
 
 export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEditing, onSave, onStatusUpdate, role }: ProfileInfoCardProps) {
@@ -50,7 +50,9 @@ export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEd
                     </div>
                     <div>
                         <h3 className="text-2xl font-black text-slate-900 leading-tight">{user?.fullName}</h3>
-                        <p className="text-slate-500 font-medium text-sm mt-1">{role === 'driver' ? 'Водій-далекобійник' : 'Менеджер логістики'}</p>
+                        <p className="text-slate-500 font-medium text-sm mt-1">
+                            {role === 'driver' ? 'Водій-далекобійник' : role === 'manager' ? 'Менеджер логістики' : 'Системний адміністратор'}
+                        </p>
                         <div className="flex items-center gap-2 mt-3">
                             {role === 'driver' && onStatusUpdate && (
                                 <div className="relative">
@@ -106,8 +108,8 @@ export default function ProfileInfoCard({ user, isEditing, isSubmitting, setIsEd
                         {isEditing ? <Input value={formData.licenseNumber} onChange={e => setFormData({ ...formData, licenseNumber: e.target.value })} icon={Shield} /> : <p className="font-bold text-slate-900">{user?.licenseNumber || '—'}</p>}
                     </FormField>
                 ) : (
-                    <FormField label="Відділ" id="department">
-                        {isEditing ? <Input value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} icon={Shield} /> : <p className="font-bold text-slate-900">{formData.department}</p>}
+                    <FormField label={role === 'admin' ? "Привілеї" : "Відділ"} id="department">
+                        {isEditing ? <Input value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} icon={Shield} /> : <p className="font-bold text-slate-900">{role === 'admin' ? 'Суперкористувач' : formData.department}</p>}
                     </FormField>
                 )}
                 <FormField label="Дата прийняття" id="hired">

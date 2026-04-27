@@ -22,6 +22,10 @@ public class User
     
     public DriverStatus? DriverStatus { get; set; }
     
+    // Поточне територіальне розташування (оновлюється після рейсів)
+    public int? CurrentLocationId { get; set; }
+    public virtual Location? CurrentLocation { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public virtual ICollection<User> ManagedDrivers { get; set; } = new List<User>();

@@ -49,6 +49,10 @@ export const authService = {
             sessionStorage.setItem('user', JSON.stringify(updatedUser));
         }
     },
+    
+    async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
+        await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data);
+    },
 
     getStoredUser(): AuthResponse['user'] | null {
         if (typeof window !== 'undefined') {

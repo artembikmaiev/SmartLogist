@@ -8,7 +8,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import type { ActivityLog } from '@/types/activity.types';
 import type { DriverStatus } from '@/types/drivers.types';
 
-export function useProfile(role: 'driver' | 'manager') {
+export function useProfile(role: 'driver' | 'manager' | 'admin') {
     const { user, refreshUser } = useAuth();
     const { success, error } = useNotifications();
     const [isEditing, setIsEditing] = useState(false);
@@ -52,6 +52,20 @@ export function useProfile(role: 'driver' | 'manager') {
         }
     };
 
+    const changePassword = async (data: any) => {
+        setIsSubmitting(true);
+        try {
+            await authService.changePassword(data);
+            success('Пароль успішно змінено');
+            return true;
+        } catch (err: any) {
+            error(err.message || 'Не вдалося змінити пароль');
+            return false;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const updateStatus = async (status: DriverStatus) => {
         setIsSubmitting(true);
         try {
@@ -74,6 +88,7 @@ export function useProfile(role: 'driver' | 'manager') {
         activities,
         isLoadingActivities,
         updateProfile,
+        changePassword,
         updateStatus,
         fetchActivities
     };

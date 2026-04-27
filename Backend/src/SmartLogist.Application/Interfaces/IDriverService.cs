@@ -13,6 +13,7 @@ public interface IDriverService
     Task DeleteDriverAsync(int driverId, int managerId);
     Task UpdateStatusAsync(int driverId, DriverStatus status);
     Task<DriverDto> UpdateSelfAsync(int driverId, UpdateDriverSelfDto dto);
+    Task UpdateLocationFromDriverAsync(int driverId, UpdateDriverLocationDto dto);
     Task<DriverStatsDto> GetDriverStatsAsync(int managerId);
 
     // Admin methods

@@ -50,6 +50,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.ManagerId)
             .HasColumnName("manager_id");
 
+        builder.Property(u => u.CurrentLocationId)
+            .HasColumnName("current_location_id");
+
         builder.Property(u => u.LicenseNumber)
             .HasColumnName("license_number")
             .HasMaxLength(50);
@@ -76,6 +79,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(dv => dv.Driver)
             .HasForeignKey(dv => dv.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(u => u.CurrentLocation)
+            .WithMany()
+            .HasForeignKey(u => u.CurrentLocationId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 
     private static string ConvertDriverStatusToDb(SmartLogist.Domain.Enums.DriverStatus status)

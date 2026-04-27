@@ -1,7 +1,7 @@
 "use client";
 // Інтерактивний компонент карти для візуалізації маршрутів та розташування об'єктів.
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet';
 import { Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -34,6 +34,7 @@ interface MapProps {
         isHazardous?: boolean;
     };
     initialRouteGeometry?: string;
+    driverLocation?: { lat: number; lng: number; radiusKm?: number; label?: string };
 }
 
 function ChangeView({ center }: { center: [number, number] }) {
@@ -85,7 +86,7 @@ function InvalidateSize() {
     return null;
 }
 
-export default function Map({ origin, destination, onMapClick, onRouteInfo, height = '400px', vehicleDimensions, initialRouteGeometry }: MapProps) {
+export default function Map({ origin, destination, onMapClick, onRouteInfo, height = '400px', vehicleDimensions, initialRouteGeometry, driverLocation }: MapProps) {
     const [route, setRoute] = useState<[number, number][]>(() => {
         if (initialRouteGeometry) {
             try {
@@ -209,6 +210,15 @@ export default function Map({ origin, destination, onMapClick, onRouteInfo, heig
                     <Marker position={[origin.lat, origin.lng]}>
                         <Popup>{origin.label}</Popup>
                     </Marker>
+                )}
+
+                {driverLocation && (driverLocation.lat !== 0 || driverLocation.lng !== 0) && (
+                    <Circle
+                        center={[driverLocation.lat, driverLocation.lng]}
+                        pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.15, weight: 2, dashArray: '5, 5' }}
+                        radius={(driverLocation.radiusKm || 20) * 1000}
+                        interactive={false}
+                    />
                 )}
 
                 {destination && (destination.lat !== 0 || destination.lng !== 0) && (

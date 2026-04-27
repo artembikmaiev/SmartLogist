@@ -25,6 +25,9 @@ export interface AuthResponse {
             kmUntilMaintenance: number;
         };
         createdAt: string;
+        currentLocationCity?: string;
+        currentLocationLat?: number;
+        currentLocationLng?: number;
         permissions?: Permission[];
     };
     token: string;

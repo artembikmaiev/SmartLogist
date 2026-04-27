@@ -95,4 +95,13 @@ public class DriversController : BaseApiController
         var driver = await _driverService.UpdateSelfAsync(driverId, dto);
         return Ok(driver);
     }
+
+    // PUT: api/drivers/me/location
+    [HttpPut("me/location")]
+    public async Task<IActionResult> UpdateLocation([FromBody] UpdateDriverLocationDto dto)
+    {
+        var driverId = GetUserId();
+        await _driverService.UpdateLocationFromDriverAsync(driverId, dto);
+        return Ok(new { Message = "Локацію оновлено успішно" });
+    }
 }
