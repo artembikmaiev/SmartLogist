@@ -1,8 +1,10 @@
 'use client';
+import { useState } from 'react';
 // Панель управління менеджерами системи з можливістю додавання та редагування їхніх профілів.
 
-import { Mail, Phone, Edit, Trash2, Shield, User } from 'lucide-react';
+import { Mail, Phone, Edit, Trash2, Shield, User, Key } from 'lucide-react';
 import { managersService, Manager } from '@/services/managers.service';
+import { authService } from '@/services/auth.service';
 import useResource from '@/hooks/useResource';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import PageHeader from '@/components/ui/PageHeader';
@@ -11,10 +13,35 @@ import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import StatCard from '@/components/ui/StatCard';
 import ManagerForm from '@/components/admin/ManagerForm';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
 import { useNotifications } from '@/contexts/NotificationContext';
 
 export default function AdminManagersPage() {
     const { success, error } = useNotifications();
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+
+    const handleResetPasswordOpen = (m: Manager) => {
+        setSelectedItem(m);
+        setNewPassword('');
+        setShowResetPasswordModal(true);
+    };
+
+    const handleResetPassword = async () => {
+        if (!selectedManager || !newPassword) return;
+        try {
+            setIsSubmitting(true);
+            await authService.resetPassword(selectedManager.id, newPassword);
+            setShowResetPasswordModal(false);
+            success(`Пароль для ${selectedManager.fullName} успішно змінено`);
+        } catch (err: any) {
+            error(err.message || 'Помилка при зміні пароля');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const {
         paginatedData: managers,
         allItems,
@@ -30,6 +57,7 @@ export default function AdminManagersPage() {
         showDeleteModal,
         setShowDeleteModal,
         selectedItem: selectedManager,
+        setSelectedItem,
         loadData,
         handleCreateOpen,
         handleEditOpen,
@@ -145,6 +173,9 @@ export default function AdminManagersPage() {
             className: 'text-right',
             render: (m) => (
                 <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => handleResetPasswordOpen(m)} className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Скинути пароль">
+                        <Key className="w-4 h-4" />
+                    </button>
                     <button onClick={() => handleEditOpen(m)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                     </button>
@@ -204,6 +235,30 @@ export default function AdminManagersPage() {
 
             <Modal isOpen={showCreateModal || showEditModal} onClose={closeModals} title={showCreateModal ? 'Додати менеджера' : 'Редагувати менеджера'}>
                 <ManagerForm manager={selectedManager} onSubmit={handleFormSubmit} onCancel={closeModals} />
+            </Modal>
+
+            <Modal isOpen={showResetPasswordModal} onClose={() => setShowResetPasswordModal(false)} title="Скинути пароль">
+                <div className="space-y-4 p-1">
+                    <p className="text-sm text-slate-600">Введіть новий пароль для менеджера <strong>{selectedManager?.fullName}</strong></p>
+                    <div className="space-y-4">
+                        <FormField label="Новий пароль" required id="newPassword">
+                            <Input
+                                id="newPassword"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="••••••••"
+                                minLength={8}
+                            />
+                        </FormField>
+                        <div className="flex gap-3 mt-8">
+                            <button onClick={() => setShowResetPasswordModal(false)} className="flex-1 px-6 py-3 border border-slate-300 rounded-xl">Скасувати</button>
+                            <button onClick={handleResetPassword} disabled={isSubmitting || !newPassword} className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold">
+                                {isSubmitting ? 'Збереження...' : 'Змінити пароль'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </Modal>
 
             <Modal isOpen={showDeleteModal} onClose={closeModals} title="Видалити менеджера?">

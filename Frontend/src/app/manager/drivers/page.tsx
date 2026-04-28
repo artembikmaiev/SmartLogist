@@ -2,8 +2,13 @@
 
 // Сторінка менеджера для перегляду списку підпорядкованих водіїв та їх поточної завантаженості.
 
-import { Users, CheckCircle, Truck, Moon, Search, Clock, Star, Edit, Trash2, Eye, MapPin } from 'lucide-react';
+import { Users, CheckCircle, Truck, Moon, Search, Clock, Star, Edit, Trash2, Eye, MapPin, Key } from 'lucide-react';
 import { useDrivers } from '@/hooks/useDrivers';
+import { authService } from '@/services/auth.service';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { useState } from 'react';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
 import StatCard from '@/components/ui/StatCard';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -36,6 +41,30 @@ export default function DriversPage() {
         selectedDriver,
         actions
     } = useDrivers();
+
+    const { success, error } = useNotifications();
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+
+    const handleResetPasswordOpen = (driver: Driver) => {
+        modals.edit.open(driver); // Reuse the select logic
+        setNewPassword('');
+        setShowResetPasswordModal(true);
+    };
+
+    const handleResetPassword = async () => {
+        if (!selectedDriver || !newPassword) return;
+        try {
+            setIsSubmitting(true);
+            await authService.resetPassword(selectedDriver.id, newPassword);
+            setShowResetPasswordModal(false);
+            success(`Пароль для ${selectedDriver.fullName} успішно змінено`);
+        } catch (err: any) {
+            error(err.message || 'Помилка при зміні пароля');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const columns: Column<Driver>[] = [
         {
@@ -116,17 +145,30 @@ export default function DriversPage() {
                         <Eye className="w-5 h-5" />
                     </button>
                     {permissions.edit && (
-                        <button
-                            onClick={() => modals.edit.open(driver)}
-                            disabled={driver.hasPendingDeletion}
-                            className={`transition-colors ${driver.hasPendingDeletion
-                                ? 'text-slate-200 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                            title="Редагувати"
-                        >
-                            <Edit className="w-5 h-5" />
-                        </button>
+                        <>
+                            <button
+                                onClick={() => handleResetPasswordOpen(driver)}
+                                disabled={driver.hasPendingDeletion}
+                                className={`transition-colors ${driver.hasPendingDeletion
+                                    ? 'text-slate-200 cursor-not-allowed'
+                                    : 'text-orange-400 hover:text-orange-600'
+                                    }`}
+                                title="Скинути пароль"
+                            >
+                                <Key className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => modals.edit.open(driver)}
+                                disabled={driver.hasPendingDeletion}
+                                className={`transition-colors ${driver.hasPendingDeletion
+                                    ? 'text-slate-200 cursor-not-allowed'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                                title="Редагувати"
+                            >
+                                <Edit className="w-5 h-5" />
+                            </button>
+                        </>
                     )}
                     {permissions.delete && (
                         <button
@@ -256,8 +298,32 @@ export default function DriversPage() {
                 <DriverForm onSubmit={actions.create} onCancel={modals.add.close} />
             </Modal>
 
-            <Modal isOpen={modals.edit.isOpen} onClose={modals.edit.close} title="Редагувати водія" maxWidth="2xl">
+            <Modal isOpen={modals.edit.isOpen && !showResetPasswordModal} onClose={modals.edit.close} title="Редагувати водія" maxWidth="2xl">
                 <DriverForm driver={selectedDriver!} onSubmit={(data) => actions.update(selectedDriver!.id, data)} onCancel={modals.edit.close} />
+            </Modal>
+
+            <Modal isOpen={showResetPasswordModal} onClose={() => setShowResetPasswordModal(false)} title="Скинути пароль">
+                <div className="space-y-4 p-1">
+                    <p className="text-sm text-slate-600">Введіть новий пароль для водія <strong>{selectedDriver?.fullName}</strong></p>
+                    <div className="space-y-4">
+                        <FormField label="Новий пароль" required id="newPassword">
+                            <Input
+                                id="newPassword"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="••••••••"
+                                minLength={8}
+                            />
+                        </FormField>
+                        <div className="flex gap-3 mt-8">
+                            <button onClick={() => setShowResetPasswordModal(false)} className="flex-1 px-6 py-3 border border-slate-300 rounded-xl font-bold">Скасувати</button>
+                            <button onClick={handleResetPassword} disabled={isLoading || !newPassword} className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold">
+                                {isLoading ? 'Збереження...' : 'Змінити пароль'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </Modal>
 
             <ConfirmModal

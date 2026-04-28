@@ -4,14 +4,16 @@
 
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
 import ActivitySidebar from '@/components/profile/ActivitySidebar';
+import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import { useProfile } from '@/hooks/useProfile';
 import { useState, useEffect } from 'react';
 import { currencyService } from '@/services/currency.service';
 import type { CurrencyRate } from '@/types/currency.types';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Shield, Key } from 'lucide-react';
 
 export default function ManagerProfilePage() {
-    const { user, isEditing, setIsEditing, isSubmitting, activities, isLoadingActivities, updateProfile } = useProfile('manager');
+    const { user, isEditing, setIsEditing, isSubmitting, activities, isLoadingActivities, updateProfile, changePassword } = useProfile('manager');
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [rates, setRates] = useState<CurrencyRate[]>([]);
     const [ratesLoading, setRatesLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -49,15 +51,48 @@ export default function ManagerProfilePage() {
                         onSave={updateProfile}
                     />
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h2 className="text-xl font-bold text-slate-900 mb-6">Безпека</h2>
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-blue-200 transition-all">
-                                <div>
-                                    <p className="font-black text-slate-900 text-xs uppercase tracking-widest">Пароль</p>
-                                    <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">Останнє оновлення: 3 місяці тому</p>
+                    {/* Безпека */}
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900">Безпека</h2>
+                                <p className="text-sm text-slate-500">Захист вашого доступу</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                        <Key className="w-5 h-5 text-slate-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Пароль</p>
+                                        <p className="text-sm font-bold text-slate-900 mt-0.5">••••••••••••</p>
+                                    </div>
                                 </div>
-                                <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest hover:border-blue-300 transition-all shadow-sm">Змінити</button>
+                                <button 
+                                    onClick={() => setIsPasswordModalOpen(true)}
+                                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-blue-600 hover:border-blue-300 transition-all shadow-sm active:scale-95"
+                                >
+                                    Змінити
+                                </button>
+                            </div>
+
+                            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 opacity-60">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                        <Shield className="w-5 h-5 text-slate-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">2FA</p>
+                                        <p className="text-sm font-bold text-slate-900 mt-0.5">Вимкнено</p>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Soon</span>
                             </div>
                         </div>
                     </div>
@@ -111,6 +146,13 @@ export default function ManagerProfilePage() {
                     </div>
                 </div>
             </div>
+
+            <ChangePasswordModal 
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onSave={changePassword}
+                isSubmitting={isSubmitting}
+            />
         </div>
     );
 }

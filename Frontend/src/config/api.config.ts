@@ -18,6 +18,9 @@ export const API_ENDPOINTS = {
         ME: '/auth/me',
         PROFILE: '/auth/profile',
         CHANGE_PASSWORD: '/auth/change-password',
+        RESET_PASSWORD: '/auth/reset-password',
+        CHECK_ADMIN: '/auth/check-admin',
+        SETUP_ADMIN: '/auth/setup-admin',
     },
     TRIPS: {
         BASE: '/trips',

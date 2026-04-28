@@ -9,4 +9,7 @@ public interface IAuthService
     Task<UserInfoDto?> GetUserByIdAsync(int userId);
     Task UpdateProfileAsync(int userId, UpdateProfileDto dto);
     Task ChangePasswordAsync(int userId, ChangePasswordDto dto);
+    Task ResetUserPasswordAsync(int userId, string newPassword);
+    Task<bool> AnyAdminExistsAsync();
+    Task<AuthResponseDto> RegisterFirstAdminAsync(RegisterAdminDto dto);
 }

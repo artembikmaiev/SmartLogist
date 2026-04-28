@@ -3,8 +3,9 @@
 // Сторінка управління списком водіїв для системного адміністратора.
 
 import { useState, useEffect } from 'react';
-import { UserCog, Link as LinkIcon, Edit, Trash2, AlertCircle, Truck, X, Check } from 'lucide-react';
+import { UserCog, Link as LinkIcon, Edit, Trash2, AlertCircle, Truck, X, Check, Key } from 'lucide-react';
 import { driversService } from '@/services/drivers.service';
+import { authService } from '@/services/auth.service';
 import { managersService, Manager } from '@/services/managers.service';
 import { vehiclesService } from '@/services/vehicles.service';
 import { Driver, DriverStats } from '@/types/drivers.types';
@@ -17,6 +18,8 @@ import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import StatusIndicator from '@/components/ui/StatusIndicator';
 import DriverForm from '@/components/drivers/DriverForm';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
 import StatCard from '@/components/ui/StatCard';
 import { useNotifications } from '@/contexts/NotificationContext';
 
@@ -34,6 +37,28 @@ export default function AdminDriversPage() {
     const [showUnassignVehicleModal, setShowUnassignVehicleModal] = useState(false);
     const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null);
     const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+
+    const handleResetPasswordOpen = (driver: Driver) => {
+        setSelectedItem(driver);
+        setNewPassword('');
+        setShowResetPasswordModal(true);
+    };
+
+    const handleResetPassword = async () => {
+        if (!selectedDriver || !newPassword) return;
+        try {
+            setIsSubmitting(true);
+            await authService.resetPassword(selectedDriver.id, newPassword);
+            setShowResetPasswordModal(false);
+            success(`Пароль для ${selectedDriver.fullName} успішно змінено`);
+        } catch (err: any) {
+            error(err.message || 'Помилка при зміні пароля');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const {
         filteredData: drivers,
@@ -266,6 +291,13 @@ export default function AdminDriversPage() {
                     >
                         <LinkIcon className="w-4 h-4" />
                     </button>
+                    <button
+                        onClick={() => handleResetPasswordOpen(driver)}
+                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                        title="Скинути пароль"
+                    >
+                        <Key className="w-4 h-4" />
+                    </button>
                     <button onClick={() => handleEditOpen(driver)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                     </button>
@@ -331,6 +363,30 @@ export default function AdminDriversPage() {
             {/* Modals */}
             <Modal isOpen={showCreateModal || showEditModal} onClose={closeAllModals} title={showCreateModal ? 'Додати водія' : 'Редагувати водія'}>
                 <DriverForm driver={selectedDriver || undefined} onSubmit={handleFormSubmit} onCancel={closeAllModals} isAdmin />
+            </Modal>
+
+            <Modal isOpen={showResetPasswordModal} onClose={() => setShowResetPasswordModal(false)} title="Скинути пароль">
+                <div className="space-y-4 p-1">
+                    <p className="text-sm text-slate-600">Введіть новий пароль для водія <strong>{selectedDriver?.fullName}</strong></p>
+                    <div className="space-y-4">
+                        <FormField label="Новий пароль" required id="newPassword">
+                            <Input
+                                id="newPassword"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="••••••••"
+                                minLength={8}
+                            />
+                        </FormField>
+                        <div className="flex gap-3 mt-8">
+                            <button onClick={() => setShowResetPasswordModal(false)} className="flex-1 px-6 py-3 border border-slate-300 rounded-xl font-semibold">Скасувати</button>
+                            <button onClick={handleResetPassword} disabled={isSubmitting || !newPassword} className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold">
+                                {isSubmitting ? 'Збереження...' : 'Змінити пароль'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </Modal>
 
             <Modal isOpen={showDeleteModal} onClose={closeAllModals} title="Видалити водія?">

@@ -69,4 +69,36 @@ public class AuthController : BaseApiController
         await _authService.ChangePasswordAsync(userId, dto);
         return Ok(new { Message = "Пароль змінено успішно" });
     }
+
+    // GET: api/auth/check-admin
+    [HttpGet("check-admin")]
+    public async Task<IActionResult> CheckAdmin()
+    {
+        var exists = await _authService.AnyAdminExistsAsync();
+        return Ok(new { Exists = exists });
+    }
+
+    // POST: api/auth/setup-admin
+    [HttpPost("setup-admin")]
+    public async Task<IActionResult> SetupAdmin([FromBody] RegisterAdminDto dto)
+    {
+        try
+        {
+            var response = await _authService.RegisterFirstAdminAsync(dto);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    // POST: api/auth/reset-password/{userId}
+    // [Authorize(Roles = "admin,manager")]
+    [HttpPost("reset-password/{userId}")]
+    public async Task<IActionResult> ResetPassword(int userId, [FromBody] ResetPasswordDto dto)
+    {
+        await _authService.ResetUserPasswordAsync(userId, dto.NewPassword);
+        return Ok(new { Message = "Пароль скинуто успішно" });
+    }
 }

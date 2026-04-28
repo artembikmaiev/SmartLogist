@@ -1,7 +1,7 @@
 // Цей сервіс управляє процесами аутентифікації користувача, включаючи вхід, вихід та збереження даних сесії.
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/config/api.config';
-import type { LoginCredentials, AuthResponse } from '@/types/auth.types';
+import type { LoginCredentials, AuthResponse, RegisterAdminData } from '@/types/auth.types';
 import type { ApiResponse } from '@/types/common.types';
 
 export const authService = {
@@ -54,6 +54,10 @@ export const authService = {
         await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data);
     },
 
+    async resetPassword(userId: number, newPassword: string): Promise<void> {
+        await apiClient.post(`${API_ENDPOINTS.AUTH.RESET_PASSWORD}/${userId}`, { newPassword });
+    },
+
     getStoredUser(): AuthResponse['user'] | null {
         if (typeof window !== 'undefined') {
             const user = sessionStorage.getItem('user');
@@ -67,5 +71,26 @@ export const authService = {
             return sessionStorage.getItem('token');
         }
         return null;
+    },
+
+    async checkAdminExists(): Promise<boolean> {
+        const response = await apiClient.get<any>(
+            API_ENDPOINTS.AUTH.CHECK_ADMIN
+        );
+        return response.exists || response.Exists || false;
+    },
+
+    async setupAdmin(data: RegisterAdminData): Promise<AuthResponse> {
+        const response = await apiClient.post<AuthResponse>(
+            API_ENDPOINTS.AUTH.SETUP_ADMIN,
+            data
+        );
+
+        if (response.token) {
+            sessionStorage.setItem('token', response.token);
+            sessionStorage.setItem('user', JSON.stringify(response.user));
+        }
+
+        return response;
     },
 };

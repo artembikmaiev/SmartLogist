@@ -3,6 +3,8 @@ using SmartLogist.Application.Interfaces;
 // Сервіс, що реалізує логіку аутентифікації, реєстрації користувачів та управління доступом.
 using System.IdentityModel.Tokens.Jwt;
 using SmartLogist.Domain.Interfaces;
+using SmartLogist.Domain.Entities;
+using SmartLogist.Domain.Enums;
 
 namespace SmartLogist.Application.Services;
 
@@ -172,5 +174,51 @@ public class AuthService : IAuthService
         // Хешувати новий пароль
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task ResetUserPasswordAsync(int userId, string newPassword)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException("Користувача не знайдено");
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<bool> AnyAdminExistsAsync()
+    {
+        var admins = await _userRepository.GetAllAdminsAsync();
+        return admins.Any();
+    }
+
+    public async Task<AuthResponseDto> RegisterFirstAdminAsync(RegisterAdminDto dto)
+    {
+        if (await AnyAdminExistsAsync())
+        {
+            throw new InvalidOperationException("Адміністратор вже існує у системі.");
+        }
+
+        var user = new User
+        {
+            Email = dto.Email.Trim().ToLower(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            FullName = dto.FullName,
+            Role = UserRole.Admin,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _userRepository.AddAsync(user);
+
+        var token = _jwtService.GenerateToken(user);
+
+        return new AuthResponseDto
+        {
+            Token = token,
+            User = await MapToUserInfoDto(user)
+        };
     }
 }

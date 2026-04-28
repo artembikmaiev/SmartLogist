@@ -9,6 +9,10 @@ export interface RegisterData extends LoginCredentials {
     role: 'manager' | 'driver';
 }
 
+export interface RegisterAdminData extends LoginCredentials {
+    fullName: string;
+}
+
 export interface AuthResponse {
     user: {
         id: number;
